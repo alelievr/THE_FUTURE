@@ -1,8 +1,10 @@
 #include "SyncOffset.hpp"
 
-SyncOffset::SyncOffset()
+SyncOffset::SyncOffset(void)
 {
 	type = SyncOffsetType::None;
+	linearDelay.tv_sec = 0;
+	linearDelay.tv_usec = 0;
 }
 
 SyncOffset		SyncOffset::CreateLinearSyncOffset(const int delaySecs, const int delayMillis, const SyncOffsetOrder order)
@@ -22,7 +24,6 @@ SyncOffset		SyncOffset::CreateCustomSyncOffset(CustomSyncOffsetCallback callback
 
 	o.type = SyncOffsetType::Custom;
 	o.order = order;
-	bzero(&o.linearDelay, sizeof(Timeval));
 	gettimeofday(&o.linearDelay, NULL);
 	o.customDelayCallback = callback;
 	return o;

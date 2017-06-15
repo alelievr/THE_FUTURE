@@ -40,6 +40,7 @@ void		ShaderRender::updateUniforms(ShaderProgram *p)
 	{
 		p->updateUniform1("iGlobalTime", ti);
 		p->updateUniform4("iMouse", mouse.x, window.y - mouse.y, mouse.y, mouse.y);
+		p->updateUniform4("iFractalWindow", fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 	}
 	p->updateUniform1("iFrame", frames++);
 	p->updateUniform2("iScrollAmount", scroll.x, scroll.y);
@@ -54,12 +55,6 @@ void		ShaderRender::updateUniforms(ShaderProgram *p)
 	printf("time: %f\n", ti);
 	printf("frames: %i\n", frames);
 	printf("forward: %f/%f/%f\n", forward.x, forward.y, forward.z);
-	if (!input_pause)
-#endif
-#if DOUBLE_PRECISION
-	//glUniform4d(unis[6], fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
-#else
-	p->updateUniform4("iFractalWindow", fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
 #endif
 
 	int j = 0;

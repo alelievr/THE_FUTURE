@@ -15,6 +15,10 @@ class		NetworkGUI
 		sf::RenderWindow	*_win;
 		sf::Sprite			*_placeSprite;
 		sf::Vector2< int >	_mousePosition;
+		NetworkManager		*_netManager;
+
+		void				DrawCluster(bool clicked);
+		void				DrawPlace(const int row, const int seat);
 
 	public:
 		NetworkGUI(void) = delete;

@@ -2,11 +2,12 @@
 
 NetworkGUI::NetworkGUI(NetworkManager *nm)
 {
+	_netManager = nm;
 	_win = new sf::RenderWindow(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "THE FUTURE");
 	_win->setFramerateLimit(60);
 
 	sf::Texture placeTexture;
-	placeTexture.loadFromFile("textures/place.png");
+	placeTexture.loadFromFile("textures/place.gif");
 
 	_placeSprite = new sf::Sprite();
 	_placeSprite->setTexture(placeTexture);
@@ -19,8 +20,20 @@ NetworkGUI::~NetworkGUI(void)
 	delete _placeSprite;
 }
 
+void		NetworkGUI::DrawPlace(const int row, const int seat)
+{
+
+}
+
+void		NetworkGUI::DrawCluster(bool clicked)
+{
+
+}
+
 void		NetworkGUI::RenderLoop(void)
 {
+	bool		clicked = false;
+
 	while (_win->isOpen())
     {
         sf::Event event;
@@ -32,7 +45,7 @@ void		NetworkGUI::RenderLoop(void)
                 	_win->close();
 					break ;
 				case sf::Event::MouseButtonPressed:
-					//TODO
+					clicked = true;
 					break ;
 				case sf::Event::MouseMoved:
 					_mousePosition.x = event.mouseMove.x;
@@ -45,7 +58,7 @@ void		NetworkGUI::RenderLoop(void)
 
 		_win->clear(sf::Color::Black);
 
-		_win->draw(*_placeSprite);
+		DrawCluster(clicked);
 
 		_win->display();
     }

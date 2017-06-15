@@ -34,7 +34,6 @@
 # define WIN_W				1920
 # define WIN_H				1080
 # define SCALE				70
-//# define DOUBLE_PRECISION 1
 
 typedef struct s_vec2
 {
@@ -155,11 +154,7 @@ extern vec4			move;
 extern vec2			window;
 extern vec2			framebuffer_size;
 extern vec3			forward;
-#if DOUBLE_PRECISION
-extern dvec4		fractalWindow;
-#else
 extern vec4			fractalWindow;
-#endif
 extern int			keys;
 extern int			input_pause;
 extern long			lastModifiedFile;
@@ -213,9 +208,6 @@ static const char* fragment_shader_texture =
 
 static const char* fragment_shader_text =
 "#version 330\n"
-#if DOUBLE_PRECISION
-"#extension GL_ARB_gpu_shader_fp64 : enable\n"
-#endif
 "in vec4 outColor;\n"
 "out vec4 fragColor;\n"
 "\n"
@@ -226,11 +218,7 @@ static const char* fragment_shader_text =
 "uniform vec2		iScrollAmount;\n"
 "uniform vec4		iMoveAmount;\n"
 "uniform vec3		iForward;\n"
-#if DOUBLE_PRECISION
-"uniform dvec4		iFractalWindow;\n"
-#else
 "uniform vec4		iFractalWindow;\n"
-#endif
 "uniform sampler2D	iChannel0;\n"
 "uniform sampler2D	iChannel1;\n"
 "uniform sampler2D	iChannel2;\n"
