@@ -67,7 +67,7 @@ CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb
 DEBUGFLAGS2	=	-fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
-OPTFLAGS1	=	-funroll-loops -O2
+OPTFLAGS1	=	-funroll-loops -O0 #FIXME the renderer does not works if O > 0 ...
 OPTFLAGS2	=	-pipe -funroll-loops -Ofast
 
 #	Framework

@@ -14,15 +14,18 @@
 
 static bool		networkMustQuit = false;
 static bool		server = false;
+static bool		noNetwork = false;
 static bool		connection = false;
 static bool		threadHasExited = false;
+static bool		serverGUINotInitialized = true;
+static char *	shaderToLoad = NULL;
 static bool		serverSentAllShadersToLoad;
 static std::list< const std::string >	shadersToLoad;
 
 static struct option longopts[] = {
 	{ "server",     no_argument,            NULL,           1},
 	{ "connection", no_argument,			NULL, 			'c'},
-//	{ "shader",     required_argument,      NULL,           's'},
+	{ "nonetwork",  required_argument,      NULL,           'n'},
 	{ NULL,         0,                      NULL,           0}
 };
 
@@ -38,13 +41,17 @@ static void options(int *ac, char ***av)
 	int bflag, ch;
 
     bflag = 0;
-    while ((ch = getopt_long(*ac, *av, "c", longopts, NULL)) != -1)
+    while ((ch = getopt_long(*ac, *av, "cn:", longopts, NULL)) != -1)
         switch (ch) {
             case 1:
                 server = true;
                 break;
 			case 'c':
 				connection = true;
+				break ;
+			case 'n':
+				noNetwork = true;
+				shaderToLoad = optarg;
 				break ;
             default:
                 usage(*av[0]);
@@ -94,6 +101,9 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 	}
 	else
 	{
+		while (serverGUINotInitialized)
+			usleep(10000);
+
 		Timer::Interval(
 			[&]()
 			{
@@ -103,7 +113,7 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 			1 //function will block until first scan is complete
 		);
 
-		int		group = nm->CreateNewGroup();
+/*		int		group = nm->CreateNewGroup();
 
 		nm->MoveIMacToGroup(group, nm->GetLocalRow(), nm->GetLocalSeat(), nm->GetLocalCluster());
 
@@ -112,7 +122,7 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 
 		std::cout << "focus shader 0 send !" << std::endl;
 		nm->FocusShaderOnGroup(Timer::Now(), group, 0, SyncOffset::CreateLinearSyncOffset(1, 0));
-		nm->FocusShaderOnGroup(Timer::TimeoutInSeconds(10), group, 1, SyncOffset::CreateNoneSyncOffset());
+		nm->FocusShaderOnGroup(Timer::TimeoutInSeconds(10), group, 1, SyncOffset::CreateNoneSyncOffset());*/
 
 		while (!networkMustQuit)
 		{
@@ -135,6 +145,7 @@ int		main(int ac, char **av)
 		std::thread			serverThread(NetworkThread, &nm, (ShaderApplication *)NULL);
 
 		NetworkGUI			gui(&nm);
+		serverGUINotInitialized = false;
 
 		gui.RenderLoop();
 
@@ -146,23 +157,34 @@ int		main(int ac, char **av)
 	{
 		ShaderApplication		app(server);
 
-		NetworkManager		nm(server, connection);
-		std::thread			clientThread(NetworkThread, &nm, &app);
+		if (noNetwork)
+		{
+			app.LoadShader(shaderToLoad);
+			app.loadingShaders = false;
+			app.OnLoadingShaderFinished();
+			app.FocusShader(0);
 
-		while (!serverSentAllShadersToLoad)
-			usleep(16000);
+			app.RenderLoop();
+		}
+		else
+		{
+			NetworkManager		nm(server, connection);
+			std::thread			clientThread(NetworkThread, &nm, &app);
 
-		app.loadingShaders = true;
-		for (const std::string & shaderName : shadersToLoad)
-			app.LoadShader(shaderName);
-		app.loadingShaders = false;
-		app.OnLoadingShaderFinished();
+			while (!serverSentAllShadersToLoad)
+				usleep(16000);
 
-		app.RenderLoop();
+			for (const std::string & shaderName : shadersToLoad)
+				app.LoadShader(shaderName);
+			app.loadingShaders = false;
+			app.OnLoadingShaderFinished();
 
-		networkMustQuit = true;
-		if (!threadHasExited)
-			clientThread.join();
+			app.RenderLoop();
+
+			networkMustQuit = true;
+			if (!threadHasExited)
+				clientThread.join();
+		}
 	}
 
 	return 0;

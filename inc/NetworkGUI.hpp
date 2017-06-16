@@ -15,7 +15,7 @@ class		NetworkGUI
 {
 	struct		GUIClient
 	{
-		sf::Color		color;
+		int				groupId;
 		ClientStatus	status;
 	};
 

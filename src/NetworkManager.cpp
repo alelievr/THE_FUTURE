@@ -492,10 +492,7 @@ void						NetworkManager::_ServerSocketEvent(void)
 					);
 
 					if (_clientStatusUpdateCallback != NULL)
-					{
-						std::cout << "calling callback !\n";
 						_clientStatusUpdateCallback(packet.row, packet.seat, packet.status);
-					}
 
 					break ;
 				case PacketType::UniformUpdate:
@@ -547,13 +544,12 @@ int		NetworkManager::CreateNewGroup(void)
 	return _localGroupId++;
 }
 
-NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row, const int seat, const int cluster)
+NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row, const int seat)
 {
 	std::map< int, std::list< Client > >::iterator	group;
 	int												nRemoved = 0;
 	Client											moved;
 
-	(void)cluster;
 	if ((group = _clients.find(groupId)) != _clients.end())
 	{
 		for (auto clientKP : _clients)

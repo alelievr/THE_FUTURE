@@ -1,4 +1,5 @@
 #include "NetworkGUI.hpp"
+#include <sstream>
 
 #define MAX_COLORS		150
 
@@ -61,13 +62,11 @@ NetworkGUI::NetworkGUI(NetworkManager *nm)
 
 	for (int x = 0; x < CLUSTER_MAX_ROW_SEATS + 2; x++) // +2 for cluster lanes
 		for (int y = 0; y < CLUSTER_MAX_ROWS; y++)
-			_GUIClients[y][x] = GUIClient{sf::Color(200, 200, 200), ClientStatus::Unknown};
+			_GUIClients[y][x] = GUIClient{0, ClientStatus::Unknown};
 
-	std::cout << "SET!\n";
 	_netManager->SetClientStatusUpdateCallback(
 		[this](const int row, const int seat, const ClientStatus status)
 		{
-			std::cout << "olol\n";
 			GUIClient & c = FindGUIClient(row, seat);
 			c.status = status;
 		}
@@ -95,7 +94,10 @@ void		NetworkGUI::DrawPlace(const int x, const int y, const bool clicked)
 
 	sf::RectangleShape rectangle(sf::Vector2f(30, 50));
 
-	rectangle.setFillColor(client.color);
+	sf::Color c = _groupColors[0];
+	if (static_cast< size_t>(client.groupId) < _groupColors.size())
+		c = _groupColors[client.groupId];
+	rectangle.setFillColor(c);
 
 	rectangle.setPosition(posX, posY + ((!(x % 2)) ? 20 : 0));
 	rectangle.setOutlineThickness(2);
@@ -109,6 +111,17 @@ void		NetworkGUI::DrawPlace(const int x, const int y, const bool clicked)
 	{
 		std::string ip = std::string("10.11.") + clusterIPMap[y][x];
 		std::cout << "clicked on IP " << ip << std::endl;
+		if (_selectedGroup != -1)
+		{
+			std::stringstream ss;
+			ss.str(clusterIPMap[y][x]);
+			std::string n;
+			std::getline(ss, n, '.');
+			int row = std::stoi(n);
+			std::getline(ss, n, '.');
+			int seat = std::stoi(n);
+			_netManager->MoveIMacToGroup(_selectedGroup, row, seat);
+		}
 	}
 
 	_win->draw(rectangle);
@@ -246,6 +259,7 @@ void		NetworkGUI::RenderLoop(void)
 void		NetworkGUI::FillColorList(void)
 {
 	srand(time(NULL) + clock());
+	_groupColors.push_back(sf::Color(230, 230, 230));
 	for (int i = 0; i < MAX_COLORS; i++)
 	{
 		char	r = 107 + rand() % 127;

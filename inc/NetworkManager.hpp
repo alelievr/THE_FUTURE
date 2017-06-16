@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/16 02:37:21 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/16 14:11:06 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,7 +255,7 @@ class		NetworkManager
 		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int group, const std::string uniformName, ...) const;
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		int				CreateNewGroup(void);
-		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat, const int floor = 1);
+		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat);
 
 		int				GetLocalRow(void) const;
 		int				GetLocalSeat(void) const;
