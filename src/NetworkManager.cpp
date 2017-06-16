@@ -92,19 +92,24 @@ NetworkManager::~NetworkManager(void)
 
 // Private functions
 
-int			NetworkManager::GetLocalRow(void)
+int			NetworkManager::GetLocalRow(void) const
 {
 	return _me->row;
 }
 
-int			NetworkManager::GetLocalSeat(void)
+int			NetworkManager::GetLocalSeat(void) const
 {
 	return _me->seat;
 }
 
-int			NetworkManager::GetLocalCluster(void)
+int			NetworkManager::GetLocalCluster(void) const
 {
 	return _me->cluster;
+}
+
+int			NetworkManager::GetGroupCount(void) const
+{
+	return _localGroupId;
 }
 
 struct ipReader: std::ctype< char >

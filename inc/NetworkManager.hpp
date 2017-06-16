@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/13 20:20:31 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/16 01:31:20 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,6 @@
 # define MAX_UNIFORM_DATAS		4
 # define MAX_MESSAGE_LENGTH		256
 
-# define CLUSTER_MAX_ROWS		13
-# define CLUSTER_MAX_ROW_SEATS	23
-
 # define NOW					-1
 
 # define E1						1
@@ -63,19 +60,18 @@ enum class	NetworkStatus
 	OutOfBound,					//out of bounds, mostly for groupIds
 };
 
+enum class		ClientStatus
+{
+	Unknown,					//unknow client status
+	Disconnected,				//the client is disconnected
+	WaitingForCommand,			//nothing is running, client wait for command
+	ShaderIsRunning,			//a shader is running
+	WaitingForShaderFocus,		//a shader is running and the client is waiting to switch the shader at the specified time
+};
+
 class		NetworkManager
 {
 	private:
-
-		enum class		ClientStatus
-		{
-			Unknown,					//unknow client status
-			Disconnected,				//the client is disconnected
-			WaitingForCommand,			//nothing is running, client wait for command
-			ShaderIsRunning,			//a shader is running
-			WaitingForShaderFocus,		//a shader is running and the client is waiting to switch the shader at the specified time
-		};
-
 		enum class		PacketType
 		{
 			Status,
@@ -255,11 +251,13 @@ class		NetworkManager
 		int				CreateNewGroup(void);
 		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat, const int floor = 1);
 
-		int				GetLocalRow(void);
-		int				GetLocalSeat(void);
-		int				GetLocalCluster(void);
+		int				GetLocalRow(void) const;
+		int				GetLocalSeat(void) const;
+		int				GetLocalCluster(void) const;
 
-		bool	IsServer(void) const;
+		int				GetGroupCount(void) const;
+
+		bool			IsServer(void) const;
 };
 
 std::ostream &	operator<<(std::ostream & o, NetworkManager const & r);

@@ -22,6 +22,9 @@
 # include "GLFW/glfw3.h"
 # include "SOIL2.h"
 
+# define CLUSTER_MAX_ROWS		13
+# define CLUSTER_MAX_ROW_SEATS	23
+
 # if __APPLE__
 #  include <OpenGL/glext.h>
 # else

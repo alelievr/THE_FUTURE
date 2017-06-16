@@ -10,10 +10,12 @@
 #include <getopt.h>
 
 #define CLUSTER_SCAN_INTERVAL	15 //secs
+#define NETWORK_UPDATE_TIMEOUT	50 //ms
 
 static bool		networkMustQuit = false;
 static bool		server = false;
 static bool		connection = false;
+static bool		threadHasExited = false;
 static bool		serverSentAllShadersToLoad;
 static std::list< const std::string >	shadersToLoad;
 
@@ -84,8 +86,11 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 		);
 
 		while (!networkMustQuit)
+		{
 			if (nm->Update() == NetworkStatus::Error)
 				break ;
+			usleep(NETWORK_UPDATE_TIMEOUT * 1000);
+		}
 	}
 	else
 	{
@@ -110,10 +115,14 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 		nm->FocusShaderOnGroup(Timer::TimeoutInSeconds(10), group, 1, SyncOffset::CreateNoneSyncOffset());
 
 		while (!networkMustQuit)
+		{
 			if (nm->Update() == NetworkStatus::Error)
 				break ;
+			usleep(NETWORK_UPDATE_TIMEOUT * 1000);
+		}
 		nm->CloseAllConnections();
 	}
+	threadHasExited = true;
 }
 
 int		main(int ac, char **av)
@@ -129,7 +138,9 @@ int		main(int ac, char **av)
 
 		gui.RenderLoop();
 
-		serverThread.join();
+		networkMustQuit = true;
+		if (!threadHasExited)
+			serverThread.join();
 	}
 	else
 	{
@@ -150,7 +161,8 @@ int		main(int ac, char **av)
 		app.RenderLoop();
 
 		networkMustQuit = true;
-		clientThread.join();
+		if (!threadHasExited)
+			clientThread.join();
 	}
 
 	return 0;
