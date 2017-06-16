@@ -491,6 +491,12 @@ void						NetworkManager::_ServerSocketEvent(void)
 						}
 					);
 
+					if (_clientStatusUpdateCallback != NULL)
+					{
+						std::cout << "calling callback !\n";
+						_clientStatusUpdateCallback(packet.row, packet.seat, packet.status);
+					}
+
 					break ;
 				case PacketType::UniformUpdate:
 					break ;
@@ -616,6 +622,14 @@ void	NetworkManager::SetShaderUniformCallback(ShaderUniformCallback callback)
 void	NetworkManager::SetShaderLoadCallback(ShaderLoadCallback callback)
 {
 	_shaderLoadCallback = callback;
+}
+
+//server callbacks:
+
+void	NetworkManager::SetClientStatusUpdateCallback(StatusUpdateCallback callback)
+{
+	std::cout << "Set client status update !\n";
+	_clientStatusUpdateCallback = callback;
 }
 
 //Utils

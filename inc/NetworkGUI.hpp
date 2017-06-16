@@ -20,14 +20,14 @@ class		NetworkGUI
 	};
 
 	private:
-		sf::RenderWindow	*_win;
-		sf::Font			*_font;
-		sf::Vector2< int >	_mousePosition;
+		sf::RenderWindow *		_win;
+		sf::Font *				_font;
+		sf::Vector2< int >		_mousePosition;
 		sf::Vector2< unsigned >	_windowSize;
-		NetworkManager		*_netManager;
-		int					_selectedGroup;
+		NetworkManager *		_netManager;
+		int						_selectedGroup;
 		std::map< int, std::map< int, GUIClient > >	_GUIClients;
-		std::list< sf::Color > _groupColors;
+		std::vector< sf::Color > _groupColors;
 
 		void		DrawCluster(const bool clicked);
 		void		DrawPlace(const int x, const int y, const bool client);
@@ -35,6 +35,7 @@ class		NetworkGUI
 		bool		DrawButton(const int x, const int y, const int width, const int height, const bool clicked, const std::string & text, const sf::Color & color) const;
 		void		DrawText(const int x, const int y, const std::string & text) const;
 		void		FillColorList(void);
+		GUIClient &	FindGUIClient(const int row, const int seat);
 
 	public:
 		NetworkGUI(void) = delete;

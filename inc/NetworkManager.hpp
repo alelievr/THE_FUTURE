@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/16 01:31:20 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/16 02:37:21 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,11 +43,6 @@
 
 # define IP_LENGHT				sizeof("127.127.127.127")
 
-typedef std::function< void (const Timeval *timing, const int programIndex) >			ShaderFocusCallback;
-typedef std::function< void (const Timeval *timing, const std::string & shaderName) >	ShaderUniformCallback;
-typedef std::function< void (const std::string & shaderName, const bool last) >			ShaderLoadCallback;
-typedef std::function< Timeval & (const int seat, const int row, const int index) >		CustomSyncOffsetCallback;
-
 enum class	NetworkStatus
 {
 	Success,						// obvious
@@ -68,6 +63,15 @@ enum class		ClientStatus
 	ShaderIsRunning,			//a shader is running
 	WaitingForShaderFocus,		//a shader is running and the client is waiting to switch the shader at the specified time
 };
+
+//Client callbacks:
+typedef std::function< void (const Timeval *timing, const int programIndex) >				ShaderFocusCallback;
+typedef std::function< void (const Timeval *timing, const std::string & shaderName) >		ShaderUniformCallback;
+typedef std::function< void (const std::string & shaderName, const bool last) >				ShaderLoadCallback;
+typedef std::function< Timeval & (const int seat, const int row, const int index) >			CustomSyncOffsetCallback;
+
+//Server callbacks:
+typedef std::function< void (const int row, const int seat, const ClientStatus status) >	StatusUpdateCallback;
 
 class		NetworkManager
 {
@@ -207,6 +211,7 @@ class		NetworkManager
 		ShaderFocusCallback		_shaderFocusCallback = NULL;
 		ShaderUniformCallback	_shaderUniformCallback = NULL;
 		ShaderLoadCallback		_shaderLoadCallback = NULL;
+		StatusUpdateCallback	_clientStatusUpdateCallback = NULL;
 
 		NetworkStatus			_SendPacketToAllClients(const Packet & packet) const;
 		NetworkStatus			_SendPacketToGroup(const int groupId, Packet packet, const SyncOffset & sync) const;
@@ -244,6 +249,7 @@ class		NetworkManager
 		void			SetShaderFocusCallback(ShaderFocusCallback callback);
 		void			SetShaderUniformCallback(ShaderUniformCallback callback);
 		void			SetShaderLoadCallback(ShaderLoadCallback callback);
+		void			SetClientStatusUpdateCallback(StatusUpdateCallback callback);
 
 		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const SyncOffset & syncOffset) const;
 		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int group, const std::string uniformName, ...) const;

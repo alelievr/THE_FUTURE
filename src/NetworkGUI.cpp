@@ -3,11 +3,11 @@
 #define MAX_COLORS		150
 
 static std::map< ClientStatus, sf::Color >	clientStatusColor = {
-	{ClientStatus::Unknown,					sf::Color(150, 150, 150)},
-	{ClientStatus::Disconnected,			sf::Color(150, 150, 150)},
-	{ClientStatus::WaitingForCommand,		sf::Color(150, 150, 150)},
-	{ClientStatus::ShaderIsRunning,			sf::Color(150, 150, 150)},
-	{ClientStatus::WaitingForShaderFocus,	sf::Color(150, 150, 150)},
+	{ClientStatus::Unknown,					sf::Color(150, 150, 150)},		//grey
+	{ClientStatus::Disconnected,			sf::Color(91, 91, 91)},			//dark grey
+	{ClientStatus::WaitingForCommand,		sf::Color(55, 228, 63)},		//green
+	{ClientStatus::ShaderIsRunning,			sf::Color(162, 0, 255)},		//purple
+	{ClientStatus::WaitingForShaderFocus,	sf::Color(40, 194, 248)},		//light blue
 };
 
 static const bool clusterMap[13][25] = {
@@ -57,9 +57,21 @@ NetworkGUI::NetworkGUI(NetworkManager *nm)
 	sf::Texture placeTexture;
 	placeTexture.loadFromFile("textures/place.gif");
 
+	FillColorList();
+
 	for (int x = 0; x < CLUSTER_MAX_ROW_SEATS + 2; x++) // +2 for cluster lanes
 		for (int y = 0; y < CLUSTER_MAX_ROWS; y++)
 			_GUIClients[y][x] = GUIClient{sf::Color(200, 200, 200), ClientStatus::Unknown};
+
+	std::cout << "SET!\n";
+	_netManager->SetClientStatusUpdateCallback(
+		[this](const int row, const int seat, const ClientStatus status)
+		{
+			std::cout << "olol\n";
+			GUIClient & c = FindGUIClient(row, seat);
+			c.status = status;
+		}
+	);
 }
 
 NetworkGUI::~NetworkGUI(void)
@@ -111,6 +123,7 @@ void		NetworkGUI::DrawCluster(const bool clicked)
 }
 
 #define BUTTON_TEXT_PADDING 6
+#define BUTTON_HEIGHT		35
 
 bool		NetworkGUI::DrawButton(const int x, const int y, const int width, const int height, const bool clicked, const std::string & text, const sf::Color & color) const
 {
@@ -152,23 +165,37 @@ void		NetworkGUI::DrawText(const int x, const int y, const std::string & text) c
 	_win->draw(buttonText);
 }
 
-#define GROUP_OFFSET_Y	50
-#define GROUP_OFFSET_X	50
-#define GROUP_PADDING_Y	20
+#define GROUP_OFFSET_Y		50
+#define GROUP_OFFSET_X		50
+#define GROUP_PADDING_Y		20
+#define GROUP_PADDING_X		10
+#define GROUP_TEXT_WITH		100
+#define GROUP_BUTTON_WIDTH	150
 
 void		NetworkGUI::DrawGroupOptions(const bool clicked)
 {
-	int		groupCount = _netManager->GetGroupCount();
+	size_t	groupCount = _netManager->GetGroupCount();
 
-	if (DrawButton(GROUP_OFFSET_X, GROUP_OFFSET_Y, 220, 35, clicked, "ADD NEW GROUP", sf::Color(30, 120, 140)))
+	if (DrawButton(GROUP_OFFSET_X, GROUP_OFFSET_Y, 220, BUTTON_HEIGHT, clicked, "ADD NEW GROUP", sf::Color(30, 120, 140)))
 	{
 		_netManager->CreateNewGroup();
 		std::cout << "added a new group\n";
 	}
 
-	for (int i = 0; i < groupCount; i++)
+	int	textX = GROUP_OFFSET_X;
+	int	textY = GROUP_OFFSET_Y + BUTTON_HEIGHT + GROUP_PADDING_Y + BUTTON_TEXT_PADDING;
+	int	buttonX = GROUP_OFFSET_X + GROUP_TEXT_WITH + GROUP_PADDING_X;
+	int	buttonY = GROUP_OFFSET_Y + BUTTON_HEIGHT + GROUP_PADDING_Y;
+	for (size_t i = 0; i < groupCount; i++)
 	{
-		;//TODO: drawButtons
+		sf::Color	c = sf::Color(200, 0, 255);
+		if (i < _groupColors.size())
+			c = _groupColors[i];
+		DrawText(textX, textY, std::string("group ") + std::to_string(i));
+		if (DrawButton(buttonX, buttonY, GROUP_BUTTON_WIDTH, BUTTON_HEIGHT, clicked, "", c))
+			_selectedGroup = i;
+		buttonY += GROUP_PADDING_Y + BUTTON_HEIGHT;
+		textY += GROUP_PADDING_Y + BUTTON_HEIGHT;
 	}
 }
 
@@ -226,4 +253,19 @@ void		NetworkGUI::FillColorList(void)
 		char	b = 107 + rand() % 127;
 		_groupColors.push_back(sf::Color(r, g, b));
 	}
+}
+
+NetworkGUI::GUIClient &	NetworkGUI::FindGUIClient(const int row, const int seat)
+{
+	static GUIClient		defaultRet;
+
+	for (int x = 0; x < CLUSTER_MAX_ROW_SEATS + 2; x++)
+		for (int y = 0; y < CLUSTER_MAX_ROWS; y++)
+		{
+			std::string ip = std::string(((row < 10) ? "0" : "") + std::to_string(row) + "." + ((seat < 10) ? "0" : "") + std::to_string(seat));
+
+			if (clusterIPMap[y][x] == ip)
+				return _GUIClients[y][x];
+		}
+	return defaultRet;
 }
