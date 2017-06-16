@@ -31,6 +31,7 @@ SRC			=	ShaderRender.cpp		\
 				SyncOffset.cpp			\
 				Timeval.cpp				\
 				NetworkGUI.cpp			\
+				ClusterConfig.cpp		\
 
 
 #	Objects

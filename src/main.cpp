@@ -4,6 +4,7 @@
 #include "SyncOffset.hpp"
 #include "Timeval.hpp"
 #include "NetworkGUI.hpp"
+#include "ClusterConfig.hpp"
 #include <iostream>
 #include <string>
 #include <list>
@@ -23,7 +24,7 @@ static bool		serverSentAllShadersToLoad;
 static std::list< const std::string >	shadersToLoad;
 
 static struct option longopts[] = {
-	{ "server",     no_argument,            NULL,           1},
+	{ "server",     optional_argument,      NULL,           1},
 	{ "connection", no_argument,			NULL, 			'c'},
 	{ "nonetwork",  required_argument,      NULL,           'n'},
 	{ NULL,         0,                      NULL,           0}
@@ -45,6 +46,10 @@ static void options(int *ac, char ***av)
         switch (ch) {
             case 1:
                 server = true;
+				if (optarg != NULL)
+					ClusterConfig::LoadConfigFile(optarg);
+				else
+					ClusterConfig::LoadConfigFile("");
                 break;
 			case 'c':
 				connection = true;
