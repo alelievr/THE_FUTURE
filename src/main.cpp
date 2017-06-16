@@ -118,6 +118,23 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 			1 //function will block until first scan is complete
 		);
 
+		int		nGroups = ClusterConfig::GetGroupNumber();
+
+		for (int i = 0; i < nGroups; i++)
+			nm->CreateNewGroup();
+
+		const auto & clusterConfig = ClusterConfig::GetClusterConfig();
+		for (auto iMacConfig : clusterConfig)
+			if (iMacConfig.groupId != 0)
+				nm->MoveIMacToGroup(iMacConfig.groupId, iMacConfig.row, iMacConfig.seat);
+
+		for (int i = 0; i < nGroups; i++)
+		{
+			const auto shaderList = ClusterConfig::GetShadersInGroup(i);
+			for (const std::string & shader : shaderList)
+				nm->LoadShaderOnGroup(i, shader, (&shader == &shaderList.back()));
+		}
+
 /*		int		group = nm->CreateNewGroup();
 
 		nm->MoveIMacToGroup(group, nm->GetLocalRow(), nm->GetLocalSeat(), nm->GetLocalCluster());

@@ -1,4 +1,6 @@
 #include "NetworkGUI.hpp"
+#include "SyncOffset.hpp"
+#include "Timer.hpp"
 #include <sstream>
 
 #define MAX_COLORS		150
@@ -79,7 +81,7 @@ NetworkGUI::~NetworkGUI(void)
 	delete _font;
 }
 
-#define OFFSET_X		600
+#define OFFSET_X		900
 #define OFFSET_Y		50
 #define PLACE_WIDTH		40
 #define PLACE_HEIGHT	70
@@ -99,8 +101,8 @@ void		NetworkGUI::DrawPlace(const int x, const int y, const bool clicked)
 		c = _groupColors[client.groupId];
 	rectangle.setFillColor(c);
 
-	rectangle.setPosition(posX, posY + ((!(x % 2)) ? 20 : 0));
-	rectangle.setOutlineThickness(2);
+	rectangle.setPosition(posX, posY + ((!(x % 2)) ? 25 : 0));
+	rectangle.setOutlineThickness(3);
 	rectangle.setOutlineColor(clientStatusColor[client.status]);
 
 	float mx = (float)_mousePosition.x / ((float)_windowSize.x / (float)WINDOW_WIDTH);
@@ -179,7 +181,7 @@ void		NetworkGUI::DrawText(const int x, const int y, const std::string & text) c
 }
 
 #define GROUP_OFFSET_Y		50
-#define GROUP_OFFSET_X		50
+#define GROUP_OFFSET_X		30
 #define GROUP_PADDING_Y		20
 #define GROUP_PADDING_X		10
 #define GROUP_TEXT_WITH		100
@@ -210,6 +212,21 @@ void		NetworkGUI::DrawGroupOptions(const bool clicked)
 		buttonY += GROUP_PADDING_Y + BUTTON_HEIGHT;
 		textY += GROUP_PADDING_Y + BUTTON_HEIGHT;
 	}
+}
+
+#define SELECTED_GROUP_OFFSET_X		(GROUP_TEXT_WITH + GROUP_BUTTON_WIDTH + GROUP_PADDING_X * 2)
+#define SELECTED_GROUP_OFFSET_Y		50
+
+void		NetworkGUI::DrawSelectedGroup(const bool clicked)
+{
+	int		x = SELECTED_GROUP_OFFSET_X + GROUP_OFFSET_X;
+	int		y = SELECTED_GROUP_OFFSET_Y;
+
+	if (_selectedGroup == -1)
+		return ;
+
+	if (DrawButton(x, y, 100, BUTTON_HEIGHT, clicked, "START", sf::Color::Blue))
+		_netManager->FocusShaderOnGroup(Timer::TimeoutInSeconds(1), _selectedGroup, 0, SyncOffset::CreateLinearSyncOffset(1, 0));
 }
 
 void		NetworkGUI::RenderLoop(void)
@@ -250,6 +267,7 @@ void		NetworkGUI::RenderLoop(void)
 		_win->clear(sf::Color::Black);
 
 		DrawGroupOptions(clicked);
+		DrawSelectedGroup(clicked);
 		DrawCluster(clicked);
 
 		_win->display();

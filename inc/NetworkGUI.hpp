@@ -8,7 +8,7 @@
 # include <map>
 # include <list>
 
-# define WINDOW_WIDTH	1920
+# define WINDOW_WIDTH	2220
 # define WINDOW_HEIGHT	1310
 
 class		NetworkGUI
@@ -31,6 +31,7 @@ class		NetworkGUI
 
 		void		DrawCluster(const bool clicked);
 		void		DrawPlace(const int x, const int y, const bool client);
+		void		DrawSelectedGroup(const bool clicked);
 		void		DrawGroupOptions(const bool clicked);
 		bool		DrawButton(const int x, const int y, const int width, const int height, const bool clicked, const std::string & text, const sf::Color & color) const;
 		void		DrawText(const int x, const int y, const std::string & text) const;
