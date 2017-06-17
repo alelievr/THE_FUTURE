@@ -57,8 +57,7 @@ NetworkGUI::NetworkGUI(NetworkManager *nm)
 	_font = new sf::Font();
 	_font->loadFromFile("fonts/ParkTech.ttf");
 
-	sf::Texture placeTexture;
-	placeTexture.loadFromFile("textures/place.gif");
+	_syncOffset = SyncOffset::CreateLinearSyncOffset(1, 0);
 
 	FillColorList();
 
@@ -214,8 +213,9 @@ void		NetworkGUI::DrawGroupOptions(const bool clicked)
 	}
 }
 
-#define SELECTED_GROUP_OFFSET_X		(GROUP_TEXT_WITH + GROUP_BUTTON_WIDTH + GROUP_PADDING_X * 2)
-#define SELECTED_GROUP_OFFSET_Y		50
+#define SELECTED_GROUP_OFFSET_X			(GROUP_TEXT_WITH + GROUP_BUTTON_WIDTH + GROUP_PADDING_X * 2)
+#define SELECTED_GROUP_OFFSET_Y			50
+#define SELECTED_GROUP_BUTTON_PADDING_X	20
 
 void		NetworkGUI::DrawSelectedGroup(const bool clicked)
 {
@@ -225,8 +225,25 @@ void		NetworkGUI::DrawSelectedGroup(const bool clicked)
 	if (_selectedGroup == -1)
 		return ;
 
-	if (DrawButton(x, y, 100, BUTTON_HEIGHT, clicked, "START", sf::Color::Blue))
-		_netManager->FocusShaderOnGroup(Timer::TimeoutInSeconds(1), _selectedGroup, 0, SyncOffset::CreateLinearSyncOffset(1, 0));
+	sf::Color c = sf::Color::Blue;
+	if (static_cast< unsigned >(_selectedGroup) < _groupColors.size())
+		c = _groupColors[_selectedGroup];
+	if (DrawButton(x, y, 100, BUTTON_HEIGHT, clicked, "START", c))
+		_netManager->FocusShaderOnGroup(Timer::TimeoutInSeconds(1), _selectedGroup, 0, _syncOffset);
+	std::string syncOffsetType = (_selectedSyncOffsetType == SyncOffsetType::None) ? "Sync: None" : "Sync: Linear";
+	if (DrawButton(x + 100 + SELECTED_GROUP_BUTTON_PADDING_X, SELECTED_GROUP_OFFSET_Y, 180, BUTTON_HEIGHT, clicked, syncOffsetType, sf::Color(93, 0, 20)))
+	{
+		if (_selectedSyncOffsetType == SyncOffsetType::None)
+		{
+			_selectedSyncOffsetType = SyncOffsetType::Linear;
+			_syncOffset = SyncOffset::CreateLinearSyncOffset(1, 0);
+		}
+		else
+		{
+			_selectedSyncOffsetType = SyncOffsetType::None;
+			_syncOffset = SyncOffset::CreateNoneSyncOffset();
+		}
+	}
 }
 
 void		NetworkGUI::RenderLoop(void)

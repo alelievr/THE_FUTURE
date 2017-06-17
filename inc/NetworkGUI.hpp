@@ -26,6 +26,8 @@ class		NetworkGUI
 		sf::Vector2< unsigned >	_windowSize;
 		NetworkManager *		_netManager;
 		int						_selectedGroup;
+		SyncOffsetType			_selectedSyncOffsetType;
+		SyncOffset				_syncOffset;
 		std::map< int, std::map< int, GUIClient > >	_GUIClients;
 		std::vector< sf::Color > _groupColors;
 

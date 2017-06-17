@@ -1,6 +1,7 @@
 #include "ClusterConfig.hpp"
 #include <fstream>
 #include <regex>
+#include <algorithm>
 
 std::vector< ImacConfig >					ClusterConfig::_clusterConfig;
 std::map< int, std::list< std::string > >	ClusterConfig::_groupConfig;
@@ -59,6 +60,23 @@ std::vector< ImacConfig > &	ClusterConfig::GetClusterConfig(void)
 std::list< std::string > &	ClusterConfig::GetShadersInGroup(const int groupId)
 {
 	return _groupConfig[groupId];
+}
+
+int							ClusterConfig::GetGroupForImac(const int row, const int seat)
+{
+	static std::list< std::string >	emptyList;
+
+	auto imac = std::find_if(_clusterConfig.begin(), _clusterConfig.end(),
+		[&](const ImacConfig & imac)
+		{
+			return imac.row == row && imac.seat == seat;
+		}
+	);
+
+	if (imac != _clusterConfig.end())
+		return imac->groupId;
+
+	return -1;
 }
 
 int			ClusterConfig::GetGroupNumber(void)

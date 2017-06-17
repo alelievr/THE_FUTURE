@@ -10,7 +10,6 @@
 #include <list>
 #include <getopt.h>
 
-#define CLUSTER_SCAN_INTERVAL	15 //secs
 #define NETWORK_UPDATE_TIMEOUT	50 //ms
 
 static bool		networkMustQuit = false;
@@ -109,21 +108,14 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 		while (serverGUINotInitialized)
 			usleep(10000);
 
-		Timer::Interval(
-			[&]()
-			{
-				nm->ConnectCluster(nm->GetLocalCluster());
-			},
-			CLUSTER_SCAN_INTERVAL * 1000,
-			1 //function will block until first scan is complete
-		);
+		nm->ConnectCluster(nm->GetLocalCluster());
 
 		int		nGroups = ClusterConfig::GetGroupNumber();
 
 		for (int i = 0; i < nGroups; i++)
 			nm->CreateNewGroup();
 
-		const auto & clusterConfig = ClusterConfig::GetClusterConfig();
+		/*const auto & clusterConfig = ClusterConfig::GetClusterConfig();
 		for (auto iMacConfig : clusterConfig)
 			if (iMacConfig.groupId != 0)
 				nm->MoveIMacToGroup(iMacConfig.groupId, iMacConfig.row, iMacConfig.seat);
@@ -133,7 +125,7 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 			const auto shaderList = ClusterConfig::GetShadersInGroup(i);
 			for (const std::string & shader : shaderList)
 				nm->LoadShaderOnGroup(i, shader, (&shader == &shaderList.back()));
-		}
+		}*/
 
 /*		int		group = nm->CreateNewGroup();
 

@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/16 14:11:06 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/17 23:04:53 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ enum class		ClientStatus
 {
 	Unknown,					//unknow client status
 	Disconnected,				//the client is disconnected
-	WaitingForCommand,			//nothing is running, client wait for command
+	WaitingForCommand,			//nothing is running, client wait for first commands
 	ShaderIsRunning,			//a shader is running
 	WaitingForShaderFocus,		//a shader is running and the client is waiting to switch the shader at the specified time
 };
@@ -83,6 +83,7 @@ class		NetworkManager
 			ShaderLoad,
 			UniformUpdate,
 			ChangeGroup,
+			HelloServer,
 		};
 
 		enum class		UniformType
@@ -222,6 +223,7 @@ class		NetworkManager
 		void                	_ClientSocketEvent(const struct sockaddr_in & connection, const Packet & packet);
 
 		void					_FillLocalInfos(void);
+		void					_SendHelloPacket(void);
 		bool					_ImacExists(const int row, const int seat) const;
 		NetworkStatus			_FindClient(const int groupId, const size_t ip, std::function< void(Client &) > callback);
 
@@ -232,6 +234,7 @@ class		NetworkManager
 		Packet					_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex) const;
 		Packet					_CreateShaderLoadPacket(const int groupId, const std::string & shaderName, bool last) const;
 		Packet					_CreateChangeGroupPacket(const int groupId) const;
+		Packet					_CreateHelloPacket(void) const;
 
 	public:
 		NetworkManager(bool server = false, bool connection = false);

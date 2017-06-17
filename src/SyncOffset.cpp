@@ -7,6 +7,23 @@ SyncOffset::SyncOffset(void)
 	linearDelay.tv_usec = 0;
 }
 
+SyncOffset::SyncOffset(const SyncOffset & so)
+{
+	*this = so;
+}
+
+SyncOffset &    SyncOffset::operator=(SyncOffset const & so)
+{
+	if (this != &so)
+	{
+		type = so.type;
+		linearDelay = so.linearDelay;
+		order = so.order;
+		customDelayCallback = so.customDelayCallback;
+	}
+	return *this;
+}	
+
 SyncOffset		SyncOffset::CreateLinearSyncOffset(const int delaySecs, const int delayMillis, const SyncOffsetOrder order)
 {
 	SyncOffset	o;

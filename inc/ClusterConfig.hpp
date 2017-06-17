@@ -30,8 +30,9 @@ class		ClusterConfig
 
 		static void	LoadConfigFile(const std::string & fileName = "");
 		static void	SaveConfigFile(const NetworkGUI & gui);
-		static std::list< std::string > & GetShadersInGroup(const int groupId);
-		static std::vector< ImacConfig > & GetClusterConfig(void);
+		static std::list< std::string > &	GetShadersInGroup(const int groupId);
+		static std::vector< ImacConfig > &	GetClusterConfig(void);
+		static int							GetGroupForImac(const int row, const int seat);
 		static int	GetGroupNumber(void);
 };
 

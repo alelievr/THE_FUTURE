@@ -1,5 +1,6 @@
 #include "NetworkManager.hpp"
 #include "Timer.hpp"
+#include "ClusterConfig.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <ifaddrs.h>
@@ -46,6 +47,9 @@ NetworkManager::NetworkManager(bool server, bool co)
 
 	_FillLocalInfos();
 
+	if ((_clientSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+		perror("socket"), exit(-1);
+
 	if (server)
 	{
 		//here _serverSocket is used to read messages from clients and _clientSocket to write messages to clients
@@ -80,10 +84,9 @@ NetworkManager::NetworkManager(bool server, bool co)
 		
 		std::cout << "client bound udp port " << CLIENT_PORT << " !" << std::endl;
 		FD_SET(_serverSocket, &_serverFdSet);
-	}
 
-	if ((_clientSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
-		perror("socket"), exit(-1);
+		_SendHelloPacket();
+	}
 }
 
 NetworkManager::~NetworkManager(void)
@@ -92,24 +95,25 @@ NetworkManager::~NetworkManager(void)
 
 // Private functions
 
-int			NetworkManager::GetLocalRow(void) const
+void		NetworkManager::_SendHelloPacket()
 {
-	return _me->row;
-}
+	Packet packet = _CreateHelloPacket();
+	for (int r = 1; r < CLUSTER_MAX_ROWS; r++)
+		for (int p = 1; p < CLUSTER_MAX_ROW_SEATS; p++)
+		{
+			std::string ip = "10.1" + std::to_string(_me->cluster) + "." + std::to_string(r) + "." + std::to_string(p);
+			struct sockaddr_in		connection;
 
-int			NetworkManager::GetLocalSeat(void) const
-{
-	return _me->seat;
-}
+			bzero(&connection, sizeof(connection));
+			connection.sin_family = AF_INET;
+			connection.sin_port = htons(SERVER_PORT);
+			if (inet_aton(ip.c_str(), &connection.sin_addr) == 0)
+				perror("inet_aton");
 
-int			NetworkManager::GetLocalCluster(void) const
-{
-	return _me->cluster;
-}
+			if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
+				perror("sendto");
 
-int			NetworkManager::GetGroupCount(void) const
-{
-	return _localGroupId;
+		}
 }
 
 struct ipReader: std::ctype< char >
@@ -226,7 +230,7 @@ NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, Packet pack
 	const auto clientGroupKP = _clients.find(groupId);
 	if (clientGroupKP == _clients.end())
 	{
-		DEBUG("groupId out of bouds !\n");
+		DEBUG("groupId out of bouds: %i\n", groupId);
 		return NetworkStatus::OutOfBound;
 	}
 	const auto clientGroupList = clientGroupKP->second;
@@ -282,10 +286,8 @@ NetworkStatus		NetworkManager::_SendPacketToClient(const int ip, const Packet & 
 {
 	bool			error = false;
 
-	if (!_connectedToServer)
-		return NetworkStatus::NotConnectedToServer;
-	if (_isServer)
-		return NetworkStatus::ClientReservedCommand;
+	if (!_isServer)
+		return NetworkStatus::ServerReservedCommand;
 
 	struct sockaddr_in		connection;
 
@@ -380,6 +382,15 @@ NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(const Cl
 	return p;
 }
 
+NetworkManager::Packet	NetworkManager::_CreateHelloPacket(void) const
+{
+	Packet	p;
+
+	p.type = PacketType::HelloServer;
+	p.ip = _me->ip;
+	return p;
+}
+
 //public functions
 
  #include <netdb.h>
@@ -430,6 +441,26 @@ void						NetworkManager::GetSyncOffsets(void)
 {
 }
 
+int							NetworkManager::GetLocalRow(void) const
+{
+	return _me->row;
+}
+
+int							NetworkManager::GetLocalSeat(void) const
+{
+	return _me->seat;
+}
+
+int							NetworkManager::GetLocalCluster(void) const
+{
+	return _me->cluster;
+}
+
+int							NetworkManager::GetGroupCount(void) const
+{
+	return _localGroupId;
+}
+
 void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connection, const Packet & packet)
 {
 	Timeval		packetTiming = packet.timing;
@@ -476,7 +507,6 @@ void						NetworkManager::_ServerSocketEvent(void)
 	{
 		if (_isServer)
 		{
-			std::cout << "server received message !\n";
 			switch (packet.type)
 			{
 				case PacketType::Status:
@@ -488,6 +518,18 @@ void						NetworkManager::_ServerSocketEvent(void)
 						[&](Client & c)
 						{
 							c.status = packet.status;
+
+							if (c.status == ClientStatus::WaitingForCommand)
+							{
+								int		clientGroupId = ClusterConfig::GetGroupForImac(packet.row, packet.seat);
+								
+								if (clientGroupId != -1)
+									MoveIMacToGroup(clientGroupId, packet.row, packet.seat);
+
+								const auto & clientShaders = ClusterConfig::GetShadersInGroup(clientGroupId);
+								for (const std::string & shader : clientShaders)
+									LoadShaderOnGroup(clientGroupId, shader, (&shader == &clientShaders.back()));
+							}
 						}
 					);
 
@@ -495,7 +537,11 @@ void						NetworkManager::_ServerSocketEvent(void)
 						_clientStatusUpdateCallback(packet.row, packet.seat, packet.status);
 
 					break ;
-				case PacketType::UniformUpdate:
+				case PacketType::HelloServer:
+					struct in_addr i;
+					i.s_addr = packet.ip;
+					DEBUG("Sending packet poke to %s\n", inet_ntoa(i));
+					_SendPacketToClient(packet.ip, _CreatePokeStatusPacket());
 					break ;
 				default:
 					break ;

@@ -36,7 +36,7 @@ struct		SyncOffset
 	static SyncOffset			CreateCustomSyncOffset(CustomSyncOffsetCallback callback, const SyncOffsetOrder order = SyncOffsetOrder::Ascending);
 	static SyncOffset			CreateNoneSyncOffset(void);
 
-	SyncOffset &	operator=(SyncOffset const & src) = delete;
+	SyncOffset &	operator=(SyncOffset const & src);
 };
 
 #endif
