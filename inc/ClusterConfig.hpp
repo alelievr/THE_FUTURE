@@ -1,7 +1,9 @@
 #ifndef CLUSTERCONFIG_HPP
 # define CLUSTERCONFIG_HPP
 # include "NetworkGUI.hpp"
+# include "SyncOffset.hpp"
 # include <iostream>
+# include <fstream>
 # include <string>
 # include <vector>
 # include <map>
@@ -15,11 +17,20 @@ struct ImacConfig
 	int		groupId;
 };
 
+struct RenderLoop
+{
+	int				programIndex;
+	SyncOffset		syncOffset;
+};
+
 class		ClusterConfig
 {
 	private:
 		static std::vector< ImacConfig >					_clusterConfig;
 		static std::map< int, std::list< std::string > >	_groupConfig;
+		static std::map< int, RenderLoop >					_renderLoops;
+
+		static void	LoadRenderLoop(std::ifstream & condigFile, const int groupId, int & nLines);
 
 	public:
 		ClusterConfig(void) = delete;

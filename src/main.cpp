@@ -115,29 +115,6 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 		for (int i = 0; i < nGroups; i++)
 			nm->CreateNewGroup();
 
-		/*const auto & clusterConfig = ClusterConfig::GetClusterConfig();
-		for (auto iMacConfig : clusterConfig)
-			if (iMacConfig.groupId != 0)
-				nm->MoveIMacToGroup(iMacConfig.groupId, iMacConfig.row, iMacConfig.seat);
-
-		for (int i = 0; i < nGroups; i++)
-		{
-			const auto shaderList = ClusterConfig::GetShadersInGroup(i);
-			for (const std::string & shader : shaderList)
-				nm->LoadShaderOnGroup(i, shader, (&shader == &shaderList.back()));
-		}*/
-
-/*		int		group = nm->CreateNewGroup();
-
-		nm->MoveIMacToGroup(group, nm->GetLocalRow(), nm->GetLocalSeat(), nm->GetLocalCluster());
-
-		nm->LoadShaderOnGroup(group, "shaders/fractal/kifs.glsl");
-		nm->LoadShaderOnGroup(group, "shaders/fractal/mandelbrot-orbit.glsl", true);
-
-		std::cout << "focus shader 0 send !" << std::endl;
-		nm->FocusShaderOnGroup(Timer::Now(), group, 0, SyncOffset::CreateLinearSyncOffset(1, 0));
-		nm->FocusShaderOnGroup(Timer::TimeoutInSeconds(10), group, 1, SyncOffset::CreateNoneSyncOffset());*/
-
 		while (!networkMustQuit)
 		{
 			if (nm->Update() == NetworkStatus::Error)
