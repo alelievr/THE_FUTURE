@@ -3,10 +3,8 @@
 
 static ShaderRender		*renderShader;
 
-ShaderApplication::ShaderApplication(bool server)
+ShaderApplication::ShaderApplication(bool fullScreen)
 {
-	(void)server;
-
 	loadingShaders = true;
 	_programToFocus = -1;
 
@@ -27,7 +25,16 @@ ShaderApplication::ShaderApplication(bool server)
 	glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	if (!(window = glfwCreateWindow(WIN_W, WIN_H, "ShaderApp", NULL, NULL)))
+	GLFWmonitor *	monit = (fullScreen) ? glfwGetPrimaryMonitor() : NULL;
+	int				win_w = WIN_W;
+	int				win_h = WIN_H;
+	if (fullScreen)
+	{
+		const GLFWvidmode * mode = glfwGetVideoMode(monit);
+		win_w = mode->width;
+		win_h = mode->height;
+	}
+	if (!(window = glfwCreateWindow(win_w, win_h, "ShaderApp", monit, NULL)))
 		printf("failed to create window !\n"), exit(-1);
 
 	glfwMakeContextCurrent (window);

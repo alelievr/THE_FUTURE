@@ -108,6 +108,22 @@ NetworkGUI::NetworkGUI(NetworkManager *nm)
 			}
 		}
 	);
+
+	_netManager->SetClientTimeoutCallback(
+		[this](const int row, const int seat)
+		{
+			GUIClient & guic = FindGUIClient(row, seat);
+			guic.status = ClientStatus::Timeout;
+		}
+	);
+
+	_netManager->SetClientQuitCallback(
+		[this](const int row, const int seat)
+		{
+			GUIClient & guic = FindGUIClient(row, seat);
+			guic.status = ClientStatus::Disconnected;
+		}
+	);
 }
 
 NetworkGUI::~NetworkGUI(void)

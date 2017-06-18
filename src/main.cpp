@@ -17,6 +17,7 @@ static bool		server = false;
 static bool		noNetwork = false;
 static bool		connection = false;
 static bool		threadHasExited = false;
+static bool		fullScreen = false;
 static bool		serverGUINotInitialized = true;
 static char *	shaderToLoad = NULL;
 static bool		serverSentAllShadersToLoad;
@@ -41,7 +42,7 @@ static void options(int *ac, char ***av)
 	int bflag, ch;
 
     bflag = 0;
-    while ((ch = getopt_long(*ac, *av, "cn:", longopts, NULL)) != -1)
+    while ((ch = getopt_long(*ac, *av, "fcn:", longopts, NULL)) != -1)
         switch (ch) {
             case 1:
                 server = true;
@@ -50,6 +51,9 @@ static void options(int *ac, char ***av)
 				else
 					ClusterConfig::LoadConfigFile("");
                 break;
+			case 'f':
+				fullScreen = true;
+				break ;
 			case 'c':
 				connection = true;
 				break ;
@@ -147,7 +151,7 @@ int		main(int ac, char **av)
 	}
 	else
 	{
-		ShaderApplication		app(server);
+		ShaderApplication		app(fullScreen);
 
 		if (noNetwork)
 		{
@@ -175,11 +179,14 @@ int		main(int ac, char **av)
 
 			app.RenderLoop();
 
+			nm.SendQuit(false);
+
 			networkMustQuit = true;
 			if (!threadHasExited)
 				clientThread.join();
 		}
 	}
+	Timer::ExitAllThreads();
 
 	return 0;
 }

@@ -358,6 +358,14 @@ NetworkManager::Packet		NetworkManager::_CreateChangeGroupPacket(const int group
 	return p;
 }
 
+NetworkManager::Packet		NetworkManager::_CreateTimeoutCheckPacket(void) const
+{
+	Packet	p;
+
+	p.type = PacketType::TimeoutCheck;
+	return p;
+}
+
 //Client Packet creation functions
 
 NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(void) const
@@ -452,6 +460,32 @@ NetworkManager::Packet	NetworkManager::_CreateShaderLoadedPacket(void) const
 	return p;
 }
 
+NetworkManager::Packet	NetworkManager::_CreateTimeoutCheckResponsePacket(void) const
+{
+	if (_isServer)
+		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
+
+	Packet	p;
+	p.type = PacketType::TimeoutCheckResponse;
+	p.seat = _me->seat;
+	p.row = _me->row;
+	return p;
+}
+
+NetworkManager::Packet	NetworkManager::_CreateClientQuitPacket(const bool crash) const
+{
+	if (_isServer)
+		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
+
+	Packet	p;
+
+	p.type = PacketType::ClientQuit;
+	p.crashed = crash;
+	p.seat = _me->seat;
+	p.row = _me->row;
+	return p;
+}
+
 //public functions
 
 #include <netdb.h>
@@ -488,6 +522,45 @@ NetworkStatus				NetworkManager::ConnectCluster(int clusterNumber)
 
 	_SendPacketToAllClients(_CreatePokeStatusPacket());
 	first = false;
+
+	Timer::Timeout(Timer::TimeoutInSeconds(CLIENT_TIMEOUT),
+		[this](void)
+		{
+			Timer::Interval(
+				[this](void)
+				{
+					CheckClusterTimeout();
+				},
+				CLIENT_TIMEOUT * 1000
+			);
+		}
+	);
+
+	return NetworkStatus::Success;
+}
+
+NetworkStatus		NetworkManager::CheckClusterTimeout(void)
+{
+	if (!_isServer)
+		return (std::cout << "not in server mode !" << std::endl, NetworkStatus::ServerReservedCommand);
+
+	const Packet p = _CreateTimeoutCheckPacket();
+	for (auto & clientsKP : _clients)
+	{
+		for (auto & client : clientsKP.second)
+			if (client.status != ClientStatus::Unknown && client.status != ClientStatus::Timeout && client.status != ClientStatus::Error && client.status != ClientStatus::Disconnected)
+			{
+				if (client.willTimeout)
+				{
+					client.status = ClientStatus::Timeout;
+					if (_clientTimeoutCallback != NULL)
+						_clientTimeoutCallback(client.row, client.seat);
+				}
+				client.willTimeout = true;
+				std::cout << "sending packet to: " << client.ip << " in group: " << clientsKP.first << std::endl;
+				_SendPacketToClient(client.ip, p);
+			}
+	}
 	return NetworkStatus::Success;
 }
 
@@ -556,6 +629,10 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 		case PacketType::ChangeGroup:
 			_me->groupId = packet.newGroupId;
 			_SendPacketToServer(_CreateChangeGroupResponsePacket(true));
+			break ;
+		case PacketType::TimeoutCheck:
+			std::cout << "responding to timeout !\n";
+			_SendPacketToServer(_CreateTimeoutCheckResponsePacket());
 			break ;
 		default:
 			break ;
@@ -654,6 +731,25 @@ void						NetworkManager::_ServerSocketEvent(void)
 					if (_clientShaderUniformCallback != NULL)
 						_clientShaderUniformCallback(packet.row, packet.seat, packet.success);
 					break ;
+				case PacketType::TimeoutCheckResponse:
+					_FindClient(packet.groupId, packet.ip, 
+						[&](Client & c)
+						{
+							c.willTimeout = false;
+						}
+					);
+					break ;
+				case PacketType::ClientQuit:
+					std::cout << "received quit packet from client !\n";
+					_FindClient(packet.groupId, packet.ip, 
+						[&](Client & c)
+						{
+							c.status = ClientStatus::Disconnected;
+						}
+					);
+					if (_clientQuitCallback != NULL)
+						_clientQuitCallback(packet.row, packet.seat);
+					break ;
 				default:
 					break ;
 			}
@@ -706,10 +802,11 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	std::map< int, std::list< Client > >::iterator	group;
 	int												nRemoved = 0;
 	Client											moved;
+	int												oldGroup = 0;
 
 	if ((group = _clients.find(groupId)) != _clients.end())
 	{
-		for (auto clientKP : _clients)
+		for (auto & clientKP : _clients)
 			clientKP.second.remove_if(
 				[&](const Client & c) mutable
 				{
@@ -717,6 +814,7 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 					{
 						moved = c;
 						nRemoved++;
+						oldGroup = c.groupId;
 						return true;
 					}
 					return false;
@@ -782,21 +880,15 @@ void	NetworkManager::SendShaderLoaded(void)
 	_SendPacketToServer(_CreateShaderLoadedPacket());
 }
 
+void	NetworkManager::SendQuit(const bool crash)
+{
+	_SendPacketToServer(_CreateClientQuitPacket(crash));
+}
+
 //Client callbacks:
-void	NetworkManager::SetShaderFocusCallback(ShaderFocusCallback callback)
-{
-	_shaderFocusCallback = callback;
-}
-
-void	NetworkManager::SetShaderUniformCallback(ShaderUniformCallback callback)
-{
-	_shaderUniformCallback = callback;
-}
-
-void	NetworkManager::SetShaderLoadCallback(ShaderLoadCallback callback)
-{
-	_shaderLoadCallback = callback;
-}
+void	NetworkManager::SetShaderFocusCallback(ShaderFocusCallback callback) { _shaderFocusCallback = callback; }
+void	NetworkManager::SetShaderUniformCallback(ShaderUniformCallback callback) { _shaderUniformCallback = callback; }
+void	NetworkManager::SetShaderLoadCallback(ShaderLoadCallback callback) { _shaderLoadCallback = callback; }
 
 //server callbacks:
 
@@ -805,6 +897,8 @@ void	NetworkManager::SetClientGroupChangeCallback(ClientGroupChangeCallback call
 void	NetworkManager::SetClientShaderLoadCallback(ClientShaderLoadCallback callback) { _clientShaderLoadCallback = callback; }
 void	NetworkManager::SetClientShaderFocusCallback(ClientShaderFocusCallback callback) { _clientShaderFocusCallback = callback; }
 void	NetworkManager::SetClientShaderUniformCallback(ClientShaderUniformCallback callback) { _clientShaderUniformCallback = callback; }
+void	NetworkManager::SetClientTimeoutCallback(ClientTimeoutCallback callback) { _clientTimeoutCallback = callback; }
+void	NetworkManager::SetClientQuitCallback(ClientQuitCallback callback) { _clientQuitCallback = callback; }
 
 //Utils
 

@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/18 17:01:25 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/18 19:46:16 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@
 # define MAX_MESSAGE_LENGTH		256
 
 # define NOW					-1
+
+# define CLIENT_TIMEOUT			10 //secs
 
 # define E1						1
 # define E2						2
@@ -75,6 +77,7 @@ struct			Client
 	ClientStatus	status;
 	unsigned int	ip;
 	Timeval			averageTimeDelta;
+	bool			willTimeout;
 
 	Client(int row, int seat, int cluster, const char *cip)
 	{
@@ -125,6 +128,8 @@ typedef std::function< void (const int, const int, const int newGroup) >			Clien
 typedef std::function< void (const int, const int, const bool success) >			ClientShaderLoadCallback;
 typedef std::function< void (const int, const int, const bool success) >			ClientShaderFocusCallback;
 typedef std::function< void (const int, const int, const bool success) >			ClientShaderUniformCallback;
+typedef std::function< void (const int, const int) >								ClientTimeoutCallback;
+typedef std::function< void (const int, const int) >								ClientQuitCallback;
 
 class		NetworkManager
 {
@@ -137,10 +142,13 @@ class		NetworkManager
 			UniformUpdate,
 			ChangeGroup,
 			HelloServer,
+			TimeoutCheck,
+			ClientQuit,
 			ShaderLoadResponse,
 			GroupChangeResponse,
 			ShaderFocusResponse,
 			ShaderUniformResponse,
+			TimeoutCheckResponse,
 		};
 
 		enum class		UniformType
@@ -206,9 +214,13 @@ class		NetworkManager
 				{
 					int		newGroupId;
 				};
-				struct //Shader load response
+				struct //Shader load/group change response
 				{
 					bool	success;
+				};
+				struct //application quit packet
+				{
+					bool	crashed;
 				};
 			};
 		};
@@ -233,6 +245,8 @@ class		NetworkManager
 		ClientShaderLoadCallback	_clientShaderLoadCallback = NULL;
 		ClientShaderFocusCallback	_clientShaderFocusCallback = NULL;
 		ClientShaderUniformCallback	_clientShaderUniformCallback = NULL;
+		ClientTimeoutCallback		_clientTimeoutCallback = NULL;
+		ClientQuitCallback			_clientQuitCallback = NULL;
 
 		NetworkStatus			_SendPacketToAllClients(const Packet & packet) const;
 		NetworkStatus			_SendPacketToGroup(const int groupId, Packet packet, const SyncOffset & sync) const;
@@ -260,6 +274,9 @@ class		NetworkManager
 		Packet					_CreateHelloPacket(void) const;
 		Packet					_CreateShaderLoadErrorPacket(void) const;
 		Packet					_CreateShaderLoadedPacket(void) const;
+		Packet					_CreateTimeoutCheckPacket(void) const;
+		Packet					_CreateTimeoutCheckResponsePacket(void) const;
+		Packet					_CreateClientQuitPacket(const bool crash) const;
 
 	public:
 		NetworkManager(bool server = false, bool connection = false);
@@ -269,6 +286,7 @@ class		NetworkManager
 		NetworkManager &	operator=(NetworkManager const & src) = delete;
 
 		NetworkStatus		ConnectCluster(int clusterNumber);
+		NetworkStatus		CheckClusterTimeout(void);
 		NetworkStatus		CloseAllConnections(void);
 		void				GetSyncOffsets(void);
 		NetworkStatus		Update(void);
@@ -279,6 +297,8 @@ class		NetworkManager
 		void			SetClientShaderLoadCallback(ClientShaderLoadCallback callback);
 		void			SetClientShaderFocusCallback(ClientShaderFocusCallback callback);
 		void			SetClientShaderUniformCallback(ClientShaderUniformCallback callback);
+		void			SetClientTimeoutCallback(ClientTimeoutCallback callback);
+		void			SetClientQuitCallback(ClientQuitCallback callback);
 
 		//Client callbacks:
 		void			SetShaderFocusCallback(ShaderFocusCallback callback);
@@ -295,6 +315,7 @@ class		NetworkManager
 		//client control functions:
 		void			SendShaderLoadError(void);
 		void			SendShaderLoaded(void);
+		void			SendQuit(const bool crash);
 
 		int				GetLocalRow(void) const;
 		int				GetLocalSeat(void) const;

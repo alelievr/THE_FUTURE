@@ -47,13 +47,17 @@ void	Timer::Interval(std::function< void(void) > callback, const int milliSecs, 
 		[callback, milliSecs](void) mutable
 		{
 			int			threadIndex = _localThreadIndex;
-			int			microSecs = milliSecs * 1000;
 
 			while (!_threadsShouldStop)
 			{
 				callback();
 				loopCount++;
-				usleep(microSecs);
+				for (int i = 0; i < milliSecs; i++)
+				{
+					if (_threadsShouldStop)
+						break ;
+					usleep(1000);
+				}
 			}
 			_runningThreads.erase(threadIndex);
 		}
@@ -78,8 +82,8 @@ void	Timer::Async(std::function< void(void) > callback)
 void	Timer::ExitAllThreads(void)
 {
 	_threadsShouldStop = true;
-	for (const auto & threadKP : _runningThreads)
-		threadKP.second->join();
+	/*for (const auto & threadKP : _runningThreads)
+		threadKP.second->join();*/
 }
 
 Timeval		*Timer::TimeoutInSeconds(const int nSecs)
