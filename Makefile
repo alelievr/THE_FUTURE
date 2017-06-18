@@ -67,7 +67,7 @@ CFLAGS		=	-Wall -Wextra
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb
-DEBUGFLAGS2	=	-fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
+DEBUGFLAGS2	=	-fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls
 OPTFLAGS1	=	-funroll-loops -O0 #FIXME the renderer does not works if O > 0 ...
 OPTFLAGS2	=	-pipe -funroll-loops -Ofast
 
@@ -173,7 +173,7 @@ endif
 ifneq ($(filter 2,$(strip $(DEBUGLEVEL)) ${DEBUG}),)
 	OPTLEVEL = 0
 	OPTI = 0
-	DEBUGFLAGS += $(DEBUGFLAGS1)
+	DEBUGFLAGS += $(DEBUGFLAGS1) $(DEBUGFLAGS2)
 	LINKDEBUG += $(DEBUGFLAGS1) $(DEBUGFLAGS2)
 	export ASAN_OPTIONS=check_initialization_order=1
 endif
