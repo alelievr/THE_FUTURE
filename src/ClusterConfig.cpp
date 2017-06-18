@@ -178,6 +178,20 @@ void		ClusterConfig::StartAllRenderLoops(NetworkManager *netManager)
 	}
 }
 
+size_t			ClusterConfig::GetImacIndexInGroup(const int groupId, const int row, const int seat)
+{
+	size_t		pos = 0;
+
+	for (const auto & imacConfig : _clusterConfig)
+	{
+		if (imacConfig.row == row && imacConfig.seat == seat)
+			break ;
+		if (imacConfig.groupId == groupId)
+			pos++;
+	}
+	return pos;
+}
+
 int			ClusterConfig::GetGroupNumber(void)
 {
 	return _groupConfig.size();

@@ -31,6 +31,15 @@
 # define DEBUG(...) (void)0
 #endif
 
+static std::mutex		_mutex;
+#if DEBUG >= 1
+# define LOCK	std::cout << "locking " << __FUNCTION__ << ":" << __LINE__ << std::endl; _mutex.lock();
+# define UNLOCK	std::cout << "unlocking " << __FUNCTION__ << ":" << __LINE__ << std::endl; _mutex.unlock();
+#else
+# define LOCK	_mutex.lock();
+# define UNLOCK	_mutex.unlock();
+#endif
+
 int	NetworkManager::_localGroupId = 1;
 
 NetworkManager::NetworkManager(bool server, bool co)
@@ -175,20 +184,28 @@ bool				NetworkManager::_ImacExists(const int row, const int seat) const
 	return true;
 }
 
-NetworkStatus		NetworkManager::_FindClient(const int groupId, const size_t ip, std::function< void(Client &) > callback)
+Client &		NetworkManager::_FindClient(const int groupId, const size_t ip)
 {
-	bool		found = false;
+	static Client	defaultClient;
 
+	LOCK;
 	if (groupId < 0 || _clients.find(groupId) == _clients.end())
-		return DEBUG("Findclient failed, groupId out of bounds: %i\n", groupId), NetworkStatus::OutOfBound;
+	{
+		UNLOCK;
+		return DEBUG("Findclient failed, groupId out of bounds: %i\n", groupId), defaultClient;
+	}
 
-	auto & clientList = _clients[groupId];
-	for (auto & c : clientList)
+	for (auto & c : _clients[groupId])
+	{
 		if (c.ip == ip)
-			found = true, callback(c);
-	if (!found)
-		DEBUG("Client %zu not found in group: %i\n", ip, groupId);
-	return (found) ? NetworkStatus::Success : NetworkStatus::Error;
+		{
+			UNLOCK;
+			return c;
+		}
+	}
+	UNLOCK;
+	DEBUG("Client %zu not found in group: %i\n", ip, groupId);
+	return defaultClient;
 }
 
 NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) const
@@ -200,6 +217,7 @@ NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) co
 	connection.sin_family = AF_INET;
 	connection.sin_port = htons(CLIENT_PORT);
 
+	LOCK;
 	for (auto clientList : _clients)
 	{
 		for (const Client & c : clientList.second)
@@ -212,6 +230,7 @@ NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) co
 			}
 		}
 	}
+	UNLOCK;
 	return (error) ? NetworkStatus::MissingClients : NetworkStatus::Success;
 }
 
@@ -544,6 +563,7 @@ NetworkStatus		NetworkManager::CheckClusterTimeout(void)
 	if (!_isServer)
 		return (std::cout << "not in server mode !" << std::endl, NetworkStatus::ServerReservedCommand);
 
+	LOCK;
 	const Packet p = _CreateTimeoutCheckPacket();
 	for (auto & clientsKP : _clients)
 	{
@@ -561,6 +581,7 @@ NetworkStatus		NetworkManager::CheckClusterTimeout(void)
 				_SendPacketToClient(client.ip, p);
 			}
 	}
+	UNLOCK;
 	return NetworkStatus::Success;
 }
 
@@ -659,24 +680,22 @@ void						NetworkManager::_ServerSocketEvent(void)
 					gettimeofday(&now, NULL);
 
 					//update the client status:
-					_FindClient(packet.groupId, packet.ip, 
-						[&](Client & c)
+					{
+						auto & c = _FindClient(packet.groupId, packet.ip);
+
+						c.status = packet.status;
+						if (c.status == ClientStatus::WaitingForCommand)
 						{
-							c.status = packet.status;
+							int		clientGroupId = ClusterConfig::GetGroupForImac(packet.row, packet.seat);
+							
+							if (clientGroupId != -1)
+								MoveIMacToGroup(clientGroupId, packet.row, packet.seat);
 
-							if (c.status == ClientStatus::WaitingForCommand)
-							{
-								int		clientGroupId = ClusterConfig::GetGroupForImac(packet.row, packet.seat);
-								
-								if (clientGroupId != -1)
-									MoveIMacToGroup(clientGroupId, packet.row, packet.seat);
-
-								const auto & clientShaders = ClusterConfig::GetShadersInGroup(clientGroupId);
-								for (const std::string & shader : clientShaders)
-									LoadShaderOnGroup(clientGroupId, shader, (&shader == &clientShaders.back()));
-							}
+							const auto & clientShaders = ClusterConfig::GetShadersInGroup(clientGroupId);
+							for (const std::string & shader : clientShaders)
+								LoadShaderOnGroup(clientGroupId, shader, (&shader == &clientShaders.back()));
 						}
-					);
+					}
 
 					if (_clientStatusUpdateCallback != NULL)
 						_clientStatusUpdateCallback(packet.row, packet.seat, packet.status);
@@ -689,15 +708,13 @@ void						NetworkManager::_ServerSocketEvent(void)
 					_SendPacketToClient(packet.ip, _CreatePokeStatusPacket());
 					break ;
 				case PacketType::ShaderLoadResponse:
-					_FindClient(packet.groupId, packet.ip, 
-						[&](Client & c)
-						{
-							if (!packet.success)
-								c.status = ClientStatus::Error;
-							else
-								c.status = ClientStatus::ShaderLoaded;
-						}
-					);
+					{
+						auto & c = _FindClient(packet.groupId, packet.ip);
+						if (!packet.success)
+							c.status = ClientStatus::Error;
+						else
+							c.status = ClientStatus::ShaderLoaded;
+					}
 					if (_clientShaderLoadCallback != NULL)
 						_clientShaderLoadCallback(packet.row, packet.seat, packet.success);
 					break ;
@@ -706,47 +723,40 @@ void						NetworkManager::_ServerSocketEvent(void)
 						_clientGroupChangeCallback(packet.row, packet.seat, packet.groupId);
 					break ;
 				case PacketType::ShaderFocusResponse:
-					_FindClient(packet.groupId, packet.ip, 
-						[&](Client & c)
-						{
-							if (!packet.success)
-								c.status = ClientStatus::Error;
-							else
-								c.status = ClientStatus::Running;
-						}
-					);
+					{
+						auto & c = _FindClient(packet.groupId, packet.ip);
+						if (!packet.success)
+							c.status = ClientStatus::Error;
+						else
+							c.status = ClientStatus::Running;
+					}
 					if (_clientShaderFocusCallback != NULL)
 						_clientShaderFocusCallback(packet.row, packet.seat, packet.success);
 					break ;
 				case PacketType::ShaderUniformResponse:
-					_FindClient(packet.groupId, packet.ip, 
-						[&](Client & c)
-						{
-							if (!packet.success)
-								c.status = ClientStatus::Error;
-							else
-								c.status = ClientStatus::Running;
-						}
-					);
+					{
+						auto & c = _FindClient(packet.groupId, packet.ip);
+						if (!packet.success)
+							c.status = ClientStatus::Error;
+						else
+							c.status = ClientStatus::Running;
+					}
 					if (_clientShaderUniformCallback != NULL)
 						_clientShaderUniformCallback(packet.row, packet.seat, packet.success);
 					break ;
 				case PacketType::TimeoutCheckResponse:
-					_FindClient(packet.groupId, packet.ip, 
-						[&](Client & c)
-						{
-							c.willTimeout = false;
-						}
-					);
+					{
+						auto & c = _FindClient(packet.groupId, packet.ip);
+						c.willTimeout = false;
+					}
 					break ;
 				case PacketType::ClientQuit:
 					std::cout << "received quit packet from client !\n";
-					_FindClient(packet.groupId, packet.ip, 
-						[&](Client & c)
-						{
-							c.status = ClientStatus::Disconnected;
-						}
-					);
+					{
+						auto & c = _FindClient(packet.groupId, packet.ip);
+						c.status = ClientStatus::Disconnected;
+					}
+
 					if (_clientQuitCallback != NULL)
 						_clientQuitCallback(packet.row, packet.seat);
 					break ;
@@ -796,6 +806,7 @@ int		NetworkManager::CreateNewGroup(void)
 	_clients[_localGroupId] = std::list< Client >();
 	return _localGroupId++;
 }
+#include <iterator>
 
 NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row, const int seat)
 {
@@ -804,6 +815,7 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	Client											moved;
 	int												oldGroup = 0;
 
+	LOCK;
 	if ((group = _clients.find(groupId)) != _clients.end())
 	{
 		for (auto & clientKP : _clients)
@@ -824,19 +836,39 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	else
 	{
 		DEBUG("out of bounds of groupId in MoveImacToGroup !\n");
+		UNLOCK;
 		return NetworkStatus::OutOfBound;
 	}
 
 	if (nRemoved == 1)
 	{
 		_clients[groupId].push_back(moved);
+
+		//Sort to be in the same order than the config file:
+		for (auto it = _clients[groupId].begin(); it != _clients[groupId].end(); ++it)
+		{
+			auto & client = *it;
+			size_t	index = ClusterConfig::GetImacIndexInGroup(groupId, client.row, client.seat);
+			if (index > _clients[groupId].size())
+				continue ;
+
+			_clients[groupId].splice(it, _clients[groupId], std::next(_clients[groupId].begin(), index));
+		}
+
+		std::cout << "sorted imac list for group " << groupId << ":" << std::endl;
+		for (const auto c : _clients[groupId])
+			std::cout << c << ", ";
+		std::cout << std::endl;
+
 		_SendPacketToClient(moved.ip, _CreateChangeGroupPacket(groupId));
 		std::cout << "moved imac " << moved << " to group " << groupId << std::endl;
+		UNLOCK;
 		return NetworkStatus::Success;
 	}
 	else
 	{
 		DEBUG("client not found in cluster !\n");
+		UNLOCK;
 		return NetworkStatus::Error;
 	}
 }

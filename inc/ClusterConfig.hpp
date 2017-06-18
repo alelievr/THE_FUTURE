@@ -49,8 +49,8 @@ class		ClusterConfig
 		static std::vector< ImacConfig > &	GetClusterConfig(void);
 		static int							GetGroupForImac(const int row, const int seat);
 		static void							StartAllRenderLoops(NetworkManager *netManager);
-	//	static const std::map< int, RenderLoop > & GetRenderLoops(void);
-		static int	GetGroupNumber(void);
+		static int							GetGroupNumber(void);
+		static size_t						GetImacIndexInGroup(const int groupId, const int row, const int seat);
 };
 
 std::ostream &	operator<<(std::ostream & o, ClusterConfig const & r);
