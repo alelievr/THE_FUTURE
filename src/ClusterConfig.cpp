@@ -1,4 +1,6 @@
 #include "ClusterConfig.hpp"
+#include "Timer.hpp"
+#include <unistd.h>
 #include <regex>
 #include <algorithm>
 
@@ -149,15 +151,43 @@ int							ClusterConfig::GetGroupForImac(const int row, const int seat)
 	return -1;
 }
 
+void		ClusterConfig::StartAllRenderLoops(NetworkManager *netManager)
+{
+	for (auto & renderLoopKP : _renderLoops)
+	{
+		int		groupId = renderLoopKP.first;
+		Timer::Async(
+			[netManager, groupId](void)
+			{
+				size_t		renderIndex = 0;
+				auto &		renderIterations = _renderLoops[groupId];
+
+				while (42)
+				{
+					auto renderIteration = renderIterations[renderIndex];
+
+					netManager->FocusShaderOnGroup(Timer::TimeoutInSeconds(1), groupId, renderIteration.programIndex, renderIteration.syncOffset);
+					usleep(renderIteration.waitTime * 1000 * 1000);
+
+					renderIndex++;
+					if (renderIndex == renderIterations.size())
+						renderIndex = 0;
+				}
+			}
+		);
+	}
+}
+
 int			ClusterConfig::GetGroupNumber(void)
 {
 	return _groupConfig.size();
 }
 
-void		ClusterConfig::SaveConfigFile(const NetworkGUI & gui)
+/*void		ClusterConfig::SaveConfigFile(const NetworkGUI & gui)
 {
+	std::cout << "Save config file: TODO !\n" << std::endl;
 	(void)gui;
-}
+}*/
 
 std::ostream &	operator<<(std::ostream & o, ClusterConfig const & r)
 {

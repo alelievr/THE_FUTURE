@@ -59,8 +59,6 @@ NetworkGUI::NetworkGUI(NetworkManager *nm)
 	_font = new sf::Font();
 	_font->loadFromFile("fonts/ParkTech.ttf");
 
-	_syncOffset = SyncOffset::CreateLinearSyncOffset(1, 0);
-
 	FillColorList();
 
 	for (int x = 0; x < CLUSTER_MAX_ROW_SEATS + 2; x++) // +2 for cluster lanes
@@ -260,28 +258,8 @@ void		NetworkGUI::DrawSelectedGroup(const bool clicked)
 	int		x = SELECTED_GROUP_OFFSET_X + GROUP_OFFSET_X;
 	int		y = SELECTED_GROUP_OFFSET_Y;
 
-	if (_selectedGroup == -1)
-		return ;
-
-	sf::Color c = sf::Color::Blue;
-	if (static_cast< unsigned >(_selectedGroup) < _groupColors.size())
-		c = _groupColors[_selectedGroup];
-	if (DrawButton(x, y, 100, BUTTON_HEIGHT, clicked, "START", c))
-		_netManager->FocusShaderOnGroup(Timer::TimeoutInSeconds(1), _selectedGroup, 0, _syncOffset);
-	std::string syncOffsetType = (_selectedSyncOffsetType == SyncOffsetType::None) ? "Sync: None" : "Sync: Linear";
-	if (DrawButton(x + 100 + SELECTED_GROUP_BUTTON_PADDING_X, SELECTED_GROUP_OFFSET_Y, 180, BUTTON_HEIGHT, clicked, syncOffsetType, sf::Color(93, 0, 20)))
-	{
-		if (_selectedSyncOffsetType == SyncOffsetType::None)
-		{
-			_selectedSyncOffsetType = SyncOffsetType::Linear;
-			_syncOffset = SyncOffset::CreateLinearSyncOffset(1, 0);
-		}
-		else
-		{
-			_selectedSyncOffsetType = SyncOffsetType::None;
-			_syncOffset = SyncOffset::CreateNoneSyncOffset();
-		}
-	}
+	if (DrawButton(x, y, 250, BUTTON_HEIGHT, clicked, "START RENDERING", sf::Color(40, 0, 60)))
+		ClusterConfig::StartAllRenderLoops(_netManager);
 }
 
 void		NetworkGUI::RenderLoop(void)

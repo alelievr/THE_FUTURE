@@ -1,6 +1,7 @@
 #ifndef NETWORKGUI_HPP
 # define NETWORKGUI_HPP
 # include "NetworkManager.hpp"
+# include "ClusterConfig.hpp"
 # include "SFML/Window.hpp"
 # include "SFML/Graphics.hpp"
 # include <iostream>
@@ -26,8 +27,6 @@ class		NetworkGUI
 		sf::Vector2< unsigned >	_windowSize;
 		NetworkManager *		_netManager;
 		int						_selectedGroup;
-		SyncOffsetType			_selectedSyncOffsetType;
-		SyncOffset				_syncOffset;
 		std::map< int, std::map< int, GUIClient > >	_GUIClients;
 		std::vector< sf::Color > _groupColors;
 

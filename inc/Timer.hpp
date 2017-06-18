@@ -22,6 +22,7 @@ class		Timer
 		Timer &	operator=(Timer const & src) = delete;
 
 		static void			Timeout(const Timeval *timeout, std::function< void(void) > callback);
+		static void			Async(std::function< void(void) > callback);
 		static void			Interval(std::function< void(void) > callback, const int milliSecs, const int blockingUntilLoopCount = 0);
 		static void			ExitAllThreads(void);
 

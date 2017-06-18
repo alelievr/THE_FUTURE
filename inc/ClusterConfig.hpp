@@ -2,6 +2,7 @@
 # define CLUSTERCONFIG_HPP
 # include "NetworkGUI.hpp"
 # include "SyncOffset.hpp"
+# include "NetworkGUI.hpp"
 # include <iostream>
 # include <fstream>
 # include <string>
@@ -43,11 +44,12 @@ class		ClusterConfig
 		ClusterConfig &	operator=(ClusterConfig const & src) = delete;
 
 		static void	LoadConfigFile(const std::string & fileName = "");
-		static void	SaveConfigFile(const NetworkGUI & gui);
+		//static void	SaveConfigFile(const NetworkGUI & gui);
 		static std::list< std::string > &	GetShadersInGroup(const int groupId);
 		static std::vector< ImacConfig > &	GetClusterConfig(void);
 		static int							GetGroupForImac(const int row, const int seat);
-		static const std::map< int, RenderLoop > & GetRenderLoops(void);
+		static void							StartAllRenderLoops(NetworkManager *netManager);
+	//	static const std::map< int, RenderLoop > & GetRenderLoops(void);
 		static int	GetGroupNumber(void);
 };
 

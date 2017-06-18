@@ -27,7 +27,6 @@ void	Timer::Timeout(const Timeval *timeout, std::function< void(void) > callback
 			long		secDiff = ((long)timeout->tv_sec - (long)now.tv_sec) * 1000 * 1000;
 			long		microSecDiff = timeout->tv_usec - now.tv_usec;
 			long		total = secDiff + microSecDiff;
-			std::cout << "waiting: " << total << std::endl;
 			threadInitialized = true;
 			if (total > 0)
 				usleep(total);
@@ -62,6 +61,18 @@ void	Timer::Interval(std::function< void(void) > callback, const int milliSecs, 
 	while (loopCount != blockingUntilLoopCount)
 		usleep(1000);
 	_localThreadIndex++;
+}
+
+void	Timer::Async(std::function< void(void) > callback)
+{
+	_runningThreads[_localThreadIndex] = new std::thread(
+		[callback](void)
+		{
+			int		threadIndex = _localThreadIndex;
+			callback();
+			_runningThreads.erase(threadIndex);
+		}
+	);
 }
 
 void	Timer::ExitAllThreads(void)
