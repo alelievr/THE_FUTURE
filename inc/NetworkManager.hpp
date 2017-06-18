@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/17 23:04:53 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/18 16:50:42 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ enum class	NetworkStatus
 	AnotherCommandIsRunning,		// obvious
 	NotConnectedToServer,			// obvious
 	MissingClients,					// the command was not executed on all selected clients
-	OutOfBound,					//out of bounds, mostly for groupIds
+	OutOfBound,						//out of bounds, mostly for groupIds
 };
 
 enum class		ClientStatus
@@ -60,18 +60,71 @@ enum class		ClientStatus
 	Unknown,					//unknow client status
 	Disconnected,				//the client is disconnected
 	WaitingForCommand,			//nothing is running, client wait for first commands
-	ShaderIsRunning,			//a shader is running
-	WaitingForShaderFocus,		//a shader is running and the client is waiting to switch the shader at the specified time
+	ShaderLoaded,				//a shader is running
+	Running,					//the render loop is running
+	Error,						//a command failed on the client
+	Timeout,					//the client is not responding
+};
+
+struct			Client
+{
+	int				seat;
+	int				row;
+	int				cluster;
+	int				groupId;
+	ClientStatus	status;
+	unsigned int	ip;
+	Timeval			averageTimeDelta;
+
+	Client(int row, int seat, int cluster, const char *cip)
+	{
+		struct sockaddr_in	connection;
+
+		this->seat = seat;
+		this->row = row;
+		this->cluster = cluster;
+		this->groupId = 0;
+		status = ClientStatus::Unknown;
+		inet_aton(cip, &connection.sin_addr);
+		ip = connection.sin_addr.s_addr;
+	}
+
+	Client & 	operator=(const Client & oth)
+	{
+		if (this != &oth)
+		{
+			this->seat = oth.seat;
+			this->cluster = oth.cluster;
+			this->row = oth.row;
+			this->groupId = oth.groupId;
+			this->status = oth.status;
+			this->ip = oth.ip;
+			this->averageTimeDelta = oth.averageTimeDelta;
+		}
+		return *this;
+	}
+
+	Client() {}
+
+	friend std::ostream &	operator<<(std::ostream & o, Client const & r)
+	{
+		return o << "e" << r.cluster << "r" << r.row << "p" << r.seat;
+	}
 };
 
 //Client callbacks:
-typedef std::function< void (const Timeval *timing, const int programIndex) >				ShaderFocusCallback;
+typedef std::function< bool (const Timeval *timing, const int programIndex) >				ShaderFocusCallback;
 typedef std::function< void (const Timeval *timing, const std::string & shaderName) >		ShaderUniformCallback;
 typedef std::function< void (const std::string & shaderName, const bool last) >				ShaderLoadCallback;
 typedef std::function< Timeval & (const int seat, const int row, const int index) >			CustomSyncOffsetCallback;
 
 //Server callbacks:
-typedef std::function< void (const int row, const int seat, const ClientStatus status) >	StatusUpdateCallback;
+//                              row       saet
+typedef std::function< void (const int, const int, const ClientStatus status) >		ClientStatusUpdateCallback;
+typedef std::function< void (const int, const int, const int newGroup) >			ClientGroupChangeCallback;
+typedef std::function< void (const int, const int, const bool success) >			ClientShaderLoadCallback;
+typedef std::function< void (const int, const int, const bool success) >			ClientShaderFocusCallback;
+typedef std::function< void (const int, const int, const bool success) >			ClientShaderUniformCallback;
 
 class		NetworkManager
 {
@@ -84,6 +137,10 @@ class		NetworkManager
 			UniformUpdate,
 			ChangeGroup,
 			HelloServer,
+			ShaderLoadResponse,
+			GroupChangeResponse,
+			ShaderFocusResponse,
+			ShaderUniformResponse,
 		};
 
 		enum class		UniformType
@@ -93,52 +150,6 @@ class		NetworkManager
 			Float3,
 			Float4,
 			Int1,
-		};
-
-		struct			Client
-		{
-			int				seat;
-			int				row;
-			int				cluster;
-			int				groupId;
-			ClientStatus	status;
-			unsigned int	ip;
-			Timeval			averageTimeDelta;
-
-			Client(int row, int seat, int cluster, const char *cip)
-			{
-				struct sockaddr_in	connection;
-
-				this->seat = seat;
-				this->row = row;
-				this->cluster = cluster;
-				this->groupId = 0;
-				status = ClientStatus::Unknown;
-				inet_aton(cip, &connection.sin_addr);
-				ip = connection.sin_addr.s_addr;
-			}
-
-			Client & 	operator=(const Client & oth)
-			{
-				if (this != &oth)
-				{
-					this->seat = oth.seat;
-					this->cluster = oth.cluster;
-					this->row = oth.row;
-					this->groupId = oth.groupId;
-					this->status = oth.status;
-					this->ip = oth.ip;
-					this->averageTimeDelta = oth.averageTimeDelta;
-				}
-				return *this;
-			}
-
-			Client() {}
-
-			friend std::ostream &	operator<<(std::ostream & o, NetworkManager::Client const & r)
-			{
-				return o << "e" << r.cluster << "r" << r.row << "p" << r.seat;
-			}
 		};
 
 		/*	Packet struct which handle all possible packets:
@@ -195,6 +206,10 @@ class		NetworkManager
 				{
 					int		newGroupId;
 				};
+				struct //Shader load response
+				{
+					bool	success;
+				};
 			};
 		};
 
@@ -212,7 +227,12 @@ class		NetworkManager
 		ShaderFocusCallback		_shaderFocusCallback = NULL;
 		ShaderUniformCallback	_shaderUniformCallback = NULL;
 		ShaderLoadCallback		_shaderLoadCallback = NULL;
-		StatusUpdateCallback	_clientStatusUpdateCallback = NULL;
+
+		ClientStatusUpdateCallback	_clientStatusUpdateCallback = NULL;
+		ClientGroupChangeCallback	_clientGroupChangeCallback = NULL;
+		ClientShaderLoadCallback	_clientShaderLoadCallback = NULL;
+		ClientShaderFocusCallback	_clientShaderFocusCallback = NULL;
+		ClientShaderUniformCallback	_clientShaderUniformCallback = NULL;
 
 		NetworkStatus			_SendPacketToAllClients(const Packet & packet) const;
 		NetworkStatus			_SendPacketToGroup(const int groupId, Packet packet, const SyncOffset & sync) const;
@@ -230,11 +250,16 @@ class		NetworkManager
 		//Create packet functions:
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;
 		Packet					_CreatePokeStatusPacket(void) const;
-		Packet					_CreatePokeStatusResponsePacket(const Client & client) const;
+		Packet					_CreatePokeStatusResponsePacket(void) const;
 		Packet					_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex) const;
+		Packet					_CreateShaderFocusResponsePacket(const bool success) const;
 		Packet					_CreateShaderLoadPacket(const int groupId, const std::string & shaderName, bool last) const;
+		Packet					_CreateShaderLoadResponsePacket(const bool success) const;
 		Packet					_CreateChangeGroupPacket(const int groupId) const;
+		Packet					_CreateChangeGroupResponsePacket(const bool success) const;
 		Packet					_CreateHelloPacket(void) const;
+		Packet					_CreateShaderLoadErrorPacket(void) const;
+		Packet					_CreateShaderLoadedPacket(void) const;
 
 	public:
 		NetworkManager(bool server = false, bool connection = false);
@@ -248,17 +273,28 @@ class		NetworkManager
 		void				GetSyncOffsets(void);
 		NetworkStatus		Update(void);
 
+		//Server callbacks:
+		void			SetClientStatusUpdateCallback(ClientStatusUpdateCallback callback);
+		void			SetClientGroupChangeCallback(ClientGroupChangeCallback callback);
+		void			SetClientShaderLoadCallback(ClientShaderLoadCallback callback);
+		void			SetClientShaderFocusCallback(ClientShaderFocusCallback callback);
+		void			SetClientShaderUniformCallback(ClientShaderUniformCallback callback);
+
 		//Client callbacks:
 		void			SetShaderFocusCallback(ShaderFocusCallback callback);
 		void			SetShaderUniformCallback(ShaderUniformCallback callback);
 		void			SetShaderLoadCallback(ShaderLoadCallback callback);
-		void			SetClientStatusUpdateCallback(StatusUpdateCallback callback);
 
+		//server control functions:
 		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const SyncOffset & syncOffset) const;
 		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int group, const std::string uniformName, ...) const;
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		int				CreateNewGroup(void);
 		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat);
+
+		//client control functions:
+		void			SendShaderLoadError(void);
+		void			SendShaderLoaded(void);
 
 		int				GetLocalRow(void) const;
 		int				GetLocalSeat(void) const;

@@ -74,15 +74,16 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 				if (app == NULL)
 				{
 					std::cout << "Can't focus a shader, shaderApplication not initialized" << std::endl;
-					return ;
+					return false;
 				}
 				Timer::Timeout(timing,
 					[programIndex, app](void)
 					{
 						std::cout << "focusing shader: " << programIndex << std::endl;
-						app->FocusShader(programIndex);
+						return app->FocusShader(programIndex);
 					}
 				);
+				return true;
 			}
 		);
 
@@ -166,8 +167,10 @@ int		main(int ac, char **av)
 				usleep(16000);
 
 			for (const std::string & shaderName : shadersToLoad)
-				app.LoadShader(shaderName);
+				if (!app.LoadShader(shaderName))
+					nm.SendShaderLoadError();
 			app.loadingShaders = false;
+			nm.SendShaderLoaded();
 			app.OnLoadingShaderFinished();
 
 			app.RenderLoop();

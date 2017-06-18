@@ -16,6 +16,7 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 	std::regex		focusLine("\\s*Focus\\s\\s*(\\d\\d*)\\s\\s*Sync\\s\\s*(None|Linear\\s\\s*(\\d\\d*))");
 	std::regex		waitLine("\\s*Wait\\s\\s*(\\d\\d*)");
 	bool			openbrace = false;
+	size_t			currentIteration = -1;
 
 	while (std::getline(configFile, line))
 	{
@@ -24,18 +25,30 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 			continue ;
 		if (std::regex_match(line, matches, focusLine))
 		{
+			RenderIteration	r;
 			int				programIndex = std::stoi(matches[1]);
 			std::string		syncOffset = matches[2];
-			_renderLoops[groupId].programIndex = programIndex;
+
+			currentIteration++;
+			r.waitTime = 0;
+			r.programIndex = programIndex;
 			if (syncOffset.find("Linear") != std::string::npos)
 			{
 				int delaySecs = std::stoi(matches[3]);
-				_renderLoops[groupId].syncOffset = SyncOffset::CreateLinearSyncOffset(delaySecs, 0);
+				r.syncOffset = SyncOffset::CreateLinearSyncOffset(delaySecs, 0);
 			}
 			else if (syncOffset.find("None") != std::string::npos)
-				_renderLoops[groupId].syncOffset = SyncOffset::CreateNoneSyncOffset();
+				r.syncOffset = SyncOffset::CreateNoneSyncOffset();
 			else
 				std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
+			_renderLoops[groupId].push_back(r);
+		}
+		else if (std::regex_match(line, matches, waitLine))
+		{
+			if (currentIteration >= _renderLoops[groupId].size())
+				std::cout << "parse error: Wait without program !", exit(-1);
+			int		waitTime = std::stoi(matches[1]);
+			_renderLoops[groupId][currentIteration].waitTime = waitTime;
 		}
 		if (std::regex_match(line, matches, openingBraceLine))
 		{
@@ -53,6 +66,8 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 	}
 	if (openbrace)
 		std::cout << "parse error in RenderLoop block near line " << nLines << std::endl, exit(-1);
+	if (_renderLoops[groupId].size() == 0)
+		std::cout << "parse error: empty render loop !" << std::endl, exit(-1);
 }
 
 void		ClusterConfig::LoadConfigFile(const std::string & fName)

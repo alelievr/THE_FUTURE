@@ -17,11 +17,14 @@ struct ImacConfig
 	int		groupId;
 };
 
-struct RenderLoop
+struct RenderIteration
 {
-	int				programIndex;
-	SyncOffset		syncOffset;
+	int			programIndex;
+	SyncOffset	syncOffset;
+	int			waitTime; //seconds before passing to another program
 };
+
+typedef std::vector< RenderIteration >	RenderLoop;
 
 class		ClusterConfig
 {
@@ -44,6 +47,7 @@ class		ClusterConfig
 		static std::list< std::string > &	GetShadersInGroup(const int groupId);
 		static std::vector< ImacConfig > &	GetClusterConfig(void);
 		static int							GetGroupForImac(const int row, const int seat);
+		static const std::map< int, RenderLoop > & GetRenderLoops(void);
 		static int	GetGroupNumber(void);
 };
 

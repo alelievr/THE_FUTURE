@@ -360,7 +360,7 @@ NetworkManager::Packet		NetworkManager::_CreateChangeGroupPacket(const int group
 
 //Client Packet creation functions
 
-NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(const Client & client) const
+NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(void) const
 {
 	if (_isServer)
 		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
@@ -369,31 +369,92 @@ NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(const Cl
 
 	//TODO: integrate client status code
 
-	_InitPacketHeader(&p, client, PacketType::Status);
+	_InitPacketHeader(&p, *_me, PacketType::Status);
 	p.status = ClientStatus::WaitingForCommand;
 	p.seat = _me->seat;
 	p.row = _me->row;
 	p.cluster = _me->cluster;
 	p.ip = _me->ip;
 	p.groupId = _me->groupId;
-	printf("packet groupId: %i\n", _me->groupId);
 	gettimeofday(&p.clientTime, NULL);
 
 	return p;
 }
 
+NetworkManager::Packet	NetworkManager::_CreateShaderFocusResponsePacket(const bool success) const
+{
+	if (_isServer)
+		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
+	
+	Packet	p;
+
+	p.type = PacketType::ShaderFocusResponse;
+	p.seat = _me->seat;
+	p.row = _me->row;
+	p.success = success;
+	return p;
+}
+
+NetworkManager::Packet	NetworkManager::_CreateChangeGroupResponsePacket(const bool success) const
+{
+	if (_isServer)
+		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
+
+	Packet	p;
+
+	p.type = PacketType::GroupChangeResponse;
+	p.seat = _me->seat;
+	p.row = _me->row;
+	p.groupId = _me->groupId;
+	p.success = success;
+	return p;
+}
+
 NetworkManager::Packet	NetworkManager::_CreateHelloPacket(void) const
 {
+	if (_isServer)
+		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
+
 	Packet	p;
 
 	p.type = PacketType::HelloServer;
+	p.seat = _me->seat;
+	p.row = _me->row;
 	p.ip = _me->ip;
+	return p;
+}
+
+NetworkManager::Packet	NetworkManager::_CreateShaderLoadErrorPacket(void) const
+{
+	if (_isServer)
+		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
+
+	Packet	p;
+
+	p.type = PacketType::ShaderLoadResponse;
+	p.seat = _me->seat;
+	p.row = _me->row;
+	p.success = false;
+	return p;
+}
+
+NetworkManager::Packet	NetworkManager::_CreateShaderLoadedPacket(void) const
+{
+	if (_isServer)
+		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
+
+	Packet	p;
+
+	p.type = PacketType::ShaderLoadResponse;
+	p.seat = _me->seat;
+	p.row = _me->row;
+	p.success = true;
 	return p;
 }
 
 //public functions
 
- #include <netdb.h>
+#include <netdb.h>
 NetworkStatus				NetworkManager::ConnectCluster(int clusterNumber)
 {
 	static bool			first = true;
@@ -472,15 +533,21 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 		case PacketType::Status:
 			_connectedToServer = true;
 			strcpy(_serverIp, inet_ntoa(connection.sin_addr));
-			_SendPacketToServer(_CreatePokeStatusResponsePacket(*_me));
+			_SendPacketToServer(_CreatePokeStatusResponsePacket());
 			printf("responding to status\n");
 			break ;
 		case PacketType::UniformUpdate:
+			//_SendPacketToServer(_CreateShaderUniformResponseCallback(false));
 			break ;
 		case PacketType::ShaderFocus:
 			DEBUG("received focus program %i, timeout: %s\n", packet.programIndex, Timer::ReadableTime(packetTiming));
 			if (_shaderFocusCallback != NULL)
-				_shaderFocusCallback(&packetTiming, packet.programIndex);
+			{
+				bool success = _shaderFocusCallback(&packetTiming, packet.programIndex);
+				_SendPacketToServer(_CreateShaderFocusResponsePacket(success));
+			}
+			else
+				_SendPacketToServer(_CreateShaderFocusResponsePacket(false));
 			break ;
 		case PacketType::ShaderLoad:
 			if (_shaderLoadCallback != NULL)
@@ -488,6 +555,7 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 			break ;
 		case PacketType::ChangeGroup:
 			_me->groupId = packet.newGroupId;
+			_SendPacketToServer(_CreateChangeGroupResponsePacket(true));
 			break ;
 		default:
 			break ;
@@ -543,6 +611,49 @@ void						NetworkManager::_ServerSocketEvent(void)
 					DEBUG("Sending packet poke to %s\n", inet_ntoa(i));
 					_SendPacketToClient(packet.ip, _CreatePokeStatusPacket());
 					break ;
+				case PacketType::ShaderLoadResponse:
+					_FindClient(packet.groupId, packet.ip, 
+						[&](Client & c)
+						{
+							if (!packet.success)
+								c.status = ClientStatus::Error;
+							else
+								c.status = ClientStatus::ShaderLoaded;
+						}
+					);
+					if (_clientShaderLoadCallback != NULL)
+						_clientShaderLoadCallback(packet.row, packet.seat, packet.success);
+					break ;
+				case PacketType::GroupChangeResponse:
+					if (_clientGroupChangeCallback != NULL)
+						_clientGroupChangeCallback(packet.row, packet.seat, packet.groupId);
+					break ;
+				case PacketType::ShaderFocusResponse:
+					_FindClient(packet.groupId, packet.ip, 
+						[&](Client & c)
+						{
+							if (!packet.success)
+								c.status = ClientStatus::Error;
+							else
+								c.status = ClientStatus::Running;
+						}
+					);
+					if (_clientShaderFocusCallback != NULL)
+						_clientShaderFocusCallback(packet.row, packet.seat, packet.success);
+					break ;
+				case PacketType::ShaderUniformResponse:
+					_FindClient(packet.groupId, packet.ip, 
+						[&](Client & c)
+						{
+							if (!packet.success)
+								c.status = ClientStatus::Error;
+							else
+								c.status = ClientStatus::Running;
+						}
+					);
+					if (_clientShaderUniformCallback != NULL)
+						_clientShaderUniformCallback(packet.row, packet.seat, packet.success);
+					break ;
 				default:
 					break ;
 			}
@@ -582,7 +693,7 @@ NetworkStatus		NetworkManager::Update(void)
 	return NetworkStatus::Success;
 }
 
-// Public static fuctions
+// Public server fuctions
 
 int		NetworkManager::CreateNewGroup(void)
 {
@@ -650,6 +761,27 @@ NetworkStatus		NetworkManager::LoadShaderOnGroup(const int groupId, const std::s
 	return _SendPacketToGroup(groupId, _CreateShaderLoadPacket(groupId, shaderName, last), SyncOffset::CreateNoneSyncOffset());
 }
 
+//public client functions:
+void	NetworkManager::SendShaderLoadError(void)
+{
+	if (_isServer)
+		return ;
+	if (!_connectedToServer)
+		return ;
+
+	_SendPacketToServer(_CreateShaderLoadErrorPacket());
+}
+
+void	NetworkManager::SendShaderLoaded(void)
+{
+	if (_isServer)
+		return ;
+	if (!_connectedToServer)
+		return ;
+
+	_SendPacketToServer(_CreateShaderLoadedPacket());
+}
+
 //Client callbacks:
 void	NetworkManager::SetShaderFocusCallback(ShaderFocusCallback callback)
 {
@@ -668,11 +800,11 @@ void	NetworkManager::SetShaderLoadCallback(ShaderLoadCallback callback)
 
 //server callbacks:
 
-void	NetworkManager::SetClientStatusUpdateCallback(StatusUpdateCallback callback)
-{
-	std::cout << "Set client status update !\n";
-	_clientStatusUpdateCallback = callback;
-}
+void	NetworkManager::SetClientStatusUpdateCallback(ClientStatusUpdateCallback callback) { _clientStatusUpdateCallback = callback; }
+void	NetworkManager::SetClientGroupChangeCallback(ClientGroupChangeCallback callback) { _clientGroupChangeCallback = callback; }
+void	NetworkManager::SetClientShaderLoadCallback(ClientShaderLoadCallback callback) { _clientShaderLoadCallback = callback; }
+void	NetworkManager::SetClientShaderFocusCallback(ClientShaderFocusCallback callback) { _clientShaderFocusCallback = callback; }
+void	NetworkManager::SetClientShaderUniformCallback(ClientShaderUniformCallback callback) { _clientShaderUniformCallback = callback; }
 
 //Utils
 

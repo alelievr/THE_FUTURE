@@ -9,8 +9,10 @@ static std::map< ClientStatus, sf::Color >	clientStatusColor = {
 	{ClientStatus::Unknown,					sf::Color(150, 150, 150)},		//grey
 	{ClientStatus::Disconnected,			sf::Color(91, 91, 91)},			//dark grey
 	{ClientStatus::WaitingForCommand,		sf::Color(55, 228, 63)},		//green
-	{ClientStatus::ShaderIsRunning,			sf::Color(162, 0, 255)},		//purple
-	{ClientStatus::WaitingForShaderFocus,	sf::Color(40, 194, 248)},		//light blue
+	{ClientStatus::ShaderLoaded,			sf::Color(0, 255, 212)},		//cyan
+	{ClientStatus::Running,					sf::Color(40, 194, 248)},		//light blue
+	{ClientStatus::Error,					sf::Color(255, 0, 0)},			//red
+	{ClientStatus::Timeout,					sf::Color(255, 232, 0)},		//yellow
 };
 
 static const bool clusterMap[13][25] = {
@@ -68,8 +70,44 @@ NetworkGUI::NetworkGUI(NetworkManager *nm)
 	_netManager->SetClientStatusUpdateCallback(
 		[this](const int row, const int seat, const ClientStatus status)
 		{
-			GUIClient & c = FindGUIClient(row, seat);
-			c.status = status;
+			GUIClient & guic = FindGUIClient(row, seat);
+			guic.status = status;
+		}
+	);
+
+	_netManager->SetClientGroupChangeCallback(
+		[this](const int row, const int seat, const int newGroup)
+		{
+			GUIClient & guic = FindGUIClient(row, seat);
+			guic.groupId = newGroup;
+		}
+	);
+
+	_netManager->SetClientShaderLoadCallback(
+		[this](const int row, const int seat, const bool success)
+		{
+			GUIClient & guic = FindGUIClient(row, seat);
+			if (success)
+				guic.status = ClientStatus::ShaderLoaded;
+			else
+			{
+				std::cout << "client at r" << row << "p" << seat << "failed to load shaders !" << std::endl;
+				guic.status = ClientStatus::Error;
+			}
+		}
+	);
+
+	_netManager->SetClientShaderFocusCallback(
+		[this](const int row, const int seat, const bool success)
+		{
+			GUIClient & guic = FindGUIClient(row, seat);
+			if (success)
+				guic.status = ClientStatus::Running;
+			else
+			{
+				std::cout << "client at r" << row << "p" << seat << "failed to focus a shader !" << std::endl;
+				guic.status = ClientStatus::Error;
+			}
 		}
 	);
 }
