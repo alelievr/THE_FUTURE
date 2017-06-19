@@ -104,6 +104,11 @@ void	ShaderApplication::FocusShader(const int programIndex)
 	shaderRender->SetCurrentRenderedShader(programIndex);
 }
 
+void	ShaderApplication::UpdateUniform(const int programIndex, const std::string & uniformName, const UniformParameter & param)
+{
+	shaderRender->UpdateUniform(programIndex, uniformName, param);
+}
+
 void	ShaderApplication::OnLoadingShaderFinished()
 {
 	if (_programToFocus != -1)

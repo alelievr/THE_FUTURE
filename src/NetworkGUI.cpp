@@ -1,4 +1,5 @@
 #include "NetworkGUI.hpp"
+#include "ClusterConfig.hpp"
 #include "SyncOffset.hpp"
 #include "Timer.hpp"
 #include <sstream>

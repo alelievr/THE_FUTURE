@@ -6,12 +6,15 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/19 01:55:51 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/19 20:06:02 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef NETWORKSERVER_HPP
 # define NETWORKSERVER_HPP
+# include "shaderpixel.h"
+# include "SyncOffset.hpp"
+# include "Timeval.hpp"
 # include <iostream>
 # include <string>
 # include <list>
@@ -23,9 +26,6 @@
 # include <stdio.h>
 # include <arpa/inet.h>
 # include <functional>
-# include "shaderpixel.h"
-# include "SyncOffset.hpp"
-# include "Timeval.hpp"
 
 # define CLIENT_PORT			5446
 # define SERVER_PORT			5447
@@ -67,6 +67,29 @@ enum class		ClientStatus
 	Error,						//a command failed on the client
 	Timeout,					//the client is not responding
 };
+
+enum class      UniformType
+{
+	Float1,
+	Float2,
+	Float3,
+	Float4,
+	Int1,
+};
+
+struct  UniformParameter
+{
+	UniformType type;
+	union
+	{
+		int     i1;
+		float   f1;
+		vec2    f2;
+		vec3    f3;
+		vec4    f4;
+	};
+};
+
 
 struct			Client
 {
@@ -117,9 +140,9 @@ struct			Client
 
 //Client callbacks:
 typedef std::function< bool (const Timeval *timing, const int programIndex) >				ShaderFocusCallback;
-typedef std::function< void (const Timeval *timing, const std::string & shaderName) >		ShaderUniformCallback;
 typedef std::function< void (const std::string & shaderName, const bool last) >				ShaderLoadCallback;
 typedef std::function< Timeval & (const int seat, const int row, const int index) >			CustomSyncOffsetCallback;
+typedef std::function< void (const Timeval *timming, const int programIndex, const std::string uniformName, const UniformParameter & param) > ShaderUniformCallback;
 
 //Server callbacks:
 //                              row       saet
@@ -151,21 +174,6 @@ class		NetworkManager
 			TimeoutCheckResponse,
 		};
 
-		enum class		UniformType
-		{
-			Float1,
-			Float2,
-			Float3,
-			Float4,
-			Int1,
-		};
-
-		/*	Packet struct which handle all possible packets:
- 		 *		Query client status
- 		 *		Update client current program uniform
- 		 *		Switch client program
- 		 * */
-
 		typedef struct timeval		NetworkTimeval;
 
 		struct			Packet
@@ -188,18 +196,11 @@ class		NetworkManager
 				{
 					char			message[MAX_MESSAGE_LENGTH];
 				};
-				struct //update cient uniform
+				struct //update client uniform
 				{
-					int		subProgramIndex;
-					char	uniformName[MAX_UNIFORM_LENGTH];
-					int		uniformType;
-					union
-					{
-						int		uniformInt;
-						int		uniformInts[MAX_UNIFORM_DATAS];
-						float	uniformFloat;
-						float	uniformFloats[MAX_UNIFORM_DATAS];
-					};
+					//int				programIndex;
+					char				uniformName[MAX_UNIFORM_LENGTH];
+					UniformParameter	uniformParam;
 				};
 				struct //Load shader
 				{
@@ -271,6 +272,7 @@ class		NetworkManager
 		Packet					_CreateShaderLoadResponsePacket(const bool success) const;
 		Packet					_CreateChangeGroupPacket(const int groupId) const;
 		Packet					_CreateChangeGroupResponsePacket(const bool success) const;
+		Packet					_CreateUpdateUniformPacket(const int groupId, const Timeval *tv, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam) const;
 		Packet					_CreateHelloPacket(void) const;
 		Packet					_CreateShaderLoadErrorPacket(void) const;
 		Packet					_CreateShaderLoadedPacket(void) const;
@@ -302,12 +304,12 @@ class		NetworkManager
 
 		//Client callbacks:
 		void			SetShaderFocusCallback(ShaderFocusCallback callback);
-		void			SetShaderUniformCallback(ShaderUniformCallback callback);
 		void			SetShaderLoadCallback(ShaderLoadCallback callback);
+		void			SetShaderUniformCallback(ShaderUniformCallback callback);
 
 		//server control functions:
 		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const SyncOffset & syncOffset) const;
-		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int group, const std::string uniformName, ...) const;
+		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const;
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		int				CreateNewGroup(void);
 		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat);

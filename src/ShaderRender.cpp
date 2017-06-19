@@ -293,6 +293,11 @@ void		ShaderRender::ClearCurrentRenderedShader()
 	_currentRenderedPrograms.clear();
 }
 
+void		ShaderRender::UpdateUniform(const int programIndex, const std::string & uniformName, const UniformParameter & param)
+{
+	//TODO: update uniform for program !
+}
+
 void		ShaderRender::windowSizeCallback(int winX, int winY)
 {
 	window.x = winX;

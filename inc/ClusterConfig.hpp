@@ -2,11 +2,12 @@
 # define CLUSTERCONFIG_HPP
 # include "NetworkGUI.hpp"
 # include "SyncOffset.hpp"
-# include "NetworkGUI.hpp"
+# include "NetworkManager.hpp"
 # include <iostream>
 # include <fstream>
 # include <string>
 # include <vector>
+# include <regex>
 # include <map>
 
 #define DEFAULT_CONFIG_FILE		".config"
@@ -18,14 +19,52 @@ struct ImacConfig
 	int		groupId;
 };
 
-struct RenderIteration
+enum class RenderLoopCommandType
 {
-	int			programIndex;
-	SyncOffset	syncOffset;
-	int			waitTime; //seconds before passing to another program
+	Focus,
+	Wait,
+	Uniform,
+	None,
 };
 
-typedef std::vector< RenderIteration >	RenderLoop;
+struct	RenderLoopCommand
+{
+	RenderLoopCommandType	type;
+
+	//focus
+	int					programIndex;
+	SyncOffset			syncOffset;
+
+	//wait
+	int					waitTime;
+
+	//uniform
+	std::string			uniformName;
+	UniformParameter	uniformParam;	
+
+	RenderLoopCommand(const int wTime)
+	{
+		this->type = RenderLoopCommandType::Wait;
+		this->waitTime = wTime;
+	}
+
+	RenderLoopCommand(const int pIndex, const SyncOffset & sOffset)
+	{
+		this->type = RenderLoopCommandType::Focus;
+		this->programIndex = pIndex;
+		this->syncOffset = sOffset;
+	}
+
+	RenderLoopCommand(const int pIndex, const std::string & uName, const SyncOffset & sOffset)
+	{
+		this->type = RenderLoopCommandType::Uniform;
+		this->programIndex = pIndex;
+		this->uniformName = uName;
+		this->syncOffset = sOffset;
+	}
+};
+
+typedef std::vector< RenderLoopCommand >	RenderLoop;
 
 class		ClusterConfig
 {
@@ -34,7 +73,9 @@ class		ClusterConfig
 		static std::map< int, std::list< std::string > >	_groupConfig;
 		static std::map< int, RenderLoop >					_renderLoops;
 
-		static void	LoadRenderLoop(std::ifstream & condigFile, const int groupId, int & nLines);
+		static void			LoadRenderLoop(std::ifstream & condigFile, const int groupId, int & nLines);
+		static UniformType	_UniformTypeStringToType(const std::string & uniType);
+		static SyncOffset	_ParseSyncOffset(const std::smatch & matches, const int typeIndex, const int paramIndex, const int nLines, const std::string & line);
 
 	public:
 		ClusterConfig(void) = delete;

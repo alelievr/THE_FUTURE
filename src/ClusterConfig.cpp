@@ -1,7 +1,6 @@
 #include "ClusterConfig.hpp"
 #include "Timer.hpp"
 #include <unistd.h>
-#include <regex>
 #include <algorithm>
 
 #define SPACE	"\\s\\s*"
@@ -14,6 +13,37 @@
 std::vector< ImacConfig >					ClusterConfig::_clusterConfig;
 std::map< int, std::list< std::string > >	ClusterConfig::_groupConfig;
 std::map< int, RenderLoop >					ClusterConfig::_renderLoops;
+
+UniformType	ClusterConfig::_UniformTypeStringToType(const std::string & uniType)
+{
+	static std::map< std::string, UniformType > uniformTypeMap = {
+		{"f1", UniformType::Float1},
+		{"f2", UniformType::Float2},
+		{"f3", UniformType::Float3},
+		{"f4", UniformType::Float4},
+		{"i1", UniformType::Int1},
+	};
+
+	return uniformTypeMap[uniType];
+}
+
+SyncOffset	ClusterConfig::_ParseSyncOffset(const std::smatch & matches, const int typeIndex, const int paramIndex, const int nLines, const std::string & line)
+{
+	std::string		soType = matches[typeIndex];
+	SyncOffset		sOffset;
+
+	if (soType.find("Linear") != std::string::npos)
+	{
+		int delaySecs = std::stoi(matches[paramIndex]);
+		sOffset = SyncOffset::CreateLinearSyncOffset(delaySecs, 0);
+	}
+	else if (soType.find("None") != std::string::npos)
+		sOffset = SyncOffset::CreateNoneSyncOffset();
+	else
+		std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
+
+	return sOffset;
+}
 
 void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupId, int & nLines)
 {
@@ -28,7 +58,7 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 	std::regex		uniformLine("\\s*Uniform([1-4]f|1i)\\s\\s*(\\w+)\\s\\s*" + uniformParameters + SPACE + syncRegex);
 	std::regex		waitLine("\\s*Wait\\s\\s*(\\d\\d*)");
 	bool			openbrace = false;
-	size_t			currentIteration = -1;
+	int				currentProgramIndex = -1;
 
 	std::cout << "\\s*Uniform([1-4]f|1i)\\s\\s*(\\w+)\\s\\s*" + uniformParameters + SPACE + syncRegex << std::endl;
 	while (std::getline(configFile, line))
@@ -38,38 +68,54 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 			continue ;
 		if (std::regex_match(line, matches, focusLine))
 		{
-			RenderIteration	r;
 			int				programIndex = std::stoi(matches[1]);
-			std::string		syncOffset = matches[2];
+			SyncOffset		sOffset;
 
-			currentIteration++;
-			r.waitTime = 0;
-			r.programIndex = programIndex;
-			if (syncOffset.find("Linear") != std::string::npos)
-			{
-				int delaySecs = std::stoi(matches[3]);
-				r.syncOffset = SyncOffset::CreateLinearSyncOffset(delaySecs, 0);
-			}
-			else if (syncOffset.find("None") != std::string::npos)
-				r.syncOffset = SyncOffset::CreateNoneSyncOffset();
-			else
-				std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
-			_renderLoops[groupId].push_back(r);
+			sOffset = _ParseSyncOffset(matches, 2, 3, nLines, line);
+			currentProgramIndex = programIndex;
+			_renderLoops[groupId].push_back(RenderLoopCommand(programIndex, sOffset));
 		}
 		else if (std::regex_match(line, matches, waitLine))
 		{
-			if (currentIteration >= _renderLoops[groupId].size())
-				std::cout << "parse error: Wait without program !", exit(-1);
 			int		waitTime = std::stoi(matches[1]);
-			_renderLoops[groupId][currentIteration].waitTime = waitTime;
+			_renderLoops[groupId].push_back(RenderLoopCommand(waitTime));
 		}
 		else if (std::regex_match(line, matches, uniformLine))
 		{
-			std::string		syncOffset = matches[14];
-			std::string		uniformType = matches[1];
-			std::string		uniformName = matches[2];
+			if (currentProgramIndex == -1)
+				std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
+			std::string			uniformType = matches[1];
+			std::string			uniformName = matches[2];
+			UniformParameter	param;
+			UniformType			type;
+			SyncOffset			sOffset;
 
-			//TODO: get uniform parameters, store it and add it to executer
+			type = _UniformTypeStringToType(uniformType);
+
+			if (matches[4].length()) //4 params: 4 5 6 7
+			{
+				param.f4.x = std::stof(matches[4]);
+				param.f4.y = std::stof(matches[5]);
+				param.f4.z = std::stof(matches[6]);
+				param.f4.w = std::stof(matches[7]);
+			}
+			else if (matches[8].length()) //3 params: 8 9 10
+			{
+				param.f3.x = std::stof(matches[8]);
+				param.f3.y = std::stof(matches[9]);
+				param.f3.z = std::stof(matches[10]);
+			}
+			else if (matches[11].length()) //2 params: 11 12
+			{
+				param.f2.x = std::stof(matches[11]);
+				param.f2.y = std::stof(matches[12]);
+			}
+			else //1 param
+				param.f1 = std::stof(matches[13]);
+
+			if (matches.size() == 14)
+				sOffset = _ParseSyncOffset(matches, 14, 15, nLines, line);
+			_renderLoops[groupId].push_back(RenderLoopCommand(currentProgramIndex, uniformName, sOffset));
 		}
 		else if (std::regex_match(line, matches, openingBraceLine))
 		{
@@ -181,17 +227,29 @@ void		ClusterConfig::StartAllRenderLoops(NetworkManager *netManager)
 			[netManager, groupId](void)
 			{
 				size_t		renderIndex = 0;
-				auto &		renderIterations = _renderLoops[groupId];
+				auto &		renderLoopCommands = _renderLoops[groupId];
 
 				while (42)
 				{
-					auto renderIteration = renderIterations[renderIndex];
+					auto command = renderLoopCommands[renderIndex];
 
-					netManager->FocusShaderOnGroup(Timer::TimeoutInSeconds(1), groupId, renderIteration.programIndex, renderIteration.syncOffset);
-					usleep(renderIteration.waitTime * 1000 * 1000);
+					switch (command.type)
+					{
+						case RenderLoopCommandType::Focus:
+							netManager->FocusShaderOnGroup(Timer::TimeoutInSeconds(1), groupId, command.programIndex, command.syncOffset);
+							break ;
+						case RenderLoopCommandType::Wait:
+							usleep(command.waitTime * 1000 * 1000);
+							break ;
+						case RenderLoopCommandType::Uniform:
+							netManager->UpdateUniformOnGroup(Timer::TimeoutInSeconds(1), groupId, command.programIndex, command.uniformName, command.uniformParam, command.syncOffset);
+							break ;
+						default:
+							break ;
+					}
 
 					renderIndex++;
-					if (renderIndex == renderIterations.size())
+					if (renderIndex == renderLoopCommands.size())
 						renderIndex = 0;
 				}
 			}

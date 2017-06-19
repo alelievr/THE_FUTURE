@@ -385,6 +385,19 @@ NetworkManager::Packet		NetworkManager::_CreateTimeoutCheckPacket(void) const
 	return p;
 }
 
+NetworkManager::Packet		NetworkManager::_CreateUpdateUniformPacket(const int groupId, const Timeval *tv, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam) const
+{
+	Packet	p;
+
+	p.type = PacketType::UniformUpdate;
+	p.groupId = groupId;
+	p.programIndex = programIndex;
+	p.timing = *tv;
+	strcpy(p.uniformName, uniformName.c_str());
+	p.uniformParam = uniformParam;
+	return p;
+}
+
 //Client Packet creation functions
 
 NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(void) const
@@ -631,7 +644,8 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 			printf("responding to status\n");
 			break ;
 		case PacketType::UniformUpdate:
-			//_SendPacketToServer(_CreateShaderUniformResponseCallback(false));
+			if (_shaderUniformCallback != NULL)
+				_shaderUniformCallback(&packetTiming, packet.programIndex, packet.uniformName, packet.uniformParam);
 			break ;
 		case PacketType::ShaderFocus:
 			DEBUG("received focus program %i, timeout: %s\n", packet.programIndex, Timer::ReadableTime(packetTiming));
@@ -878,11 +892,9 @@ NetworkStatus		NetworkManager::FocusShaderOnGroup(const Timeval *timeout, const 
 	return _SendPacketToGroup(groupId, _CreateShaderFocusPacket(groupId, timeout, programIndex), syncOffset);
 }
 
-NetworkStatus		NetworkManager::UpdateUniformOnGroup(const Timeval *timeout, const int groupId, const std::string uniformName, ...) const
+NetworkStatus		NetworkManager::UpdateUniformOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const
 {
-	(void)timeout;
-	(void)groupId;
-	(void)uniformName;
+	_SendPacketToGroup(groupId, _CreateUpdateUniformPacket(groupId, timeout, programIndex, uniformName, uniformParam), syncOffset);
 	return NetworkStatus::Success;
 }
 

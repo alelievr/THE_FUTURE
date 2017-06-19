@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/10 02:30:00 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/19 20:11:24 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,7 @@ class ShaderRender
 		void				DeleteCurrentRenderedShader(const size_t programIndex);
 		void				ClearCurrentRenderedShader(void);
 		void				initShaderRenders(ShaderRender rs);
+		void				UpdateUniform(const int programIndex, const std::string & uniformName, const UniformParameter & param);
 
 		void				windowSizeCallback(int winX, int winY);
 		void				framebufferSizeCallback(int width, int height);

@@ -1,7 +1,6 @@
 #ifndef NETWORKGUI_HPP
 # define NETWORKGUI_HPP
 # include "NetworkManager.hpp"
-# include "ClusterConfig.hpp"
 # include "SFML/Window.hpp"
 # include "SFML/Graphics.hpp"
 # include <iostream>
