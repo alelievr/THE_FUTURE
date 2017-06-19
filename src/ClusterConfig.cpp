@@ -4,6 +4,13 @@
 #include <regex>
 #include <algorithm>
 
+#define SPACE	"\\s\\s*"
+#define FLOAT	"([+-]?[0-9]*[.]?[0-9]+f?)"
+#define F1		FLOAT
+#define F2		F1 SPACE F1
+#define F3		F2 SPACE F1
+#define F4		F3 SPACE F1
+
 std::vector< ImacConfig >					ClusterConfig::_clusterConfig;
 std::map< int, std::list< std::string > >	ClusterConfig::_groupConfig;
 std::map< int, RenderLoop >					ClusterConfig::_renderLoops;
@@ -12,14 +19,18 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 {
 	std::string		line;
 	std::smatch		matches;
+	std::string		syncRegex("Sync\\s\\s*(None|Linear\\s\\s*(\\d\\d*))");
+	std::string		uniformParameters("(" F4 "|" F3 "|" F2 "|" F1 ")");
 	std::regex		commentLine("\\s*#.*");
 	std::regex		openingBraceLine("\\s*\\{\\s*");
 	std::regex		closingBraceLine("\\s*\\}\\s*");
-	std::regex		focusLine("\\s*Focus\\s\\s*(\\d\\d*)\\s\\s*Sync\\s\\s*(None|Linear\\s\\s*(\\d\\d*))");
+	std::regex		focusLine("\\s*Focus\\s\\s*(\\d\\d*)\\s\\s*" + syncRegex);
+	std::regex		uniformLine("\\s*Uniform([1-4]f|1i)\\s\\s*(\\w+)\\s\\s*" + uniformParameters + SPACE + syncRegex);
 	std::regex		waitLine("\\s*Wait\\s\\s*(\\d\\d*)");
 	bool			openbrace = false;
 	size_t			currentIteration = -1;
 
+	std::cout << "\\s*Uniform([1-4]f|1i)\\s\\s*(\\w+)\\s\\s*" + uniformParameters + SPACE + syncRegex << std::endl;
 	while (std::getline(configFile, line))
 	{
 		line = std::regex_replace(line, commentLine, "");
@@ -52,18 +63,28 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 			int		waitTime = std::stoi(matches[1]);
 			_renderLoops[groupId][currentIteration].waitTime = waitTime;
 		}
-		if (std::regex_match(line, matches, openingBraceLine))
+		else if (std::regex_match(line, matches, uniformLine))
+		{
+			std::string		syncOffset = matches[14];
+			std::string		uniformType = matches[1];
+			std::string		uniformName = matches[2];
+
+			//TODO: get uniform parameters, store it and add it to executer
+		}
+		else if (std::regex_match(line, matches, openingBraceLine))
 		{
 			if (openbrace)
 				std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
 			openbrace = true;
 		}
-		if (std::regex_match(line, matches, closingBraceLine))
+		else if (std::regex_match(line, matches, closingBraceLine))
 		{
 			if (!openbrace)
 				std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
 			openbrace = false;
 		}
+		else
+			std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
 		nLines++;
 	}
 	if (openbrace)
