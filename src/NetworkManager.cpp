@@ -193,7 +193,7 @@ Client &		NetworkManager::_FindClient(const int groupId, const size_t ip)
 	if (groupId < 0 || _clients.find(groupId) == _clients.end())
 	{
 		UNLOCK;
-		return DEBUG("Findclient failed, groupId out of bounds: %i\n", groupId), defaultClient;
+		return DEBUG("FindClient failed, groupId out of bounds: %i\n", groupId), defaultClient;
 	}
 
 	for (auto & cKP : _clients[groupId])
@@ -504,7 +504,9 @@ NetworkManager::Packet	NetworkManager::_CreateTimeoutCheckResponsePacket(void) c
 		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
 
 	Packet	p;
+	p.ip = _me->ip;
 	p.type = PacketType::TimeoutCheckResponse;
+	p.groupId = _me->groupId;
 	p.seat = _me->seat;
 	p.row = _me->row;
 	return p;
@@ -583,7 +585,6 @@ NetworkStatus		NetworkManager::CheckClusterTimeout(void)
 		return (std::cout << "not in server mode !" << std::endl, NetworkStatus::ServerReservedCommand);
 
 	LOCK;
-	std::cout << "timeout check !\n";
 	const Packet p = _CreateTimeoutCheckPacket();
 	for (auto & clientsKP : _clients)
 	{
@@ -643,7 +644,6 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 {
 	Timeval		packetTiming = packet.timing;
 
-	_me->groupId = packet.groupId;
 	std::cout << "client received message !\n";
 	switch (packet.type)
 	{
@@ -672,6 +672,7 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 				_shaderLoadCallback(std::string(packet.shaderName), packet.lastShader);
 			break ;
 		case PacketType::ChangeGroup:
+			std::cout << "group changed for: " << packet.newGroupId << std::endl;
 			_me->groupId = packet.newGroupId;
 			_SendPacketToServer(_CreateChangeGroupResponsePacket(true));
 			break ;
@@ -770,9 +771,6 @@ void						NetworkManager::_ServerSocketEvent(void)
 					break ;
 				case PacketType::TimeoutCheckResponse:
 					{
-						struct in_addr i;
-						i.s_addr = packet.ip;
-						std::cout << "received timeout response from: " << inet_ntoa(i) << std::endl;
 						auto & c = _FindClient(packet.groupId, packet.ip);
 						c.willTimeout = false;
 					}
@@ -830,6 +828,7 @@ NetworkStatus		NetworkManager::Update(void)
 
 int		NetworkManager::CreateNewGroup(void)
 {
+	_clients[_localGroupId] = std::map< int, Client >();
 	return _localGroupId++;
 }
 #include <iterator>
@@ -861,7 +860,7 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	}
 	else
 	{
-		DEBUG("out of bounds of groupId in MoveImacToGroup !\n");
+		std::cout << "out of bounds of groupId in MoveImacToGroup !" << std::endl;
 		UNLOCK;
 		return NetworkStatus::OutOfBound;
 	}
@@ -890,7 +889,6 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 		std::cout << std::endl;
 
 		_SendPacketToClient(moved.ip, _CreateChangeGroupPacket(groupId));
-		std::cout << "moved imac " << moved << " to group " << groupId << std::endl;
 		UNLOCK;
 		return NetworkStatus::Success;
 	}
