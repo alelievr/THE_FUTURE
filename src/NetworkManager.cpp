@@ -583,13 +583,14 @@ NetworkStatus		NetworkManager::CheckClusterTimeout(void)
 		return (std::cout << "not in server mode !" << std::endl, NetworkStatus::ServerReservedCommand);
 
 	LOCK;
+	std::cout << "timeout check !\n";
 	const Packet p = _CreateTimeoutCheckPacket();
 	for (auto & clientsKP : _clients)
 	{
 		for (auto & clientKP : clientsKP.second)
 		{
 			auto & client = clientKP.second;
-			if (client.status != ClientStatus::Unknown && client.status != ClientStatus::Timeout && client.status != ClientStatus::Error && client.status != ClientStatus::Disconnected)
+			if (client.status != ClientStatus::Unknown && client.status != ClientStatus::Error && client.status != ClientStatus::Disconnected)
 			{
 				if (client.willTimeout)
 				{
@@ -769,6 +770,9 @@ void						NetworkManager::_ServerSocketEvent(void)
 					break ;
 				case PacketType::TimeoutCheckResponse:
 					{
+						struct in_addr i;
+						i.s_addr = packet.ip;
+						std::cout << "received timeout response from: " << inet_ntoa(i) << std::endl;
 						auto & c = _FindClient(packet.groupId, packet.ip);
 						c.willTimeout = false;
 					}
