@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/20 02:19:23 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/20 15:29:47 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,57 @@
 
 //#define DEBUG
 
+const char * FRAGMENT_SHADER_HEADER =
+"#version 330\n"
+"in vec4 outColor;\n"
+"out vec4 fragColor;\n"
+"\n"
+"uniform vec2           iResolution;\n"
+"uniform float          iGlobalTime;\n"
+"uniform sampler2D      iChannel0;\n"
+"uniform sampler2D      iChannel1;\n"
+"uniform sampler2D      iChannel2;\n"
+"uniform sampler2D      iChannel3;\n"
+"uniform sampler2D      iChannel4;\n"
+"uniform sampler2D      iChannel5;\n"
+"uniform sampler2D      iChannel6;\n"
+"uniform sampler2D      iChannel7;\n"
+"\n"
+"void mainImage(vec2 f);\n"
+"\n"
+"vec4 texture2D(sampler2D s, vec2 coord, float f)\n"
+"{\n"
+"       return texture(s, coord, f);\n"
+"}\n"
+"\n"
+"vec4 texture2D(sampler2D s, vec2 coord)\n"
+"{\n"
+"       return texture(s, coord);\n"
+"}\n"
+"\n"
+"void main()\n"
+"{\n"
+"       mainImage(gl_FragCoord.xy);\n"
+"}\n"
+"#line 1\n";
+
+const char * VERTEX_SHADER_DEFAULT =
+"#version 330\n"
+"in vec2                fragPosition;\n"
+"out vec4               outColor;\n"
+"void main()\n"
+"{\n"
+"       gl_Position = vec4(fragPosition, 0.0, 1.0);\n"
+"}\n";
+
+
 float * _renderVertices = (float[]){
-	-.5f, -.5f,
-	-.5f,  .5f,
-	.5f,  .5f,
-	.5f,  .5f,
-	.5f, -.5f,
-	-.5f, -.5f,
+	-.75f, -.75f,
+	-.75f,  .75f,
+	.75f,  .75f,
+	.75f,  .75f,
+	.75f, -.75f,
+	-.75f, -.75f,
 };
 GLuint _renderCount = 6;
 
@@ -104,15 +148,8 @@ bool		ShaderProgram::CompileAndLink(void)
 	GLuint		fragmentShaderId;
 	//TODO: multi-shader file management for fragments and vertex
 	const char	*fragmentSources[] = {FRAGMENT_SHADER_HEADER, _fragmentFileSources[0].source.c_str()};
-	const char	**vertexSources;
+	const char	*vertexSources[] = {((_vertexFileSources.size() == 0) ? VERTEX_SHADER_DEFAULT : _vertexFileSources[0].source.c_str())};
    
-	if (_vertexFileSources.size() != 0)
-		vertexSources = (const char *[]){_vertexFileSources[0].source.c_str()}; 
-	else
-		vertexSources = (const char *[]){VERTEX_SHADER_DEFAULT};
-
-	std::cout << "compiling " << _fragmentFileSources[0].file << "\n";
-
 	fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShaderId, 2, fragmentSources, NULL);
 	glCompileShader(fragmentShaderId);
@@ -130,7 +167,6 @@ bool		ShaderProgram::CompileAndLink(void)
 	if (_id != 0)
 		glDeleteProgram(_id);
 	_id = glCreateProgram();
-	printf("new program ID: %i\n", _id);
 	glAttachShader(_id, vertexShaderId);
 	glAttachShader(_id, fragmentShaderId);
 	glLinkProgram(_id);
@@ -144,6 +180,7 @@ bool		ShaderProgram::CompileAndLink(void)
 
 	if ((fragPos = glGetAttribLocation(_id, "fragPosition")) < 0)
 		return false;
+	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 	glEnableVertexAttribArray(fragPos);
 	glVertexAttribPointer(fragPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*) 0);
 
@@ -237,15 +274,11 @@ bool		ShaderProgram::CheckCompilation(GLuint shader)
 
 void			ShaderProgram::CreateVAO(void)
 {
-	if (_vbo != (GLuint)-1)
-		glDeleteBuffers(1, &_vbo);
 	glGenBuffers(1, &_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 	//TODO: Vector3 management
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderVertices, GL_STATIC_DRAW);
 
-	if (_vao != (GLuint)-1)
-		glDeleteVertexArrays(1, &_vao);
 	glGenVertexArrays(1, &_vao);
 	glBindVertexArray(_vao);
 	glEnableVertexAttribArray(0);

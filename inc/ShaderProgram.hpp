@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:23 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/20 01:53:17 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/20 14:46:29 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,54 +84,5 @@ class		ShaderProgram : public ICGProgram
 };
 
 std::ostream &	operator<<(std::ostream & o, ShaderProgram const & r);
-
-#define FRAGMENT_SHADER_HEADER \
-"#version 330\n" \
-"in vec4 outColor;\n" \
-"out vec4 fragColor;\n" \
-"\n" \
-"uniform vec2           iResolution;\n" \
-"uniform float          iGlobalTime;\n" \
-"uniform int            iFrame;\n" \
-"uniform vec4           iMouse;\n" \
-"uniform vec2           iScrollAmount;\n" \
-"uniform vec4           iMoveAmount;\n" \
-"uniform vec3           iForward;\n" \
-"uniform vec4           iFractalWindow;\n" \
-"uniform sampler2D      iChannel0;\n" \
-"uniform sampler2D      iChannel1;\n" \
-"uniform sampler2D      iChannel2;\n" \
-"uniform sampler2D      iChannel3;\n" \
-"uniform sampler2D      iChannel4;\n" \
-"uniform sampler2D      iChannel5;\n" \
-"uniform sampler2D      iChannel6;\n" \
-"uniform sampler2D      iChannel7;\n" \
-"\n" \
-"void mainImage(vec2 f);\n" \
-"\n" \
-"vec4 texture2D(sampler2D s, vec2 coord, float f)\n" \
-"{\n" \
-"       return texture(s, coord, f);\n" \
-"}\n" \
-"\n" \
-"vec4 texture2D(sampler2D s, vec2 coord)\n" \
-"{\n" \
-"       return texture(s, coord);\n" \
-"}\n" \
-"\n" \
-"void main()\n" \
-"{\n" \
-"       mainImage(gl_FragCoord.xy);\n" \
-"}\n" \
-"#line 1\n"
-
-#define VERTEX_SHADER_DEFAULT \
-"#version 330\n" \
-"in vec2                fragPosition;\n" \
-"out vec4               outColor;\n" \
-"void main()\n" \
-"{\n" \
-"       gl_Position = vec4(fragPosition, 0.0, 1.0);\n" \
-"}\n"
 
 #endif

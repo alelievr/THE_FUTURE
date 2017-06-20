@@ -33,6 +33,7 @@ struct	RenderLoopCommand
 
 	//focus
 	int					programIndex;
+	int					transitionIndex;
 	SyncOffset			syncOffset;
 
 	//wait
@@ -42,19 +43,23 @@ struct	RenderLoopCommand
 	std::string			uniformName;
 	UniformParameter	uniformParam;	
 
+	//Wait constructor
 	RenderLoopCommand(const int wTime)
 	{
 		this->type = RenderLoopCommandType::Wait;
 		this->waitTime = wTime;
 	}
 
-	RenderLoopCommand(const int pIndex, const SyncOffset & sOffset)
+	//Focus constructor
+	RenderLoopCommand(const int pIndex, const int tIndex, const SyncOffset & sOffset)
 	{
 		this->type = RenderLoopCommandType::Focus;
 		this->programIndex = pIndex;
 		this->syncOffset = sOffset;
+		this->transitionIndex = tIndex;
 	}
 
+	//Uniform update constructor
 	RenderLoopCommand(const int pIndex, const std::string & uName, const SyncOffset & sOffset)
 	{
 		this->type = RenderLoopCommandType::Uniform;

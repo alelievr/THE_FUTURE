@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/19 20:06:02 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/20 15:21:12 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,7 @@ struct			Client
 };
 
 //Client callbacks:
-typedef std::function< bool (const Timeval *timing, const int programIndex) >				ShaderFocusCallback;
+typedef std::function< bool (const Timeval *timing, const int programIndex, const int transitionIndex) > ShaderFocusCallback;
 typedef std::function< void (const std::string & shaderName, const bool last) >				ShaderLoadCallback;
 typedef std::function< Timeval & (const int seat, const int row, const int index) >			CustomSyncOffsetCallback;
 typedef std::function< void (const Timeval *timming, const int programIndex, const std::string uniformName, const UniformParameter & param) > ShaderUniformCallback;
@@ -210,6 +210,7 @@ class		NetworkManager
 				struct //Shader focus
 				{
 					GLuint	programIndex;
+					int		transitionIndex;
 				};
 				struct //Move imac to new group
 				{
@@ -266,7 +267,7 @@ class		NetworkManager
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;
 		Packet					_CreatePokeStatusPacket(void) const;
 		Packet					_CreatePokeStatusResponsePacket(void) const;
-		Packet					_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex) const;
+		Packet					_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex, const int transitionIndex) const;
 		Packet					_CreateShaderFocusResponsePacket(const bool success) const;
 		Packet					_CreateShaderLoadPacket(const int groupId, const std::string & shaderName, bool last) const;
 		Packet					_CreateShaderLoadResponsePacket(const bool success) const;
@@ -308,7 +309,7 @@ class		NetworkManager
 		void			SetShaderUniformCallback(ShaderUniformCallback callback);
 
 		//server control functions:
-		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const SyncOffset & syncOffset) const;
+		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const int transitionIndex, const SyncOffset & syncOffset) const;
 		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const;
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		int				CreateNewGroup(void);

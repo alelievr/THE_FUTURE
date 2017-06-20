@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/20 02:07:17 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/20 15:24:49 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ class ShaderRender
 	private:
 		std::vector< ICGProgram * >		_programs;
 		std::vector< std::size_t >		_currentRenderedPrograms;
+		std::vector< ICGProgram * >		_transitionPrograms;
 
 		vec2			angleAmount;
 		int				cursor_mode;
@@ -55,7 +56,7 @@ class ShaderRender
 
 		void				Render(void);
 		bool				attachShader(const std::string file);
-		void				SetCurrentRenderedShader(const size_t programIndex);
+		void				SetCurrentRenderedShader(const size_t programIndex, const int transitionIndex);
 		void				AddCurrentRenderedShader(const size_t programIndex);
 		void				DeleteCurrentRenderedShader(const size_t programIndex);
 		void				ClearCurrentRenderedShader(void);

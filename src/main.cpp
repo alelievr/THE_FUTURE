@@ -73,7 +73,7 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 	if (!server)
 	{
 		nm->SetShaderFocusCallback(
-			[app](const Timeval *timing, const int programIndex)
+			[app](const Timeval *timing, const int programIndex, const int transitionIndex)
 			{
 				if (app == NULL)
 				{
@@ -81,10 +81,10 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 					return false;
 				}
 				Timer::Timeout(timing,
-					[programIndex, app](void)
+					[programIndex, app, transitionIndex](void)
 					{
 						std::cout << "focusing shader: " << programIndex << std::endl;
-						return app->FocusShader(programIndex);
+						return app->FocusShader(programIndex, transitionIndex);
 					}
 				);
 				return true;
@@ -171,7 +171,7 @@ int		main(int ac, char **av)
 			app.LoadShader(shaderToLoad);
 			app.loadingShaders = false;
 			app.OnLoadingShaderFinished();
-			app.FocusShader(0);
+			app.FocusShader(0, -1);
 
 			app.RenderLoop();
 		}

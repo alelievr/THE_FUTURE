@@ -344,7 +344,7 @@ NetworkManager::Packet		NetworkManager::_CreatePokeStatusPacket(void) const
 	return p;
 }
 
-NetworkManager::Packet		NetworkManager::_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex) const
+NetworkManager::Packet		NetworkManager::_CreateShaderFocusPacket(const int groupId, const Timeval *tv, const int programIndex, const int transitionIndex) const
 {
 	Packet	p;
 
@@ -352,6 +352,7 @@ NetworkManager::Packet		NetworkManager::_CreateShaderFocusPacket(const int group
 	p.groupId = groupId;
 	p.timing = *tv;
 	p.programIndex = programIndex;
+	p.transitionIndex = transitionIndex;
 
 	return p;
 }
@@ -651,7 +652,7 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 			DEBUG("received focus program %i, timeout: %s\n", packet.programIndex, Timer::ReadableTime(packetTiming));
 			if (_shaderFocusCallback != NULL)
 			{
-				bool success = _shaderFocusCallback(&packetTiming, packet.programIndex);
+				bool success = _shaderFocusCallback(&packetTiming, packet.programIndex, packet.transitionIndex);
 				_SendPacketToServer(_CreateShaderFocusResponsePacket(success));
 			}
 			else
@@ -887,9 +888,9 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	}
 }
 
-NetworkStatus		NetworkManager::FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const SyncOffset & syncOffset) const
+NetworkStatus		NetworkManager::FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const int transitionIndex, const SyncOffset & syncOffset) const
 {
-	return _SendPacketToGroup(groupId, _CreateShaderFocusPacket(groupId, timeout, programIndex), syncOffset);
+	return _SendPacketToGroup(groupId, _CreateShaderFocusPacket(groupId, timeout, programIndex, transitionIndex), syncOffset);
 }
 
 NetworkStatus		NetworkManager::UpdateUniformOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const

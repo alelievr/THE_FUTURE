@@ -18,8 +18,13 @@
 #define DEBUG
 
 vec2		framebuffer_size = {0, 0};
-vec2		window = {WIN_W, WIN_H};
-float		pausedTime = 0;
+std::list< const std::string > transitionShaders = {
+	"shaders/transitions/blockyTrasition.glsl",
+	"shaders/transitions/burnTransition.glsl",
+	"shaders/transitions/fadeTransition.glsl",
+	"shaders/transitions/flashTransition.glsl",
+	"shaders/transitions/perlinTransition.glsl",
+};
 
 ShaderRender::ShaderRender(void)
 {
@@ -27,6 +32,21 @@ ShaderRender::ShaderRender(void)
 	cursor_mode = 0;
 	lastPausedTime = 0;
 	programLoaded = false;
+
+	//Load transition shaders:
+	for (const std::string & shader : transitionShaders)
+	{
+		ICGProgram	*prog = new ShaderProgram();
+		prog->LoadSourceFile(shader);
+
+		if (!prog->CompileAndLink())
+		{
+			delete prog;
+			std::cout << "transition shader " << shader << " failed to compile !\n";
+		}
+
+		_transitionPrograms.push_back(prog);
+	}
 
 	//init_LuaGL(this);
 }
@@ -134,7 +154,7 @@ bool		ShaderRender::attachShader(const std::string file)
 {
 	ICGProgram	*newProgram;
 
-	if (CheckFileExtension(file.c_str(), (const char *[]){"cl"}))
+	if (CheckFileExtension(file.c_str(), (const char *[]){"cl", NULL}))
 		newProgram = new KernelProgram();
 	else
 		newProgram = new ShaderProgram();
@@ -144,7 +164,10 @@ bool		ShaderRender::attachShader(const std::string file)
 	newProgram->LoadSourceFile(file);
 
 	if (!newProgram->CompileAndLink())
+	{
+		delete newProgram;
 		return std::cout << "shader " << file << " failed to compile !\n", false;
+	}
 	else
 		programLoaded = true;
 
@@ -153,7 +176,7 @@ bool		ShaderRender::attachShader(const std::string file)
 	return true;
 }
 
-void		ShaderRender::SetCurrentRenderedShader(const size_t programIndex)
+void		ShaderRender::SetCurrentRenderedShader(const size_t programIndex, const int transitionIndex)
 {
 	_currentRenderedPrograms.clear();
 	_currentRenderedPrograms.push_back(programIndex);

@@ -21,8 +21,8 @@ ShaderApplication::ShaderApplication(bool fullScreen)
 	if (!glfwInit())
 		printf("glfwInit error !\n"), exit(-1);
 	glfwWindowHint (GLFW_SAMPLES, 4);
-	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	GLFWmonitor *	monit = (fullScreen) ? glfwGetPrimaryMonitor() : NULL;
@@ -39,7 +39,6 @@ ShaderApplication::ShaderApplication(bool fullScreen)
 
 	glfwMakeContextCurrent (window);
 	glfwSwapInterval(1);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	shaderRender = new ShaderRender();
 	renderShader = shaderRender;
@@ -61,7 +60,7 @@ bool	ShaderApplication::LoadShader(const std::string & shaderFile)
 	return shaderRender->attachShader(shaderFile);
 }
 
-void	ShaderApplication::FocusShader(const int programIndex)
+void	ShaderApplication::FocusShader(const int programIndex, const int transitionIndex)
 {
 	if (loadingShaders)
 	{
@@ -71,7 +70,7 @@ void	ShaderApplication::FocusShader(const int programIndex)
 	}
 
 	std::cout << "shader switched to display " << programIndex << std::endl;
-	shaderRender->SetCurrentRenderedShader(programIndex);
+	shaderRender->SetCurrentRenderedShader(programIndex, transitionIndex);
 }
 
 void	ShaderApplication::UpdateUniform(const int programIndex, const std::string & uniformName, const UniformParameter & param)
@@ -82,7 +81,7 @@ void	ShaderApplication::UpdateUniform(const int programIndex, const std::string 
 void	ShaderApplication::OnLoadingShaderFinished()
 {
 	if (_programToFocus != -1)
-		FocusShader(_programToFocus);
+		FocusShader(_programToFocus, -1);
 }
 
 void	ShaderApplication::RenderLoop(void)

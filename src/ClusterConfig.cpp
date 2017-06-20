@@ -34,8 +34,10 @@ SyncOffset	ClusterConfig::_ParseSyncOffset(const std::smatch & matches, const in
 
 	if (soType.find("Linear") != std::string::npos)
 	{
-		int delaySecs = std::stoi(matches[paramIndex]);
-		sOffset = SyncOffset::CreateLinearSyncOffset(delaySecs, 0);
+		long delayMilliSecs = std::stol(matches[paramIndex]);
+		int	delaySecs = delayMilliSecs / 1000;
+		delayMilliSecs %= 1000;
+		sOffset = SyncOffset::CreateLinearSyncOffset(delaySecs, delayMilliSecs);
 	}
 	else if (soType.find("None") != std::string::npos)
 		sOffset = SyncOffset::CreateNoneSyncOffset();
@@ -54,7 +56,7 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 	std::regex		commentLine("\\s*#.*");
 	std::regex		openingBraceLine("\\s*\\{\\s*");
 	std::regex		closingBraceLine("\\s*\\}\\s*");
-	std::regex		focusLine("\\s*Focus\\s\\s*(\\d\\d*)\\s\\s*" + syncRegex);
+	std::regex		focusLine("\\s*Focus\\s\\s*(\\d\\d*)\\s\\s*(\\d\\d*)\\s\\s*" + syncRegex);
 	std::regex		uniformLine("\\s*Uniform([1-4]f|1i)\\s\\s*(\\w+)\\s\\s*" + uniformParameters + SPACE + syncRegex);
 	std::regex		waitLine("\\s*Wait\\s\\s*(\\d\\d*)");
 	bool			openbrace = false;
@@ -69,11 +71,12 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 		if (std::regex_match(line, matches, focusLine))
 		{
 			int				programIndex = std::stoi(matches[1]);
+			int				transitionIndex = std::stoi(matches[2]);
 			SyncOffset		sOffset;
 
-			sOffset = _ParseSyncOffset(matches, 2, 3, nLines, line);
+			sOffset = _ParseSyncOffset(matches, 3, 4, nLines, line);
 			currentProgramIndex = programIndex;
-			_renderLoops[groupId].push_back(RenderLoopCommand(programIndex, sOffset));
+			_renderLoops[groupId].push_back(RenderLoopCommand(programIndex, transitionIndex, sOffset));
 		}
 		else if (std::regex_match(line, matches, waitLine))
 		{
@@ -236,7 +239,7 @@ void		ClusterConfig::StartAllRenderLoops(NetworkManager *netManager)
 					switch (command.type)
 					{
 						case RenderLoopCommandType::Focus:
-							netManager->FocusShaderOnGroup(Timer::TimeoutInSeconds(1), groupId, command.programIndex, command.syncOffset);
+							netManager->FocusShaderOnGroup(Timer::TimeoutInSeconds(1), groupId, command.programIndex, command.transitionIndex, command.syncOffset);
 							break ;
 						case RenderLoopCommandType::Wait:
 							usleep(command.waitTime * 1000 * 1000);
