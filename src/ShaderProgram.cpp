@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/20 15:29:47 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/20 15:44:04 by e-sport42        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ const char * VERTEX_SHADER_DEFAULT =
 "}\n";
 
 
-float * _renderVertices = (float[]){
+float _renderVertices[] = {
 	-.75f, -.75f,
 	-.75f,  .75f,
 	.75f,  .75f,
