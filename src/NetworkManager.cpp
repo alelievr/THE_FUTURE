@@ -50,6 +50,7 @@ NetworkManager::NetworkManager(bool server, bool co)
 	this->_connection = co;
 	this->_isServer = server;
 	this->_connectedToServer = false;
+	this->_localClientIndex = 0;
 	bzero(&connection, sizeof(connection));
 
 	FD_ZERO(&_serverFdSet);
@@ -195,8 +196,9 @@ Client &		NetworkManager::_FindClient(const int groupId, const size_t ip)
 		return DEBUG("Findclient failed, groupId out of bounds: %i\n", groupId), defaultClient;
 	}
 
-	for (auto & c : _clients[groupId])
+	for (auto & cKP : _clients[groupId])
 	{
+		auto & c = cKP.second;
 		if (c.ip == ip)
 		{
 			UNLOCK;
@@ -218,10 +220,12 @@ NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) co
 	connection.sin_port = htons(CLIENT_PORT);
 
 	LOCK;
-	for (auto clientList : _clients)
+	for (auto & clientListKP : _clients)
 	{
-		for (const Client & c : clientList.second)
+		auto & clientList = clientListKP.second;
+		for (const auto & cKP : clientList)
 		{
+			const Client & c = cKP.second;
 			connection.sin_addr.s_addr = c.ip;
 			if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
 			{
@@ -257,8 +261,9 @@ NetworkStatus		NetworkManager::_SendPacketToGroup(const int groupId, Packet pack
 
 	//TODO: check the sync order and reverse it if needed + custom + random
 
-	for (const Client & c : clientGroupList)
+	for (const auto & cKP : clientGroupList)
 	{
+		const Client & c = cKP.second;
 		if (sync.type == SyncOffsetType::Linear)
 		{
 			packet.timing = defaultTiming + additionalTiming;
@@ -550,7 +555,7 @@ NetworkStatus				NetworkManager::ConnectCluster(int clusterNumber)
 
 			Client		c(r, s, clusterNumber, ip.c_str());
 
-			_clients[0].push_back(c);
+			_clients[0][_localClientIndex++] = c;
 		}
 
 	_SendPacketToAllClients(_CreatePokeStatusPacket());
@@ -581,7 +586,9 @@ NetworkStatus		NetworkManager::CheckClusterTimeout(void)
 	const Packet p = _CreateTimeoutCheckPacket();
 	for (auto & clientsKP : _clients)
 	{
-		for (auto & client : clientsKP.second)
+		for (auto & clientKP : clientsKP.second)
+		{
+			auto & client = clientKP.second;
 			if (client.status != ClientStatus::Unknown && client.status != ClientStatus::Timeout && client.status != ClientStatus::Error && client.status != ClientStatus::Disconnected)
 			{
 				if (client.willTimeout)
@@ -594,6 +601,7 @@ NetworkStatus		NetworkManager::CheckClusterTimeout(void)
 				std::cout << "sending packet to: " << client.ip << " in group: " << clientsKP.first << std::endl;
 				_SendPacketToClient(client.ip, p);
 			}
+		}
 	}
 	UNLOCK;
 	return NetworkStatus::Success;
@@ -818,14 +826,13 @@ NetworkStatus		NetworkManager::Update(void)
 
 int		NetworkManager::CreateNewGroup(void)
 {
-	_clients[_localGroupId] = std::list< Client >();
 	return _localGroupId++;
 }
 #include <iterator>
 
 NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row, const int seat)
 {
-	std::map< int, std::list< Client > >::iterator	group;
+	std::map< int, std::map< int, Client > >::iterator	group;
 	int												nRemoved = 0;
 	Client											moved;
 	int												oldGroup = 0;
@@ -834,19 +841,19 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	if ((group = _clients.find(groupId)) != _clients.end())
 	{
 		for (auto & clientKP : _clients)
-			clientKP.second.remove_if(
-				[&](const Client & c) mutable
+		{
+			for (auto it = clientKP.second.begin(); it != clientKP.second.end(); ++it)
+			{
+				auto & c = it->second;
+				if (c.row == row && c.seat == seat)
 				{
-					if (c.row == row && c.seat == seat)
-					{
-						moved = c;
-						nRemoved++;
-						oldGroup = c.groupId;
-						return true;
-					}
-					return false;
+					moved = c;
+					nRemoved++;
+					oldGroup = c.groupId;
+					clientKP.second.erase(it);
 				}
-			);
+			}
+		}
 	}
 	else
 	{
@@ -857,22 +864,25 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 
 	if (nRemoved == 1)
 	{
-		_clients[groupId].push_back(moved);
+		_clients[groupId][_localClientIndex++] = moved;
 
 		//Sort to be in the same order than the config file:
-		for (auto it = _clients[groupId].begin(); it != _clients[groupId].end(); ++it)
+		auto clientList = _clients[groupId];
+		for (const auto & clientKP : clientList)
 		{
-			auto & client = *it;
-			size_t	index = ClusterConfig::GetImacIndexInGroup(groupId, client.row, client.seat);
-			if (index > _clients[groupId].size())
-				continue ;
+			auto & m = _clients[groupId];
+			auto & client = clientKP.second;
 
-			_clients[groupId].splice(it, _clients[groupId], std::next(_clients[groupId].begin(), index));
+			size_t	index = ClusterConfig::GetImacIndexInGroup(groupId, client.row, client.seat);
+
+			m.erase(clientKP.first);
+			m[index] = clientKP.second;
+			std::cout << "moved client " << client << " to index " << index << std::endl;
 		}
 
 		std::cout << "sorted imac list for group " << groupId << ":" << std::endl;
-		for (const auto c : _clients[groupId])
-			std::cout << c << ", ";
+		for (const auto cKP : _clients[groupId])
+			std::cout << cKP.second << ", ";
 		std::cout << std::endl;
 
 		_SendPacketToClient(moved.ip, _CreateChangeGroupPacket(groupId));

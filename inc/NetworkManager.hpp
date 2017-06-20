@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/20 15:21:12 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/20 19:19:31 by e-sport42        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,7 +227,7 @@ class		NetworkManager
 			};
 		};
 
-		std::map< int, std::list< Client > > _clients;
+		std::map< int, std::map< int, Client > >	_clients;
 		bool					_isServer;
 		int						_serverSocket;
 		int						_clientSocket;
@@ -237,6 +237,7 @@ class		NetworkManager
 		char					_serverIp[IP_LENGHT];
 		fd_set					_serverFdSet;
 		static int				_localGroupId;
+		int						_localClientIndex;
 
 		ShaderFocusCallback		_shaderFocusCallback = NULL;
 		ShaderUniformCallback	_shaderUniformCallback = NULL;
