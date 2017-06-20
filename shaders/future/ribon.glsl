@@ -4,13 +4,10 @@ void mainImage( in vec2 fragCoord )
 {
 	float f = 3., g = 3.;
 	vec2 res = iResolution.xy;
-	vec2 mou = iMouse.xy;
-	if (iMouse.z < 0.5)
-	{
-		mou.x = sin(gTime * .3)*sin(gTime * .17) * 1. + sin(gTime * .3);
-		mou.y = (1.0-cos(gTime * .632))*sin(gTime * .131)*1.0+cos(gTime * .3);
-		mou = (mou+1.0) * res;
-	}
+	vec2 mou;
+	mou.x = sin(gTime * .3)*sin(gTime * .17) * 1. + sin(gTime * .3);
+	mou.y = (1.0-cos(gTime * .632))*sin(gTime * .131)*1.0+cos(gTime * .3);
+	mou = (mou+1.0) * res;
 	vec2 z = ((-res+2.0 * fragCoord.xy) / res.y);
 	vec2 p = ((-res+2.0+mou) / res.y);
 	for( int i = 0; i < 40; i++) 

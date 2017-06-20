@@ -22,21 +22,19 @@ vec4 getNyanCatColor( vec2 p, float time )
 
 void mainImage( in vec2 fragCoord )
 {
-	//	vec2 p = -1.0+2.0*fragCoord.xy / iResolution.xy;
-	//	p.x *= iResolution.x/iResolution.y;
+	vec2 p = -1.0+2.0*fragCoord.xy / iResolution.xy;
+	p.x *= iResolution.x/iResolution.y;
 
     float time = iGlobalTime;
 
     // zoom	
-	//	p = vec2(0.5,-0.05)  + p*0.75 * pow( 0.9, 20.0*(0.5+0.5*cos(0.25*time)) );
-	vec2 pix = vec2((iFractalWindow.z - iFractalWindow.x) / iResolution.x, (iFractalWindow.w - iFractalWindow.y) / iResolution.y);
-	vec2 p = vec2(iFractalWindow.x + fragCoord.x * pix.x, iFractalWindow.y + fragCoord.y * pix.y);
+	p = vec2(0.5,-0.05)  + p*0.75 * pow( 0.9, 20.0*(0.5+0.5*cos(0.25*time)) ) * 2;
 
     vec4 col = vec4(0.0);
 	vec3 s = mix( vec3( 0.2,0.2, 1.0 ), vec3( 0.5,-0.2,0.5), 0.5+0.5*sin(0.5*time) );
 
     // iterate Jc	
-	vec2 c = vec2(-0.76, 0.15);
+	vec2 c = vec2(-0.76, sin(iGlobalTime / 8.987654321) / 5.321);
 	float f = 0.0;
 	vec2 z = p;
 	for( int i=0; i< 150; i++ )

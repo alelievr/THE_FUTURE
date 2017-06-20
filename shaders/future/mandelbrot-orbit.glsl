@@ -1,10 +1,10 @@
 void mainImage( in vec2 fragCoord )
 {
-	vec2 pix = vec2((iFractalWindow.z - iFractalWindow.x) / iResolution.x, (iFractalWindow.w - iFractalWindow.y) / iResolution.y);
-	vec2 p = vec2(iFractalWindow.x + fragCoord.x * pix.x, iFractalWindow.y + fragCoord.y * pix.y);
+	vec2 p = -1.0 + 2.0 * fragCoord.xy / iResolution.xy;
+	p.x *= iResolution.x/iResolution.y;
 
-	p *= 2.;
-    p -= 1.;	
+	p *= (sin(iGlobalTime / 10) + .5 / 4);
+	p += vec2(sin(iGlobalTime / 13.3333), cos(iGlobalTime / 4)) / 4;
 	p += vec2(0.274,0.482);
 	
 	vec2 zc = vec2(0, 0);

@@ -64,11 +64,9 @@ void mainImage( in vec2 fragCoord ){
     vec3 sum = vec3(0);
 	float ratio = iResolution.x / iResolution.y / 2.0;
     for(float i = 0. ; i < SAMPLE_NUM ; i++){
-		vec2 pix = vec2((iFractalWindow.z - iFractalWindow.x) / iResolution.x, (iFractalWindow.w - iFractalWindow.y) / iResolution.y);
-		vec2 position = vec2(iFractalWindow.x + fragCoord.x * pix.x, iFractalWindow.y + fragCoord.y * pix.y);
-		 position.x *= iResolution.x/iResolution.y;
-
-		position *= 2;
+        vec2 position = ( (fragCoord.xy + rand2n(fragCoord.xy, i)) / iResolution.yy ) - vec2(ratio, 0.5);
+		position *= 4;
+		position += vec2(sin(iGlobalTime / 6), cos(iGlobalTime / 4.4)) * 3;
 
         float loopNum = IIS(position);
 

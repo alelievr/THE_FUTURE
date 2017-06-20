@@ -336,20 +336,19 @@ vec3 envMap(vec3 rd){
 void mainImage( in vec2 fragCoord ){
     
 	vec2    uv = (fragCoord / iResolution) * 2 - 1;
-	vec3    cameraDir = iForward;
 
 	//window ratio correciton:
 	uv.x *= iResolution.x / iResolution.y;
 
 	//perspective view
 	float   fov = 1.5;
-	vec3    forw = normalize(iForward);
+	vec3    forw = normalize(vec3(0, 0, 1));
 	vec3    right = normalize(cross(forw, vec3(0, 1, 0)));
 	vec3    up = normalize(cross(right, forw));
 	vec3    rd = normalize(uv.x * right + uv.y * up + fov * forw);
 
 
-	vec3 ro = iMoveAmount.xyz / 2;
+	vec3 ro = vec3(0, 0, iGlobalTime / 4);
     
     // Ray origin, set off in the YZ direction. Note the "0.5." It's an old lattice trick.
 //    vec3 ro = vec3(0.0, 0.0, iGlobalTime);

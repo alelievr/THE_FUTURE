@@ -12,14 +12,12 @@ void mainImage( in vec2 fragCoord )
     for( int m=0; m<AA; m++ )
     	for( int n=0; n<AA; n++ )
     	{
-	vec2 pix = vec2((iFractalWindow.z - iFractalWindow.x) / iResolution.x, (iFractalWindow.w - iFractalWindow.y) / iResolution.y);
-	vec2 p = vec2(iFractalWindow.x + fragCoord.x * pix.x, iFractalWindow.y + fragCoord.y * pix.y);
-    		//vec2 p = -1.0 + 2.0 * (fragCoord.xy+vec2(float(m),float(n))/float(AA)) / iResolution.xy;
+    		vec2 p = -1.0 + 2.0 * (fragCoord.xy+vec2(float(m),float(n))/float(AA)) / iResolution.xy;
     		p.x *= iResolution.x/iResolution.y;
 
     		//float zoo = 1.0/250.0;
 
-			float zoo = 1.0/250.0;
+			float zoo = 1.0/250.0 + (sin(iGlobalTime / 6) + 1) / 4;
 
 			vec2 cc = vec2(-0.533516,0.526141) + p*zoo;
 

@@ -52,7 +52,6 @@ vec4 colorize(float c) {
 void mainImage( in vec2 fragCoord )
 {
 	vec2 screenPos = fragCoord.xy / iResolution.xy * 2.0 - 1.0;
-	vec2 mousePos = iMouse.xy / iResolution.xy * 2.0 - 1.0;
 	
 	vec3 cameraPos = vec3(0.16 * sin(iGlobalTime), 0.16 * cos(iGlobalTime), iGlobalTime);
 	//vec3 cameraPos = vec3(0.0);
