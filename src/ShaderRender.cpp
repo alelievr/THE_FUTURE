@@ -198,12 +198,14 @@ void		ShaderRender::ClearCurrentRenderedShader()
 	_currentRenderedPrograms.clear();
 }
 
-void		ShaderRender::UpdateUniform(const int programIndex, const std::string & uniformName, const UniformParameter & param)
+void		ShaderRender::UpdateLocalParam(const int programIndex, const std::string & uniformName, const UniformParameter & param)
 {
-	(void)programIndex;
-	(void)uniformName;
-	(void)param;
-	//TODO: update uniform for program !
+	if (programIndex < 0 || static_cast< size_t >(programIndex) >= _programs.size())
+	{
+		std::cout << "programIndex out of bounds";
+		return ;
+	}
+	_programs[programIndex]->UpdateLocalParam(uniformName, param.f1);
 }
 
 void		ShaderRender::framebufferSizeCallback(int width, int height)
