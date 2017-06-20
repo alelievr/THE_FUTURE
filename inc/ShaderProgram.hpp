@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:23 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/06 19:16:51 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/20 01:53:17 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,54 +24,42 @@
 
 # include "shaderpixel.h"
 # include "ShaderChannel.hpp"
+# include "ICGProgram.hpp"
 
-enum class	RenderSurface
-{
-	FULL_WINDOW,
-	HALF_WINDOW,
-	QUARTER_WINDOW,
-};
-
-class		ShaderProgram
+class		ShaderProgram : public ICGProgram
 {
 	private:
 		struct ShaderFile {
 			std::string		file;
 			std::string		source;
-			long			lastModified;
 
 			ShaderFile(std::string file, std::string source)
 			{
-				struct stat		st;
-
 				this->file = file;
 				this->source = source;
-				stat(file.c_str(), &st);
-				lastModified = st.st_mtime;
 			}
 		};
 
-		std::vector< ShaderFile >			_fragmentFileSources;
-		std::vector< ShaderFile>			_vertexFileSources;
-		GLuint								_id;
-		int									_framebufferId;
-		int									_renderId;
-		ShaderChannel						*_channels;
-		long								_lastModified;
-		std::map< std::string, GLuint >		_uniforms;
-		bool								_loaded;
+		std::vector< ShaderFile >		_fragmentFileSources;
+		std::vector< ShaderFile >		_vertexFileSources;
+		int								_framebufferId;
+		int								_renderId;
+		ShaderChannel *					_channels;
+		std::map< std::string, GLuint >	_uniforms;
+		std::map< std::string, float >	_localParams;
+		bool							_loaded;
+		bool							_firstUse;
+		GLuint							_id; //opengl program id
 
-		GLuint								_vao;
-		GLuint								_vbo;
-		GLenum								_renderMode;
-		const float							*_renderVertices;
-		GLsizei								_renderCount;
+		GLuint							_vao;
+		GLuint							_vbo;
 
-		const std::string					loadSourceFile(const std::string & file);
-		bool								checkCompilation(GLuint shader);
-		bool								checkLink(GLuint program);
-		void								updateVAO(void);
-		void								loadUniformLocations(void);
+		const std::string			_LoadSourceFile(const std::string & file);
+		bool						CheckCompilation(GLuint shader);
+		bool						CheckLink(GLuint program);
+		void						CreateVAO(void);
+		void						LoadUniformLocations(void);
+		void						UpdateLocalParam(const std::string & name, const float value);
 
 	public:
 		ShaderProgram(void);
@@ -80,45 +68,70 @@ class		ShaderProgram
 
 		ShaderProgram &	operator=(ShaderProgram const & src) = delete;
 
-		bool	loadFragmentFile(const std::string & file);
-		bool	loadVertexFile(const std::string & file);
-		bool	compileAndLink(void);
-		void	use(void);
-		void	draw(void);
-		void	deleteProgram(void);
-		void	reloadModifiedFiles(void);
-		void	updateRenderSurface(const RenderSurface & surface);
-		void	updateRenderSurface(const float *points, GLenum renderMode, int count);
+		bool    LoadSourceFile(const std::string & fileName);
 
-		void	updateUniform1(const std::string & uniformName, int value);
-		void	updateUniform1(const std::string & uniformName, int count, int *values);
-		void	updateUniform2(const std::string & uniformName, int value1, int value2);
-		void	updateUniform2(const std::string & uniformName, int count, int *values);
-		void	updateUniform3(const std::string & uniformName, int value1, int value2, int value3);
-		void	updateUniform3(const std::string & uniformName, int count, int *values);
-		void	updateUniform4(const std::string & uniformName, int value1, int value2, int value3, int value4);
-		void	updateUniform4(const std::string & uniformName, int count, int *values);
+		bool    CompileAndLink(void);
 
-		void	updateUniform1(const std::string & uniformName, float value);
-		void	updateUniform1(const std::string & uniformName, int count, float *values);
-		void	updateUniform2(const std::string & uniformName, float value1, float value2);
-		void	updateUniform2(const std::string & uniformName, int count, float *values);
-		void	updateUniform3(const std::string & uniformName, float value1, float value2, float value3);
-		void	updateUniform3(const std::string & uniformName, int count, float *values);
-		void	updateUniform4(const std::string & uniformName, float value1, float value2, float value3, float value4);
-		void	updateUniform4(const std::string & uniformName, int count, float *values);
+		void    Use(void);
+		void    UpdateUniforms(const vec2 winSize, bool pass = false);
+		void    UpdateFramebufferSize(const vec2 fbSize);
+		void    Draw(void);
 
-		int		getProgramId(void) const;
-
-		int		getFramebufferId(void) const;
-		void	setFramebufferId(int fbo);
-
-		int		getRenderId(void) const;
-		void	setRenderId(int renderId);
-		
-		ShaderChannel	*getChannel(int index);
+		void	SetFramebufferId(const GLuint fbo);
+		GLuint	GetFramebufferId(void) const;
+		void	SetRenderId(const GLuint renderTexture);
+		GLuint	GetRenderId(void) const;
 };
 
 std::ostream &	operator<<(std::ostream & o, ShaderProgram const & r);
+
+#define FRAGMENT_SHADER_HEADER \
+"#version 330\n" \
+"in vec4 outColor;\n" \
+"out vec4 fragColor;\n" \
+"\n" \
+"uniform vec2           iResolution;\n" \
+"uniform float          iGlobalTime;\n" \
+"uniform int            iFrame;\n" \
+"uniform vec4           iMouse;\n" \
+"uniform vec2           iScrollAmount;\n" \
+"uniform vec4           iMoveAmount;\n" \
+"uniform vec3           iForward;\n" \
+"uniform vec4           iFractalWindow;\n" \
+"uniform sampler2D      iChannel0;\n" \
+"uniform sampler2D      iChannel1;\n" \
+"uniform sampler2D      iChannel2;\n" \
+"uniform sampler2D      iChannel3;\n" \
+"uniform sampler2D      iChannel4;\n" \
+"uniform sampler2D      iChannel5;\n" \
+"uniform sampler2D      iChannel6;\n" \
+"uniform sampler2D      iChannel7;\n" \
+"\n" \
+"void mainImage(vec2 f);\n" \
+"\n" \
+"vec4 texture2D(sampler2D s, vec2 coord, float f)\n" \
+"{\n" \
+"       return texture(s, coord, f);\n" \
+"}\n" \
+"\n" \
+"vec4 texture2D(sampler2D s, vec2 coord)\n" \
+"{\n" \
+"       return texture(s, coord);\n" \
+"}\n" \
+"\n" \
+"void main()\n" \
+"{\n" \
+"       mainImage(gl_FragCoord.xy);\n" \
+"}\n" \
+"#line 1\n"
+
+#define VERTEX_SHADER_DEFAULT \
+"#version 330\n" \
+"in vec2                fragPosition;\n" \
+"out vec4               outColor;\n" \
+"void main()\n" \
+"{\n" \
+"       gl_Position = vec4(fragPosition, 0.0, 1.0);\n" \
+"}\n"
 
 #endif

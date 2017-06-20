@@ -50,36 +50,6 @@ ShaderApplication::ShaderApplication(bool fullScreen)
 		}
 	);
 
-	glfwSetWindowSizeCallback(window,
-		[](GLFWwindow *, int w, int h) {
-			renderShader->windowSizeCallback(w, h);
-		}
-	);
-
-	glfwSetScrollCallback(window,
-		[](GLFWwindow *, double x, double y) {
-			renderShader->scrollCallback(x, y);
-		}
-	);
-
-	glfwSetKeyCallback(window,
-		[](GLFWwindow *win, int key, int scancode, int action, int mods) {
-			renderShader->keyCallback(win, key, scancode, action, mods);
-		}
-	);
-
-	glfwSetMouseButtonCallback(window,
-		[](GLFWwindow *, int button, int action, int modifiers) {
-			renderShader->clickCallback(button, action, modifiers);
-		}
-	);
-
-	glfwSetCursorPosCallback(window,
-		[](GLFWwindow *win, double x, double y) {
-			renderShader->mousePositionCallback(win, x, y);
-		}
-	);
-
 	int		fw, fh;
 	glfwGetFramebufferSize(window, &fw, &fh);
 	framebuffer_size.x = fw;
@@ -119,7 +89,7 @@ void	ShaderApplication::RenderLoop(void)
 {
 	while (!glfwWindowShouldClose(window))
 	{
-		shaderRender->render(window);
+		shaderRender->Render();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

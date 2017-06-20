@@ -63,8 +63,8 @@ bool		ShaderChannel::loadShader(const std::string & file, int mode)
 	_type = ShaderChannelType::CHANNEL_PROGRAM;
 
 	_program = new ShaderProgram();
-	_program->loadFragmentFile(file);
-	if (!_program->compileAndLink())
+	_program->LoadSourceFile(file);
+	if (!_program->CompileAndLink())
 		std::cout << "shader " << file << " failed to compile\n", exit(-1);
 
 	GLuint	fbo;
@@ -92,8 +92,8 @@ bool		ShaderChannel::loadShader(const std::string & file, int mode)
 		return false;
 	}
 
-	_program->setFramebufferId(fbo);
-	_program->setRenderId(renderedTexture);
+	_program->SetFramebufferId(fbo);
+	_program->SetRenderId(renderedTexture);
 	_textureId = renderedTexture;
 	std::cout << "created framebufferId: " << fbo << ", renderTexture: " << renderedTexture << std::endl;
 
@@ -118,11 +118,11 @@ bool		ShaderChannel::updateChannel(const std::string & file, int mode)
 	_mode = mode;
 
 	const char *file_path = file.c_str();
-	if (checkFileExtention(file_path, IMAGE_EXT))
+	if (CheckFileExtension(file_path, IMAGE_EXT))
 		return (loadImage(file, mode));
-	if (checkFileExtention(file_path, SHADER_EXT))
+	if (CheckFileExtension(file_path, SHADER_EXT))
 		return (loadShader(file, mode));
-	if (checkFileExtention(file_path, SOUND_EXT))
+	if (CheckFileExtension(file_path, SOUND_EXT))
 		return (loadSound(file));
 	return false;
 }

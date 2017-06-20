@@ -32,6 +32,7 @@ SRC			=	ShaderRender.cpp		\
 				Timeval.cpp				\
 				NetworkGUI.cpp			\
 				ClusterConfig.cpp		\
+				KernelProgram.cpp		\
 
 
 #	Objects
@@ -63,7 +64,7 @@ NAME		=	visualishader
 
 #	Compiler
 WERROR		=	#-Werror
-CFLAGS		=	-Wall -Wextra
+CFLAGS		=	-Wall -Wextra -ferror-limit=999
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb
@@ -270,7 +271,8 @@ fclean: clean
 		$(RM) $(NAME))
 
 #	All removing then compiling
-re: fclean all
+re: fclean
+	$(MAKE) all
 
 f:	all run
 

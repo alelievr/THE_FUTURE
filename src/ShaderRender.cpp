@@ -15,7 +15,7 @@
 #include <functional>
 #include <algorithm>
 
-//#define DEBUG
+#define DEBUG
 
 vec2		framebuffer_size = {0, 0};
 vec2		window = {WIN_W, WIN_H};
@@ -31,138 +31,13 @@ ShaderRender::ShaderRender(void)
 	//init_LuaGL(this);
 }
 
-void		ShaderRender::updateUniforms(ShaderProgram *p)
+void		ShaderRender::Render(void)
 {
-	static int		frames = 0;
-
-	float ti = getCurrentTime();
-	if (!input_pause)
-	{
-		p->updateUniform1("iGlobalTime", ti);
-		p->updateUniform4("iMouse", mouse.x, window.y - mouse.y, mouse.y, mouse.y);
-		p->updateUniform4("iFractalWindow", fractalWindow.x, fractalWindow.y, fractalWindow.z, fractalWindow.w);
-	}
-	p->updateUniform1("iFrame", frames++);
-	p->updateUniform2("iScrollAmount", scroll.x, scroll.y);
-	p->updateUniform4("iMoveAmount", move.x, move.y, move.z, move.w);
-	p->updateUniform2("iResolution", framebuffer_size.x, framebuffer_size.y);
-	p->updateUniform3("iForward", forward.x, forward.y, forward.z);
-#if UNIFORM_DEBUG
-	printf("window: %f/%f\n", framebuffer_size.x, framebuffer_size.y);
-	printf("scroll: %f/%f\n", scroll.x, scroll.y);
-	printf("move: %f/%f/%f/%f\n", move.x, move.y, move.z, move.w);
-	printf("mouse: %f/%f/%f/%f\n", mouse.x, mouse.y, mouse.z, mouse.w);
-	printf("time: %f\n", ti);
-	printf("frames: %i\n", frames);
-	printf("forward: %f/%f/%f\n", forward.x, forward.y, forward.z);
-#endif
-
-	int j = 0;
-	int soundTexId;
-	for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
-	{
-		auto channel = p->getChannel(i);
-		switch (channel->getType())
-		{
-			case ShaderChannelType::CHANNEL_IMAGE:
-				glActiveTexture(GL_TEXTURE1 + j);
-				glBindTexture(GL_TEXTURE_2D, channel->getTextureId());
-				p->updateUniform1("iChannel" + std::to_string(j++), channel->getTextureId());
-#ifdef DEBUG
-				std::cout << "bound and activated texture: " << j << " -> " << channel->getTextureId() << std::endl;
-#endif
-				break ;
-			case ShaderChannelType::CHANNEL_SOUND:
-				soundTexId = get_sound_texture(channel->getTextureId());
-				glActiveTexture(GL_TEXTURE1 + j);
-				glBindTexture(GL_TEXTURE_2D, soundTexId);
-				p->updateUniform1("iChannel" + std::to_string(j++), soundTexId);
-				break ;
-			case ShaderChannelType::CHANNEL_PROGRAM:
-#ifdef DEBUG
-				std::cout << "bound render texture to id: " << channel->getTextureId() << " on channel: " << "iChannel" + std::to_string(j) << "\n";
-#endif
-				glActiveTexture(GL_TEXTURE1 + j);
-				glBindTexture(GL_TEXTURE_2D, channel->getTextureId());
-				p->updateUniform1("iChannel" + std::to_string(j++), channel->getTextureId());
-			default:
-				break ;
-		}
-	}
-}
-
-vec3        ShaderRender::vec3Cross(vec3 v1, vec3 v2)
-{
-	return (vec3){v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x};
-}
-
-#define VEC3_ADD_DIV(v1, v2, f) { v1.x += v2.x / (f); v1.y += v2.y / (f); v1.z += v2.z / (f); }
-void		ShaderRender::updateKeys(void)
-{
-	vec2	winSize;
-
-	vec3    right = vec3Cross(forward, vec3{0, 1, 0});
-	vec3    up = vec3Cross(forward, right);
-
-	winSize.x = fractalWindow.z - fractalWindow.x;
-	winSize.y = fractalWindow.w - fractalWindow.y;
-	if (BIT_GET(keys, RIGHT))
-	{
-		VEC3_ADD_DIV(move, right, 10 / move.w);
-		fractalWindow.x += winSize.x / SCALE;
-		fractalWindow.z += winSize.x / SCALE;
-	}
-	if (BIT_GET(keys, LEFT))
-	{
-		VEC3_ADD_DIV(move, -right, 10 / move.w);
-		fractalWindow.x -= winSize.x / SCALE;
-		fractalWindow.z -= winSize.x / SCALE;
-	}
-	if (BIT_GET(keys, UP))
-		VEC3_ADD_DIV(move, up, 10 / move.w);
-	if (BIT_GET(keys, DOWN))
-		VEC3_ADD_DIV(move, -up, 10 / move.w);
-	if (BIT_GET(keys, FORWARD))
-	{
-		VEC3_ADD_DIV(move, forward, 10 / move.w);
-		fractalWindow.y += winSize.y / SCALE;
-		fractalWindow.w += winSize.y / SCALE;
-	}
-	if (BIT_GET(keys, BACK))
-	{
-		VEC3_ADD_DIV(move, -forward, 10 / move.w);
-		fractalWindow.y -= winSize.y / SCALE;
-		fractalWindow.w -= winSize.y / SCALE;
-	}
-	if (BIT_GET(keys, PLUS))
-	{
-		move.w *= 1 + MOVE_AMOUNT;
-		fractalWindow.z += -.5 * winSize.x / 25;
-		fractalWindow.w += -.5 * winSize.y / 25;
-		fractalWindow.x += .5 * winSize.x / 25;
-		fractalWindow.y += .5 * winSize.y / 25;
-	}
-	if (BIT_GET(keys, MOIN))
-	{
-		move.w *= 1 - MOVE_AMOUNT;
-		fractalWindow.z += -.5 * winSize.x / -25;
-		fractalWindow.w += -.5 * winSize.y / -25;
-		fractalWindow.x += .5 * winSize.x / -25;
-		fractalWindow.y += .5 * winSize.y / -25;
-	}
-}
-
-void		ShaderRender::render(GLFWwindow *win)
-{
-//	checkFileChanged(program);
-
 	if (!programLoaded)
 		return ;
 
-	updateKeys();
-
 	//process render buffers if used:
-	foreachShaderChannels([&](ShaderProgram *prog, ShaderChannel *channel) {
+/*	foreachShaderChannels([&](ShaderProgram *prog, ShaderChannel *channel) {
 			(void)prog;
 
 			if (channel->getType() == ShaderChannelType::CHANNEL_PROGRAM)
@@ -207,7 +82,7 @@ void		ShaderRender::render(GLFWwindow *win)
 				write(fd, img.data, img.width * img.height * 3);
 			}
 		}
-	);
+	);*/
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -218,23 +93,25 @@ void		ShaderRender::render(GLFWwindow *win)
 
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 //	load_run_script(getL(NULL), "lua/draw.lua");
+
+	static int frames = 0;
 
 	for (const std::size_t pIndex : _currentRenderedPrograms)
 		if (pIndex < _programs.size())
 		{
-			_programs[pIndex]->use();
+			_programs[pIndex]->Use();
 
-			updateUniforms(_programs[pIndex]);
+			_programs[pIndex]->UpdateUniforms(framebuffer_size);
 
-			_programs[pIndex]->draw();
+			_programs[pIndex]->Draw();
 		}
 
+	frames++;
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-		glfwSetCursorPos(win, window.x / 2, window.y / 2);
 }
 
 void		ShaderRender::displayWindowFps(void)
@@ -255,13 +132,18 @@ void		ShaderRender::displayWindowFps(void)
 
 bool		ShaderRender::attachShader(const std::string file)
 {
-	ShaderProgram	*newProgram = new ShaderProgram();
+	ICGProgram	*newProgram;
+
+	if (CheckFileExtension(file.c_str(), (const char *[]){"cl"}))
+		newProgram = new KernelProgram();
+	else
+		newProgram = new ShaderProgram();
 
 	std::cout << "loading shader file: " << file << std::endl;
 
-	newProgram->loadFragmentFile(file);
+	newProgram->LoadSourceFile(file);
 
-	if (!newProgram->compileAndLink())
+	if (!newProgram->CompileAndLink())
 		return std::cout << "shader " << file << " failed to compile !\n", false;
 	else
 		programLoaded = true;
@@ -295,69 +177,10 @@ void		ShaderRender::ClearCurrentRenderedShader()
 
 void		ShaderRender::UpdateUniform(const int programIndex, const std::string & uniformName, const UniformParameter & param)
 {
+	(void)programIndex;
+	(void)uniformName;
+	(void)param;
 	//TODO: update uniform for program !
-}
-
-void		ShaderRender::windowSizeCallback(int winX, int winY)
-{
-	window.x = winX;
-	window.y = winY;
-}
-
-void		ShaderRender::scrollCallback(double xOffset, double yOffset)
-{
-	scroll.x += xOffset;
-	scroll.y += yOffset;
-
-	vec2 ratemin;
-	vec2 ratemax;
-	vec2 diff;
-
-	vec2 fractal_mouse;
-	fractal_mouse.x = mouse.x;
-	fractal_mouse.y = window.y - mouse.y;
-	ratemin.x = (fractal_mouse.x / window.x);
-	ratemin.y = (fractal_mouse.y / window.y);
-	ratemax.x = (fractal_mouse.x - window.x) / window.x;
-	ratemax.y = (fractal_mouse.y - window.y) / window.y;
-	diff.x = (fractalWindow.z - fractalWindow.x);
-	diff.y = (fractalWindow.w - fractalWindow.y);
-	fractalWindow.z += ratemax.x * diff.x * yOffset / 30;
-	fractalWindow.w += ratemax.y * diff.y * yOffset / 30;
-	fractalWindow.x += ratemin.x * diff.x * yOffset / 30;
-	fractalWindow.y += ratemin.y * diff.y * yOffset / 30;
-}
-
-void		ShaderRender::clickCallback(int button, int action, int mods)
-{
-	(void)mods;
-	if (button == 0 && action == 1)
-		mouse.z = 1;
-	else if (button == 0)
-		mouse.z = 0;
-	if (button == 1 && action == 1)
-		mouse.w = 1;
-	else if (button == 1)
-		mouse.w = 0;
-}
-
-void		ShaderRender::foreachShaderChannels(std::function< void(ShaderProgram *, ShaderChannel *)> callback, ShaderProgram *currentShaderProgram)
-{
-	for (const std::size_t pIndex : _currentRenderedPrograms)
-		if (pIndex < _programs.size())
-		{
-			currentShaderProgram = _programs[pIndex];
-
-			for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
-			{
-				auto chan = currentShaderProgram->getChannel(i);
-				if (chan == NULL)
-					continue ;
-				callback(currentShaderProgram, chan);
-				if (chan->getType() == ShaderChannelType::CHANNEL_PROGRAM)
-					foreachShaderChannels(callback, chan->getProgram());
-			}
-		}
 }
 
 void		ShaderRender::framebufferSizeCallback(int width, int height)
@@ -365,96 +188,8 @@ void		ShaderRender::framebufferSizeCallback(int width, int height)
 	framebuffer_size.x = width;
 	framebuffer_size.y = height;
 
-	//resize all loaded framebuffers:
-	foreachShaderChannels([](ShaderProgram *prog, ShaderChannel *chan) {
-			if (chan->getType() == ShaderChannelType::CHANNEL_PROGRAM)
-			{
-				glTexImage2D(prog->getRenderId(), 0, GL_RGB, framebuffer_size.x, framebuffer_size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-			}
-		}
-	);
-}
-
-void		ShaderRender::mousePositionCallback(GLFWwindow *win, double x, double y)
-{
-	mouse.x = x;
-	mouse.y = y;
-	if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-	{
-    	angleAmount.x += ((window.x / 2.) - mouse.x) / 200;
-    	angleAmount.y += ((window.y / 2.) - mouse.y) / 200;
-
-		if (angleAmount.y > 1.5f)
-			angleAmount.y = 1.5f;
-		if (angleAmount.y < -1.5f)
-			angleAmount.y = -1.5f;
-    	forward.x = cos(angleAmount.y) * sin(angleAmount.x);
-    	forward.y = sin(angleAmount.y);
-    	forward.z = cos(angleAmount.y) * cos(angleAmount.x);
-	}
-}
-
-void		ShaderRender::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
-	(void)scancode;
-	(void)mods;
-
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D)
-		BIT_SET(keys, RIGHT, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A)
-		BIT_SET(keys, LEFT, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_UP || key == GLFW_KEY_W)
-		BIT_SET(keys, FORWARD, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S)
-		BIT_SET(keys, BACK, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_Q)
-		BIT_SET(keys, UP, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_E)
-		BIT_SET(keys, DOWN, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_KP_ADD || key == GLFW_KEY_EQUAL)
-		BIT_SET(keys, PLUS, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_KP_SUBTRACT || key == GLFW_KEY_MINUS)
-		BIT_SET(keys, MOIN, action == GLFW_PRESS || action == GLFW_REPEAT);
-	if (key == GLFW_KEY_SPACE && action != GLFW_REPEAT && action == GLFW_PRESS)
-	{
-		input_pause ^= action;
-		if (input_pause)
-			lastPausedTime = getCurrentTime();
-		else
-			pausedTime += getCurrentTime() - lastPausedTime;
-	}
-	if (key == GLFW_KEY_C)
-		cursor_mode ^= action == GLFW_PRESS;
-	if (key == GLFW_KEY_R)
-	{
-#if DOUBLE_PRECISION
-		fractalWindow = (dvec4){-1, -1, 1, 1};
-#else
-		fractalWindow = (vec4){-1, -1, 1, 1};
-#endif
-		move = (vec4){0, 0, 0, 1};
-		forward = (vec3){0, 0, 1};
-		scroll = (vec2){0, 0};
-	}
-
-	glfwSetInputMode(window, GLFW_CURSOR, (cursor_mode) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
-}
-
-ShaderChannel	*ShaderRender::getChannel(const int programIndex, const int chan) const
-{
-	//TODO: chan max number
-	if (chan < MAX_CHANNEL_COUNT && programLoaded)
-	{
-		return _programs[programIndex]->getChannel(chan);
-	}
-	return NULL;
-}
-
-ShaderProgram	*ShaderRender::getProgram(const int programIndex) const
-{
-	return (_programs[programIndex]);
+	for (auto program : _programs)
+		program->UpdateFramebufferSize(vec2{static_cast< float >(width), static_cast< float >(height)});
 }
 
 ShaderRender::~ShaderRender()

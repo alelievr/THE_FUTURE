@@ -6,7 +6,7 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 05:35:14 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/10 01:25:46 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/20 01:46:30 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,19 +82,19 @@ int	load_run_script(lua_State *L, char *script)
 
 int	get_prog(lua_State *L)
 {
-	ShaderProgram	*prog;
+	/*ShaderProgram	*prog;
 
 	prog = getSR(NULL)->getProgram(0);
-	lua_pushinteger(L, lua_Integer(prog));
+	lua_pushinteger(L, lua_Integer(prog));*/
 	return (1);
 }
 
 int	use_prog(lua_State *L)
 {
-	ShaderProgram	*prog;
+	/*ShaderProgram	*prog;
 
 	prog = (ShaderProgram*)(luaL_checkinteger(L, 1));
-	prog->use();
+	prog->use();*/
 	return (0);
 }
 

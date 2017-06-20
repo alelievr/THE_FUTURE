@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:27 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/15 19:40:55 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/20 02:19:23 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,22 +14,29 @@
 
 //#define DEBUG
 
-//FIXME: remove this to support multi-vao
-GLint		vao = -1;
+float * _renderVertices = (float[]){
+	-.5f, -.5f,
+	-.5f,  .5f,
+	.5f,  .5f,
+	.5f,  .5f,
+	.5f, -.5f,
+	-.5f, -.5f,
+};
+GLuint _renderCount = 6;
 
 ShaderProgram::ShaderProgram(void)
 {
 	this->_id = 0;
 	this->_framebufferId = 0;
 	this->_renderId = -1;
-	this->_lastModified = 0;
 	this->_vbo = -1;
 	this->_vao = -1;
 	this->_loaded = false;
+	this->_firstUse = true;
 
 	this->_channels = new ShaderChannel[MAX_CHANNEL_COUNT];
 
-	updateRenderSurface(RenderSurface::FULL_WINDOW);
+	CreateVAO();
 }
 
 ShaderProgram::~ShaderProgram(void) {
@@ -37,7 +44,7 @@ ShaderProgram::~ShaderProgram(void) {
 }
 
 #define CHECK_ACTIVE_FLAG(x, y) if (strstr(piece, x)) mode |= y;
-const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
+const std::string		ShaderProgram::_LoadSourceFile(const std::string & filePath)
 {
 	int				mode;
 	std::string		fileSource = "";
@@ -45,9 +52,11 @@ const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
 	std::smatch		match;
 
 	std::ifstream	file(filePath);
+	std::regex		channelPragma("^\\s*#\\s*pragma\\s{1,}iChannel(\\d)\\s{1,}([^\\s]*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*).*");
+	std::regex		vertexPragma("^\\s*pragma\\s+vert\\s+(.*)");
 
 	while (std::getline(file, line)) {
-		if (std::regex_match(line, match, std::regex("^\\s*#\\s*pragma\\s{1,}iChannel(\\d)\\s{1,}([^\\s]*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*).*")))
+		if (std::regex_match(line, match, channelPragma))
 		{
 			std::string channelFile = match[2];
 			int			channelIndex = std::stoi(match[1]);
@@ -64,57 +73,58 @@ const std::string		ShaderProgram::loadSourceFile(const std::string & filePath)
 			}
 			_channels[channelIndex].updateChannel(channelFile, mode);
 		}
+		else if (std::regex_match(line, match, vertexPragma))
+		{
+			//TODO
+		}
 		else
 			fileSource += line + "\n";
 	}
 	return fileSource;
 }
 
-bool		ShaderProgram::loadFragmentFile(const std::string & file)
+bool		ShaderProgram::LoadSourceFile(const std::string & file)
 {
 	try {
-		_fragmentFileSources.push_back(ShaderFile(file, loadSourceFile(file)));
+		if (CheckFileExtension(file.c_str(), (const char * []){"vert", "vs", "vsh", NULL}))
+			_vertexFileSources.push_back(ShaderFile(file, _LoadSourceFile(file)));
+		else
+			_fragmentFileSources.push_back(ShaderFile(file, _LoadSourceFile(file)));
 		return true;
 	} catch (const std::exception & e) {
 		return false;
 	}
 }
 
-bool		ShaderProgram::loadVertexFile(const std::string & file)
-{
-	try {
-		_vertexFileSources.push_back(ShaderFile(file, loadSourceFile(file)));
-		return true;
-	} catch (const std::exception & e) {
-		return false;
-	}
-}
-
-bool		ShaderProgram::compileAndLink(void)
+bool		ShaderProgram::CompileAndLink(void)
 {
 	if (_fragmentFileSources.size() == 0)
 		return false;
 
 	GLuint		fragmentShaderId;
 	//TODO: multi-shader file management for fragments and vertex
-	const char	*srcs[] = {fragment_shader_text, _fragmentFileSources[0].source.c_str()};
+	const char	*fragmentSources[] = {FRAGMENT_SHADER_HEADER, _fragmentFileSources[0].source.c_str()};
+	const char	**vertexSources;
+   
+	if (_vertexFileSources.size() != 0)
+		vertexSources = (const char *[]){_vertexFileSources[0].source.c_str()}; 
+	else
+		vertexSources = (const char *[]){VERTEX_SHADER_DEFAULT};
 
 	std::cout << "compiling " << _fragmentFileSources[0].file << "\n";
 
 	fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShaderId, 2, srcs, NULL);
+	glShaderSource(fragmentShaderId, 2, fragmentSources, NULL);
 	glCompileShader(fragmentShaderId);
-	if (!checkCompilation(fragmentShaderId))
+	if (!CheckCompilation(fragmentShaderId))
 		return false;
 
 	GLuint		vertexShaderId;
-	const char	*vertex_main_src;
 
-	vertex_main_src = vertex_buffer_shader_text;
 	vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShaderId, 1, &vertex_main_src, NULL);
+	glShaderSource(vertexShaderId, 1, vertexSources, NULL);
 	glCompileShader(vertexShaderId);
-	if (!checkCompilation(vertexShaderId))
+	if (!CheckCompilation(vertexShaderId))
 		return false;
 
 	if (_id != 0)
@@ -124,10 +134,10 @@ bool		ShaderProgram::compileAndLink(void)
 	glAttachShader(_id, vertexShaderId);
 	glAttachShader(_id, fragmentShaderId);
 	glLinkProgram(_id);
-	if (!checkLink(_id))
+	if (!CheckLink(_id))
 		return false;
 
-	loadUniformLocations();
+	LoadUniformLocations();
 
 	//inizialize fragPosition
 	GLint       fragPos;
@@ -142,16 +152,10 @@ bool		ShaderProgram::compileAndLink(void)
 	return true;
 }
 
-void		ShaderProgram::loadUniformLocations(void)
+void		ShaderProgram::LoadUniformLocations(void)
 {
 	_uniforms["iGlobalTime"] = glGetUniformLocation(_id, "iGlobalTime");
-	_uniforms["iFrame"] = glGetUniformLocation(_id, "iFrame");
-	_uniforms["iMouse"] = glGetUniformLocation(_id, "iMouse");
-	_uniforms["iScrollAmount"] = glGetUniformLocation(_id, "iScrollAmount");
-	_uniforms["iMoveAmount"] = glGetUniformLocation(_id, "iMoveAmount");
 	_uniforms["iResolution"] = glGetUniformLocation(_id, "iResolution");
-	_uniforms["iFractalWindow"] = glGetUniformLocation(_id, "iFractalWindow");
-	_uniforms["iForward"] = glGetUniformLocation(_id, "iForward");
 
 	_uniforms["iChannel0"] = glGetUniformLocation(_id, "iChannel0");
 	_uniforms["iChannel1"] = glGetUniformLocation(_id, "iChannel1");
@@ -163,40 +167,22 @@ void		ShaderProgram::loadUniformLocations(void)
 	_uniforms["iChannel7"] = glGetUniformLocation(_id, "iChannel7");
 }
 
-//TODO: delete numbers
-void		ShaderProgram::updateUniform1(const std::string & uniformName, int value) {
-#ifdef DEBUG
-	std::cout << "update uniform1i: " << uniformName << " -> " << (int)_uniforms[uniformName] << std::endl;
-#endif
-   glUniform1i(_uniforms[uniformName], value);
-}
-void		ShaderProgram::updateUniform1(const std::string & uniformName, int count, int *values) { glUniform1iv(_uniforms[uniformName], count, values); }
-void		ShaderProgram::updateUniform2(const std::string & uniformName, int value1, int value2) { glUniform2i(_uniforms[uniformName], value1, value2); }
-void		ShaderProgram::updateUniform2(const std::string & uniformName, int count, int *values) { glUniform2iv(_uniforms[uniformName], count, values); }
-void		ShaderProgram::updateUniform3(const std::string & uniformName, int value1, int value2, int value3) { glUniform3i(_uniforms[uniformName], value1, value2, value3); }
-void		ShaderProgram::updateUniform3(const std::string & uniformName, int count, int *values) { glUniform3iv(_uniforms[uniformName], count, values); }
-void		ShaderProgram::updateUniform4(const std::string & uniformName, int value1, int value2, int value3, int value4) { glUniform4i(_uniforms[uniformName], value1, value2, value3, value4); }
-void		ShaderProgram::updateUniform4(const std::string & uniformName, int count, int *values) { glUniform4iv(_uniforms[uniformName], count, values); }
-
-void		ShaderProgram::updateUniform1(const std::string & uniformName, float value) { glUniform1f(_uniforms[uniformName], value); }
-void		ShaderProgram::updateUniform1(const std::string & uniformName, int count, float *values) { glUniform1fv(_uniforms[uniformName], count, values); }
-void		ShaderProgram::updateUniform2(const std::string & uniformName, float value1, float value2) { glUniform2f(_uniforms[uniformName], value1, value2); }
-void		ShaderProgram::updateUniform2(const std::string & uniformName, int count, float *values) { glUniform2fv(_uniforms[uniformName], count, values); }
-void		ShaderProgram::updateUniform3(const std::string & uniformName, float value1, float value2, float value3) { glUniform3f(_uniforms[uniformName], value1, value2, value3); }
-void		ShaderProgram::updateUniform3(const std::string & uniformName, int count, float *values) { glUniform3fv(_uniforms[uniformName], count, values); }
-void		ShaderProgram::updateUniform4(const std::string & uniformName, float value1, float value2, float value3, float value4) { glUniform4f(_uniforms[uniformName], value1, value2, value3, value4); }
-void		ShaderProgram::updateUniform4(const std::string & uniformName, int count, float *values) { glUniform4fv(_uniforms[uniformName], count, values); }
-
-void		ShaderProgram::use(void)
+void		ShaderProgram::Use(void)
 {
 #ifdef DEBUG
 	std::cout << "use " << _id << std::endl;
 #endif
+
+	if (_firstUse)
+		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
+
 	glUseProgram(_id);
 }
 
-void		ShaderProgram::draw(void)
+void		ShaderProgram::Draw(void)
 {
+	//TODO: renderbuffer management
+	glBindFramebuffer(GL_FRAMEBUFFER, _framebufferId);
 	if (_renderId != -1)
 	{
 		GLenum buffers[] = {GL_COLOR_ATTACHMENT0};
@@ -206,22 +192,10 @@ void		ShaderProgram::draw(void)
 	std::cout << "drawing program: " << _id << " to " << _vao << "\n";
 #endif
 	glBindVertexArray(_vao);
-	glDrawArrays(_renderMode, 0, _renderCount);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, _renderCount);
 }
 
-void		ShaderProgram::deleteProgram(void)
-{
-	if (!_loaded)
-		return ;
-
-	_loaded = false;
-	glUseProgram(0);
-	glDeleteProgram(_id);
-	_fragmentFileSources.clear();
-	_vertexFileSources.clear();
-}
-
-bool		ShaderProgram::checkLink(GLuint program)
+bool		ShaderProgram::CheckLink(GLuint program)
 {
 	GLint isLinked = 0;
 
@@ -241,7 +215,7 @@ bool		ShaderProgram::checkLink(GLuint program)
 	return true;
 }
 
-bool		ShaderProgram::checkCompilation(GLuint shader)
+bool		ShaderProgram::CheckCompilation(GLuint shader)
 {
 	GLint isCompiled = 0;
 
@@ -261,100 +235,90 @@ bool		ShaderProgram::checkCompilation(GLuint shader)
 	return true;
 }
 
-void		ShaderProgram::reloadModifiedFiles(void)
+void			ShaderProgram::CreateVAO(void)
 {
-	//TODO
+	if (_vbo != (GLuint)-1)
+		glDeleteBuffers(1, &_vbo);
+	glGenBuffers(1, &_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+	//TODO: Vector3 management
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderVertices, GL_STATIC_DRAW);
+
+	if (_vao != (GLuint)-1)
+		glDeleteVertexArrays(1, &_vao);
+	glGenVertexArrays(1, &_vao);
+	glBindVertexArray(_vao);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 }
 
-void			ShaderProgram::updateRenderSurface(const RenderSurface & surf)
+void			ShaderProgram::UpdateLocalParam(const std::string & name, const float value)
 {
-	const		float	*points;
+	__localParams[name] = value;
+}
 
-	switch (surf)
+void			ShaderProgram::UpdateUniforms(const vec2 winSize, bool pass)
+{
+	if (!_loaded)
+		return ;
+
+	glUniform2f(_uniforms["iResolution"], winSize.x, winSize.y);
+	glUniform1f(_uniforms["iGlobalTime"], glfwGetTime() - __localParams["localStartTime"]);
+
+	int j = 0;
+	for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
 	{
-		case RenderSurface::FULL_WINDOW:
-			points = (float[]){
-    			-1.0f, -1.0f,
-     			-1.0f,  1.0f,
-      			 1.0f,  1.0f,
-       			 1.0f,  1.0f,
-        		 1.0f, -1.0f,
-         		-1.0f, -1.0f,
-      		};
-			break ;
-		case RenderSurface::HALF_WINDOW:
-			points = (float[]){
-    			-.5f, -.5f,
-     			-.5f,  .5f,
-      			 .5f,  .5f,
-       			 .5f,  .5f,
-        		 .5f, -.5f,
-         		-.5f, -.5f,
-      		};
-			break ;
-		case RenderSurface::QUARTER_WINDOW:
-			points = (float[]){
-    			-.25f, -.25f,
-     			-.25f,  .25f,
-      			 .25f,  .25f,
-       			 .25f,  .25f,
-        		 .25f, -.25f,
-         		-.25f, -.25f,
-      		};
-			break ;
+		ShaderChannel * channel = &_channels[i];
+		ShaderProgram *p = channel->getProgram();
+
+		switch (_channels[i].getType())
+		{
+			case ShaderChannelType::CHANNEL_IMAGE:
+				glActiveTexture(GL_TEXTURE1 + j);
+				glBindTexture(GL_TEXTURE_2D, channel->getTextureId());
+				glUniform1i(_uniforms["iChannel" + std::to_string(j++)], channel->getTextureId());
+				break ;
+			case ShaderChannelType::CHANNEL_SOUND:
+				/*soundTexId = get_sound_texture(channel->getTextureId());
+				glActiveTexture(GL_TEXTURE1 + j);
+				glBindTexture(GL_TEXTURE_2D, soundTexId);
+				updateUniform1("iChannel" + std::to_string(j++), soundTexId);*/
+				break ;
+			case ShaderChannelType::CHANNEL_PROGRAM:
+				if (p == this && pass)
+					break ;
+				if (p == this && !pass)
+					pass = true;
+				p->Use();
+				p->UpdateUniforms(winSize, pass);
+				p->Draw();
+
+				glActiveTexture(GL_TEXTURE1 + j);
+				glBindTexture(GL_TEXTURE_2D, channel->getTextureId());
+				glUniform1i(_uniforms["iChannel" + std::to_string(j++)], channel->getTextureId());
+			default:
+				break ;
+		}
 	}
 
-	updateRenderSurface(points, GL_TRIANGLE_STRIP, 6);
+	for (auto & param : __localParams)
+		if (_uniforms.find(param.first) != _uniforms.end())
+			glUniform1f(_uniforms[param.first], param.second);
 }
 
-void			ShaderProgram::updateRenderSurface(const float *points, GLenum renderMode, int count)
+void	ShaderProgram::UpdateFramebufferSize(const vec2 fbSize)
 {
-	_renderVertices = points;
-	_renderMode = renderMode;
-	_renderCount = count;
-	updateVAO();
+	for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
+		if (_channels[i].getType() == ShaderChannelType::CHANNEL_PROGRAM)
+		{
+			auto program = _channels[i].getProgram();
+			glTexImage2D(program->GetRenderId(), 0, GL_RGB, framebuffer_size.x, framebuffer_size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			if (program != this)
+				program->UpdateFramebufferSize(fbSize);
+		}
 }
 
-void			ShaderProgram::updateVAO(void)
-{
-	static bool		once = true;
-
-	if (once)
-	{
-		if (_vbo != (GLuint)-1)
-			glDeleteBuffers(1, &_vbo);
-		glGenBuffers(1, &_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-		//TODO: Vector3 management
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderVertices, GL_STATIC_DRAW);
-
-		if (_vao != (GLuint)-1)
-			glDeleteVertexArrays(1, &_vao);
-		glGenVertexArrays(1, &_vao);
-		glBindVertexArray(_vao);
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-		vao = _vao;
-	}
-	_vao = vao;
-	once = false;
-}
-
-int				ShaderProgram::getProgramId(void) const { return (this->_id); }
-
-int				ShaderProgram::getFramebufferId(void) const { return (this->_framebufferId); }
-void			ShaderProgram::setFramebufferId(int tmp) { this->_framebufferId = tmp; }
-
-int				ShaderProgram::getRenderId(void) const { return (this->_renderId); }
-void			ShaderProgram::setRenderId(int tmp) { this->_renderId = tmp; }
-
-ShaderChannel	*ShaderProgram::getChannel(int index) {
-	return (this->_channels + index);
-}
-
-std::ostream &	operator<<(std::ostream & o, ShaderProgram const & r)
-{
-	o << "tostring of the class" << std::endl;
-	(void)r;
-	return (o);
-}
+void	ShaderProgram::SetFramebufferId(const GLuint fbo) { _framebufferId = fbo; }
+GLuint	ShaderProgram::GetFramebufferId(void) const { return _framebufferId; }
+void	ShaderProgram::SetRenderId(const GLuint renderTexture) { _renderId = renderTexture; }
+GLuint	ShaderProgram::GetRenderId(void) const { return _renderId; }
