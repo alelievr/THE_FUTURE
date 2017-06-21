@@ -374,7 +374,6 @@ bool			KernelProgram::CompileAndLink(void)
 
 	_program = clCreateProgramWithSource(_context, 1, &src, &src_size, err + 0);
     err[18] = clBuildProgram(_program, 1, &_device_id, NULL, NULL, NULL);
-	std::cout << "-----------" << (err[0]) << std::endl;
 	if (err[18])
 	{
 		size_t	size = 0;
