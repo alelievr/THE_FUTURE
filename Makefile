@@ -40,7 +40,7 @@ OBJDIR		=	obj
 
 #	Variables
 LIBFT		=	2	#1 or 0 to include the libft / 2 for autodetct
-DEBUGLEVEL	=	0	#can be 0 for no debug 1 for or 2 for harder debug
+DEBUGLEVEL	=	2	#can be 0 for no debug 1 for or 2 for harder debug
 					#Warrning: non null debuglevel will disable optlevel
 OPTLEVEL	=	1	#same than debuglevel
 					#Warrning: non null optlevel will disable debuglevel
@@ -118,7 +118,7 @@ ifeq "$(OS)" "Linux"
 	LUAMAKEOS	= linux
 endif
 ifeq "$(OS)" "Darwin"
-	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo Cocoa Carbon AudioUnit CoreAudio vorbis freetype vorbisfile OpenAL FLAC ogg
+	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo Cocoa Carbon AudioUnit CoreAudio vorbis freetype vorbisfile OpenAL FLAC ogg OpenCL
 	FRAMEWORKPATH =	SFML/extlibs/libs-osx/Frameworks
 	LUAMAKEOS	= macosx
 	SFML_AUTO_DYLIB = $(shell pwd)/SFML/lib/libsfml-audio.dylib
