@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:23 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/20 14:46:29 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/21 00:30:35 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,6 @@ class		ShaderProgram : public ICGProgram
 		bool						CheckLink(GLuint program);
 		void						CreateVAO(void);
 		void						LoadUniformLocations(void);
-		void						UpdateLocalParam(const std::string & name, const float value);
 
 	public:
 		ShaderProgram(void);

@@ -284,11 +284,6 @@ void			ShaderProgram::CreateVAO(void)
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 }
 
-void			ShaderProgram::UpdateLocalParam(const std::string & name, const float value)
-{
-	__localParams[name] = value;
-}
-
 void			ShaderProgram::UpdateUniforms(const vec2 winSize, bool pass)
 {
 	if (!_loaded)

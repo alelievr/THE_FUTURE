@@ -49,15 +49,16 @@ CPPVERSION	=	c++14
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	inc SOIL2/incs glfw/include lua/5.1/src/ SFML/include
+INCDIRS		=	inc SOIL2/incs glfw/include lua/5.1/src/ SFML/include SFGUI/include
 
 #	Libraries
-LIBDIRS		=	lua/5.1/src glfw/src/ SFML/lib
-LDLIBS		=	-lglfw3 -llua -lsfml-audio -lsfml-graphics -lsfml-system -lsfml-window
+LIBDIRS		=	lua/5.1/src glfw/src/ SFML/lib SFGUI/build/lib
+LDLIBS		=	-lglfw3 -llua -lsfml-audio -lsfml-graphics -lsfml-system -lsfml-window -lsfgui
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
 LUALIB		=	lua/5.1/src/liblua.a
 SFMLLIB		=	SFML/lib/libsfml-system.dylib
+SFGUILIB	=	SFGUI/build/lib/libsfgui.a
 
 #	Output
 NAME		=	visualishader
@@ -213,7 +214,7 @@ endif
 #################
 
 #	First target
-all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(SFMLLIB) $(NAME)
+all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(SFMLLIB) $(SFGUI) $(NAME)
 
 $(LUALIB):
 	@git submodule init
@@ -234,6 +235,11 @@ $(SFMLLIB):
 	@git submodule init
 	@git submodule update
 	cd SFML && cmake -DBUILD_SHARED_LIBS=true CMAKE_BUILD_TYPE=Release . && make -j4
+
+$(SFGUI):
+	@git submodule init
+	@git submodule update
+	cd SFGUI && mkdir -p build && cd build && CMAKE_PREFIX_PATH=../../SFML cmake -DSFGUI_BUILD_SHARED_LIBS=false .. && make
 
 #	Linking
 $(NAME): $(OBJ)

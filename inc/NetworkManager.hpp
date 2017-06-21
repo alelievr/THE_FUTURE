@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/20 20:52:46 by e-sport42        ###   ########.fr       */
+/*   Updated: 2017/06/21 00:08:47 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ enum class      UniformType
 struct  UniformParameter
 {
 	UniformType type;
+	bool		reset;
 	union
 	{
 		int     i1;

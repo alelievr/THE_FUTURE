@@ -56,11 +56,17 @@ NetworkGUI::NetworkGUI(NetworkManager *nm)
 	_win->setFramerateLimit(60);
 	_windowSize = _win->getSize();
 	_selectedGroup = -1;
+	_oldGroupCount = 0;
 
 	_font = new sf::Font();
 	_font->loadFromFile("fonts/ParkTech.ttf");
 
+
+	InitContainers();
 	FillColorList();
+	UpdateGroupList();
+
+	_win->resetGLStates();
 
 	for (int x = 0; x < CLUSTER_MAX_ROW_SEATS + 2; x++) // +2 for cluster lanes
 		for (int y = 0; y < CLUSTER_MAX_ROWS; y++)
@@ -189,94 +195,121 @@ void		NetworkGUI::DrawCluster(const bool clicked)
 				DrawPlace(x, y, clicked);
 }
 
-#define BUTTON_TEXT_PADDING 6
-#define BUTTON_HEIGHT		35
-
-bool		NetworkGUI::DrawButton(const int x, const int y, const int width, const int height, const bool clicked, const std::string & text, const sf::Color & color) const
+void		NetworkGUI::InitContainers(void)
 {
-	sf::RectangleShape	buttonBackgroud(sf::Vector2f(width, height));
-	sf::Text			buttonText;
+	auto fixed = sfg::Fixed::Create();
 
-	buttonBackgroud.setPosition(x, y);
-	buttonBackgroud.setFillColor(color);
+	_groupBox = sfg::Box::Create( sfg::Box::Orientation::VERTICAL, 5);
+	fixed->Put(_groupBox, sf::Vector2f(10, 10));
+	_desktop.Add(_groupBox);
 
-	buttonText.setFont(*_font);
-	buttonText.setString(text);
-	buttonText.setCharacterSize(16);
-	buttonText.setFillColor(sf::Color::White);
-	buttonText.setPosition(x + BUTTON_TEXT_PADDING, y + BUTTON_TEXT_PADDING);
+	auto b = sfg::Button::Create("START RENDERING");
+	b->GetSignal(sfg::Widget::OnLeftClick).Connect([this]{ClusterConfig::StartAllRenderLoops(_netManager);});
+	fixed->Put(b, sf::Vector2f( 100.f, 10.f ));
+	_desktop.Add(b);
 
-	_win->draw(buttonBackgroud);
-	_win->draw(buttonText);
+	_groupWindow = sfg::Window::Create();
+	_groupWindow->SetTitle("Select a group");
+	fixed->Put(_groupWindow, sf::Vector2f(150, 150));
 
-	if (clicked)
-	{
-		float mx = (float)_mousePosition.x / ((float)_windowSize.x / (float)WINDOW_WIDTH);
-		float my = (float)_mousePosition.y / ((float)_windowSize.y / (float)WINDOW_HEIGHT);
-		if (mx > x && mx <= x + width && my > y && my <= y + height)
-			return true;
-	}
-	return false;
+	_desktop.Add(_groupWindow);
+
+	_desktop.Add(_groupBox);
 }
 
-void		NetworkGUI::DrawText(const int x, const int y, const std::string & text) const
+void		NetworkGUI::UpdateGroupList(void)
 {
-	sf::Text			buttonText;
+	int		groupCount = _netManager->GetGroupCount();
 
-	buttonText.setFont(*_font);
-	buttonText.setString(text);
-	buttonText.setCharacterSize(16);
-	buttonText.setFillColor(sf::Color::White);
-	buttonText.setPosition(x, y);
-
-	_win->draw(buttonText);
-}
-
-#define GROUP_OFFSET_Y		50
-#define GROUP_OFFSET_X		30
-#define GROUP_PADDING_Y		20
-#define GROUP_PADDING_X		10
-#define GROUP_TEXT_WITH		100
-#define GROUP_BUTTON_WIDTH	150
-
-void		NetworkGUI::DrawGroupOptions(const bool clicked)
-{
-	size_t	groupCount = _netManager->GetGroupCount();
-
-	if (DrawButton(GROUP_OFFSET_X, GROUP_OFFSET_Y, 220, BUTTON_HEIGHT, clicked, "ADD NEW GROUP", sf::Color(30, 120, 140)))
+	while (groupCount > _oldGroupCount)
 	{
-		_netManager->CreateNewGroup();
-		std::cout << "added a new group\n";
+		int		groupIndex = _oldGroupCount;
+		auto	button = sfg::Button::Create("Group " + std::to_string(groupIndex));
+		button->GetSignal( sfg::Widget::OnLeftClick ).Connect(
+			[this, groupIndex](void)
+			{
+				_selectedGroup = groupIndex;
+				_groupWindow->SetTitle("Group " + std::to_string(groupIndex));
+
+				const auto shaders = ClusterConfig::GetShadersInGroup(_selectedGroup);
+
+				_groupWindow->RemoveAll();
+
+				auto windowBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 10);
+
+				int		programIndex = 0;
+				for (const auto shader : shaders)
+				{
+					//shared properties:
+					auto shaderNameLabel = sfg::Label::Create(basename(shader));
+					auto shaderBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5);
+					shaderBox->Pack(shaderNameLabel);
+
+					auto resetTimeButton = sfg::Button::Create("Reset time");
+					resetTimeButton->GetSignal(sfg::Widget::OnLeftClick).Connect(
+						[this, programIndex](void)
+						{
+							_netManager->UpdateUniformOnGroup(
+								Timer::TimeoutInSeconds(1),
+								_selectedGroup,
+								programIndex,
+								"localStartTime",
+								UniformParameter{.type = UniformType::Float1, .reset = true},
+								SyncOffset::CreateNoneSyncOffset()
+							);
+						}
+					);
+
+					auto table = sfg::Table::Create();
+					int row = 1;
+
+					table->Attach(resetTimeButton, sf::Rect<sf::Uint32>(0, 0, 2, 1), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
+
+					if (CheckFileExtension(shader.c_str(), (const char *[]){"cl", NULL}))
+					{
+						//TODO
+					}
+					else
+					{
+						for (const std::string & localParamName : localParams)
+						{
+							//input values
+							auto valueLabel = sfg::Label::Create(localParamName);
+							auto valueRange = sfg::Scale::Create(sfg::Scale::Orientation::HORIZONTAL);
+							valueRange->SetRange(0, 1);
+							valueRange->SetRequisition( sf::Vector2f( 100.f, 20.f ) );
+							valueRange->SetIncrements(0.001f, 0.01f);
+							valueRange->GetAdjustment()->GetSignal(sfg::Adjustment::OnChange).Connect(
+								[this, valueRange, localParamName, programIndex](void)
+								{
+									AddToDelayChanges(programIndex, localParamName, valueRange->GetValue());
+								}
+							);
+
+							table->Attach(valueLabel, sf::Rect<sf::Uint32>( 0, row, 1, 1 ), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
+							table->Attach(valueRange, sf::Rect<sf::Uint32>( 1, row, 1, 1 ), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
+							row++;
+						}
+					}
+
+					shaderBox->Pack(table);
+
+					windowBox->Pack(shaderBox);
+
+					if (&shader == &shaders.back())
+					{
+						auto separator = sfg::Separator::Create( sfg::Separator::Orientation::HORIZONTAL );
+						windowBox->Pack( separator, false, true );
+					}
+				}
+
+				_groupWindow->Add(windowBox);
+			}
+		);
+
+		_groupBox->Pack(button);
+		_oldGroupCount++;
 	}
-
-	int	textX = GROUP_OFFSET_X;
-	int	textY = GROUP_OFFSET_Y + BUTTON_HEIGHT + GROUP_PADDING_Y + BUTTON_TEXT_PADDING;
-	int	buttonX = GROUP_OFFSET_X + GROUP_TEXT_WITH + GROUP_PADDING_X;
-	int	buttonY = GROUP_OFFSET_Y + BUTTON_HEIGHT + GROUP_PADDING_Y;
-	for (size_t i = 0; i < groupCount; i++)
-	{
-		sf::Color	c = sf::Color(200, 0, 255);
-		if (i < _groupColors.size())
-			c = _groupColors[i];
-		DrawText(textX, textY, std::string("group ") + std::to_string(i));
-		if (DrawButton(buttonX, buttonY, GROUP_BUTTON_WIDTH, BUTTON_HEIGHT, clicked, "", c))
-			_selectedGroup = i;
-		buttonY += GROUP_PADDING_Y + BUTTON_HEIGHT;
-		textY += GROUP_PADDING_Y + BUTTON_HEIGHT;
-	}
-}
-
-#define SELECTED_GROUP_OFFSET_X			(GROUP_TEXT_WITH + GROUP_BUTTON_WIDTH + GROUP_PADDING_X * 2)
-#define SELECTED_GROUP_OFFSET_Y			50
-#define SELECTED_GROUP_BUTTON_PADDING_X	20
-
-void		NetworkGUI::DrawSelectedGroup(const bool clicked)
-{
-	int		x = SELECTED_GROUP_OFFSET_X + GROUP_OFFSET_X;
-	int		y = SELECTED_GROUP_OFFSET_Y;
-
-	if (DrawButton(x, y, 250, BUTTON_HEIGHT, clicked, "START RENDERING", sf::Color(40, 0, 60)))
-		ClusterConfig::StartAllRenderLoops(_netManager);
 }
 
 void		NetworkGUI::RenderLoop(void)
@@ -287,8 +320,10 @@ void		NetworkGUI::RenderLoop(void)
     {
 		clicked = false;
         sf::Event event;
+		sf::Clock clock;
         while (_win->pollEvent(event))
         {
+			_desktop.HandleEvent(event);
 			switch (event.type)
 			{
 				case sf::Event::Closed:
@@ -314,12 +349,14 @@ void		NetworkGUI::RenderLoop(void)
 			}
         }
 
+		UpdateGroupList();
+		_desktop.Update( clock.restart().asSeconds() );
+
+		SendDelayChanges();
+
 		_win->clear(sf::Color::Black);
-
-		DrawGroupOptions(clicked);
-		DrawSelectedGroup(clicked);
+		_sfgui.Display(*_win);
 		DrawCluster(clicked);
-
 		_win->display();
     }
 }
@@ -350,4 +387,17 @@ NetworkGUI::GUIClient &	NetworkGUI::FindGUIClient(const int row, const int seat)
 				return _GUIClients[y][x];
 		}
 	return defaultRet;
+}
+
+void		NetworkGUI::AddToDelayChanges(const int programIndex, const std::string & localParamName, const float value)
+{
+	(void)programIndex;
+	(void)localParamName;
+	(void)value;
+	//TODO
+}
+
+void		NetworkGUI::SendDelayChanges(void)
+{
+	//TODO
 }

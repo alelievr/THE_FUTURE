@@ -11,9 +11,12 @@ class		ICGProgram
 
 		virtual bool	CompileAndLink(void) = 0;
 
-		virtual void	UpdateLocalParam(const std::string & name, const float value)
+		virtual void	UpdateLocalParam(const std::string & name, const float value, const bool reset = false)
 		{
-			__localParams[name] = value;
+			if (name == "localStartTime" && reset)
+				__localParams[name] = glfwGetTime();
+			else
+				__localParams[name] = value;
 		}
 
 		virtual void	Use(void) = 0;

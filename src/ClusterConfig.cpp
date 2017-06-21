@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #define SPACE	"\\s\\s*"
-#define FLOAT	"([+-]?[0-9]*[.]?[0-9]+f?)"
+#define FLOAT	"([+-]?[0-9]*[.]?[0-9]+f?|RESET)"
 #define F1		FLOAT
 #define F2		F1 SPACE F1
 #define F3		F2 SPACE F1
@@ -62,7 +62,6 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 	bool			openbrace = false;
 	int				currentProgramIndex = -1;
 
-	std::cout << "\\s*Uniform([1-4]f|1i)\\s\\s*(\\w+)\\s\\s*" + uniformParameters + SPACE + syncRegex << std::endl;
 	while (std::getline(configFile, line))
 	{
 		line = std::regex_replace(line, commentLine, "");
@@ -114,7 +113,12 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 				param.f2.y = std::stof(matches[12]);
 			}
 			else //1 param
-				param.f1 = std::stof(matches[13]);
+			{
+				if (std::string(matches[13]).find("RESET") != std::string::npos)
+					param.reset = true;
+				else
+					param.f1 = std::stof(matches[13]);
+			}
 
 			if (matches.size() == 14)
 				sOffset = _ParseSyncOffset(matches, 14, 15, nLines, line);

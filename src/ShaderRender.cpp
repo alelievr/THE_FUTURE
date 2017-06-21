@@ -205,7 +205,7 @@ void		ShaderRender::UpdateLocalParam(const int programIndex, const std::string &
 		std::cout << "programIndex out of bounds";
 		return ;
 	}
-	_programs[programIndex]->UpdateLocalParam(uniformName, param.f1);
+	_programs[programIndex]->UpdateLocalParam(uniformName, param.f1, param.reset);
 }
 
 void		ShaderRender::framebufferSizeCallback(int width, int height)
