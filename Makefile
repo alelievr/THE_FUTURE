@@ -214,7 +214,7 @@ endif
 #################
 
 #	First target
-all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(SFMLLIB) $(SFGUI) $(NAME)
+all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(SFMLLIB) $(SFGUILIB) $(NAME)
 
 $(LUALIB):
 	@git submodule init
@@ -236,7 +236,7 @@ $(SFMLLIB):
 	@git submodule update
 	cd SFML && cmake -DBUILD_SHARED_LIBS=true CMAKE_BUILD_TYPE=Release . && make -j4
 
-$(SFGUI):
+$(SFGUILIB):
 	@git submodule init
 	@git submodule update
 	cd SFGUI && mkdir -p build && cd build && CMAKE_PREFIX_PATH=../../SFML cmake -DSFGUI_BUILD_SHARED_LIBS=false .. && make
