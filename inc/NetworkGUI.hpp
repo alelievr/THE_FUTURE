@@ -15,7 +15,7 @@
 # define WINDOW_WIDTH	2220
 # define WINDOW_HEIGHT	1310
 
-#define TIMEOUT_BEFORE_SENDING_CHANGES	100 //ms
+#define TIMEOUT_BEFORE_SENDING_CHANGES	50 //ms
 
 const std::string	localParams[] = {"iValue1", "iValue2", "iValue3", "iValue4"};
 
@@ -30,7 +30,7 @@ class		NetworkGUI
 	struct		DelayChange
 	{
 		int				programIndex;
-		std::string		valueName;
+		std::string		localParamName;
 		float			value;
 		Timeval			timeout;
 	};

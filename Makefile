@@ -239,7 +239,7 @@ $(SFMLLIB):
 $(SFGUI):
 	@git submodule init
 	@git submodule update
-	cd SFGUI && mkdir -p build && cd build && CMAKE_PREFIX_PATH=../../SFML cmake -DSFGUI_BUILD_SHARED_LIBS=false .. && make
+	cd SFGUI && mkdir -p build && cd build && CMAKE_PREFIX_PATH=../../SFML cmake -DSFGUI_BUILD_SHARED_LIBS=false .. && make -j4
 
 #	Linking
 $(NAME): $(OBJ)

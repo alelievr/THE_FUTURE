@@ -16,8 +16,11 @@ struct	Timeval : sTimeval
 
 	friend Timeval		operator*(const Timeval & rls, const int & mult);
 	friend Timeval		operator+(const Timeval & rls, const Timeval & rhs);
+	friend Timeval		operator-(const Timeval & rls, const Timeval & rhs);
 	Timeval &	operator=(const Timeval & rhs);
 	Timeval &	operator+=(const Timeval & rhs);
+	bool		operator>(const long ms);
+	bool		operator<(const long ms);
 
 	virtual ~Timeval();
 };
