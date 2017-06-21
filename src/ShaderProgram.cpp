@@ -20,6 +20,10 @@ const char * FRAGMENT_SHADER_HEADER =
 "\n"
 "uniform vec2           iResolution;\n"
 "uniform float          iGlobalTime;\n"
+"uniform float          iValue1;\n"
+"uniform float          iValue2;\n"
+"uniform float          iValue3;\n"
+"uniform float          iValue4;\n"
 "uniform sampler2D      iChannel0;\n"
 "uniform sampler2D      iChannel1;\n"
 "uniform sampler2D      iChannel2;\n"
@@ -192,6 +196,11 @@ void		ShaderProgram::LoadUniformLocations(void)
 {
 	_uniforms["iGlobalTime"] = glGetUniformLocation(_id, "iGlobalTime");
 	_uniforms["iResolution"] = glGetUniformLocation(_id, "iResolution");
+
+	_uniforms["iValue1"] = glGetUniformLocation(_id, "iValue1");
+	_uniforms["iValue2"] = glGetUniformLocation(_id, "iValue2");
+	_uniforms["iValue3"] = glGetUniformLocation(_id, "iValue3");
+	_uniforms["iValue4"] = glGetUniformLocation(_id, "iValue4");
 
 	_uniforms["iChannel0"] = glGetUniformLocation(_id, "iChannel0");
 	_uniforms["iChannel1"] = glGetUniformLocation(_id, "iChannel1");

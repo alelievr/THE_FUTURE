@@ -391,11 +391,11 @@ NetworkManager::Packet		NetworkManager::_CreateTimeoutCheckPacket(void) const
 	return p;
 }
 
-NetworkManager::Packet		NetworkManager::_CreateUpdateUniformPacket(const int groupId, const Timeval *tv, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam) const
+NetworkManager::Packet		NetworkManager::_CreateUpdateLocalParamPacket(const int groupId, const Timeval *tv, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam) const
 {
 	Packet	p;
 
-	p.type = PacketType::UniformUpdate;
+	p.type = PacketType::LocalParamUpdate;
 	p.groupId = groupId;
 	p.programIndex = programIndex;
 	p.timing = *tv;
@@ -438,6 +438,7 @@ NetworkManager::Packet	NetworkManager::_CreateShaderFocusResponsePacket(const bo
 	p.seat = _me->seat;
 	p.row = _me->row;
 	p.success = success;
+	p.groupId = _me->groupId;
 	return p;
 }
 
@@ -467,6 +468,7 @@ NetworkManager::Packet	NetworkManager::_CreateHelloPacket(void) const
 	p.seat = _me->seat;
 	p.row = _me->row;
 	p.ip = _me->ip;
+	p.groupId = _me->groupId;
 	return p;
 }
 
@@ -481,6 +483,7 @@ NetworkManager::Packet	NetworkManager::_CreateShaderLoadErrorPacket(void) const
 	p.seat = _me->seat;
 	p.row = _me->row;
 	p.success = false;
+	p.groupId = _me->groupId;
 	return p;
 }
 
@@ -495,6 +498,7 @@ NetworkManager::Packet	NetworkManager::_CreateShaderLoadedPacket(void) const
 	p.seat = _me->seat;
 	p.row = _me->row;
 	p.success = true;
+	p.groupId = _me->groupId;
 	return p;
 }
 
@@ -523,6 +527,7 @@ NetworkManager::Packet	NetworkManager::_CreateClientQuitPacket(const bool crash)
 	p.crashed = crash;
 	p.seat = _me->seat;
 	p.row = _me->row;
+	p.groupId = _me->groupId;
 	return p;
 }
 
@@ -602,7 +607,6 @@ NetworkStatus		NetworkManager::CheckClusterTimeout(void)
 						_clientTimeoutCallback(client.row, client.seat);
 				}
 				client.willTimeout = true;
-				std::cout << "sending packet to: " << client.ip << " in group: " << clientsKP.first << std::endl;
 				_SendPacketToClient(client.ip, p);
 			}
 		}
@@ -646,7 +650,6 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 {
 	Timeval		packetTiming = packet.timing;
 
-	std::cout << "client received message !\n";
 	switch (packet.type)
 	{
 		case PacketType::Status:
@@ -655,9 +658,9 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 			_SendPacketToServer(_CreatePokeStatusResponsePacket());
 			printf("responding to status\n");
 			break ;
-		case PacketType::UniformUpdate:
-			if (_shaderUniformCallback != NULL)
-				_shaderUniformCallback(&packetTiming, packet.programIndex, packet.uniformName, packet.uniformParam);
+		case PacketType::LocalParamUpdate:
+			if (_shaderLocalParamCallback != NULL)
+				_shaderLocalParamCallback(&packetTiming, packet.programIndex, packet.uniformName, packet.uniformParam);
 			break ;
 		case PacketType::ShaderFocus:
 			DEBUG("received focus program %i, timeout: %s\n", packet.programIndex, Timer::ReadableTime(packetTiming));
@@ -760,7 +763,7 @@ void						NetworkManager::_ServerSocketEvent(void)
 					if (_clientShaderFocusCallback != NULL)
 						_clientShaderFocusCallback(packet.row, packet.seat, packet.success);
 					break ;
-				case PacketType::ShaderUniformResponse:
+				case PacketType::ShaderLocalParamResponse:
 					{
 						auto & c = _FindClient(packet.groupId, packet.ip);
 						if (!packet.success)
@@ -768,8 +771,8 @@ void						NetworkManager::_ServerSocketEvent(void)
 						else
 							c.status = ClientStatus::Running;
 					}
-					if (_clientShaderUniformCallback != NULL)
-						_clientShaderUniformCallback(packet.row, packet.seat, packet.success);
+					if (_clientShaderLocalParamCallback != NULL)
+						_clientShaderLocalParamCallback(packet.row, packet.seat, packet.success);
 					break ;
 				case PacketType::TimeoutCheckResponse:
 					{
@@ -845,7 +848,7 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	LOCK;
 	if ((group = _clients.find(groupId)) != _clients.end())
 	{
-		for (auto clientKP : _clients)
+		for (auto & clientKP : _clients)
 		{
 			for (auto it = clientKP.second.begin(); it != clientKP.second.end(); ++it)
 			{
@@ -910,9 +913,9 @@ NetworkStatus		NetworkManager::FocusShaderOnGroup(const Timeval *timeout, const 
 	return _SendPacketToGroup(groupId, _CreateShaderFocusPacket(groupId, timeout, programIndex, transitionIndex), syncOffset);
 }
 
-NetworkStatus		NetworkManager::UpdateUniformOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const
+NetworkStatus		NetworkManager::UpdateLocalParamOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const
 {
-	_SendPacketToGroup(groupId, _CreateUpdateUniformPacket(groupId, timeout, programIndex, uniformName, uniformParam), syncOffset);
+	_SendPacketToGroup(groupId, _CreateUpdateLocalParamPacket(groupId, timeout, programIndex, uniformName, uniformParam), syncOffset);
 	return NetworkStatus::Success;
 }
 
@@ -949,7 +952,7 @@ void	NetworkManager::SendQuit(const bool crash)
 
 //Client callbacks:
 void	NetworkManager::SetShaderFocusCallback(ShaderFocusCallback callback) { _shaderFocusCallback = callback; }
-void	NetworkManager::SetShaderUniformCallback(ShaderUniformCallback callback) { _shaderUniformCallback = callback; }
+void	NetworkManager::SetShaderLocalParamCallback(ShaderLocalParamCallback callback) { _shaderLocalParamCallback = callback; }
 void	NetworkManager::SetShaderLoadCallback(ShaderLoadCallback callback) { _shaderLoadCallback = callback; }
 
 //server callbacks:
@@ -958,7 +961,7 @@ void	NetworkManager::SetClientStatusUpdateCallback(ClientStatusUpdateCallback ca
 void	NetworkManager::SetClientGroupChangeCallback(ClientGroupChangeCallback callback) { _clientGroupChangeCallback = callback; }
 void	NetworkManager::SetClientShaderLoadCallback(ClientShaderLoadCallback callback) { _clientShaderLoadCallback = callback; }
 void	NetworkManager::SetClientShaderFocusCallback(ClientShaderFocusCallback callback) { _clientShaderFocusCallback = callback; }
-void	NetworkManager::SetClientShaderUniformCallback(ClientShaderUniformCallback callback) { _clientShaderUniformCallback = callback; }
+void	NetworkManager::SetClientShaderLocalParamCallback(ClientShaderLocalParamCallback callback) { _clientShaderLocalParamCallback = callback; }
 void	NetworkManager::SetClientTimeoutCallback(ClientTimeoutCallback callback) { _clientTimeoutCallback = callback; }
 void	NetworkManager::SetClientQuitCallback(ClientQuitCallback callback) { _clientQuitCallback = callback; }
 

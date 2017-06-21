@@ -37,16 +37,10 @@ Timeval		operator+(const Timeval & rls, const Timeval & rhs)
 
 Timeval		operator-(const Timeval & rls, const Timeval & rhs)
 {
-	long	secs = rls.tv_sec - rhs.tv_sec;
-	long	microSecs = rls.tv_usec - rhs.tv_usec;
-	if (microSecs < 0)
-	{
-		secs--;
-		microSecs += 1000000;
-	}
-	if (secs < 0)
-		secs = 0;
-	return Timeval(secs, microSecs);
+	long microseconds = (rls.tv_sec - rhs.tv_sec) * 1000000 + ((long)rls.tv_usec - (long)rhs.tv_usec);
+	long milliseconds = microseconds/1000;
+
+	return Timeval(microseconds/1000000, microseconds%1000000);
 }
 
 Timeval &	Timeval::operator=(const Timeval & rhs)

@@ -249,7 +249,7 @@ void		ClusterConfig::StartAllRenderLoops(NetworkManager *netManager)
 							usleep(command.waitTime * 1000 * 1000);
 							break ;
 						case RenderLoopCommandType::Uniform:
-							netManager->UpdateUniformOnGroup(Timer::TimeoutInSeconds(1), groupId, command.programIndex, command.uniformName, command.uniformParam, command.syncOffset);
+							netManager->UpdateLocalParamOnGroup(Timer::TimeoutInSeconds(1), groupId, command.programIndex, command.uniformName, command.uniformParam, command.syncOffset);
 							break ;
 						default:
 							break ;
@@ -282,12 +282,6 @@ int			ClusterConfig::GetGroupNumber(void)
 {
 	return _groupConfig.size();
 }
-
-/*void		ClusterConfig::SaveConfigFile(const NetworkGUI & gui)
-{
-	std::cout << "Save config file: TODO !\n" << std::endl;
-	(void)gui;
-}*/
 
 std::ostream &	operator<<(std::ostream & o, ClusterConfig const & r)
 {

@@ -101,14 +101,13 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 			}
 		);
 
-		nm->SetShaderUniformCallback(
+		nm->SetShaderLocalParamCallback(
 			[app](const Timeval *timing, const int programIndex, const std::string uniformName, const UniformParameter & param)
 			{
 				Timer::Timeout(timing,
 					[programIndex, uniformName, param, app](void)
 					{
-						std::cout << "updating uniform: " << uniformName << std::endl;
-						return app->UpdateUniform(programIndex, uniformName, param);
+						return app->UpdateLocalParam(programIndex, uniformName, param);
 					}
 				);
 			}

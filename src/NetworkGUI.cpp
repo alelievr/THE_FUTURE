@@ -3,6 +3,7 @@
 #include "SyncOffset.hpp"
 #include "Timer.hpp"
 #include <sstream>
+#include <iomanip>
 
 #define MAX_COLORS		150
 
@@ -199,7 +200,7 @@ void		NetworkGUI::InitContainers(void)
 {
 	auto fixed = sfg::Fixed::Create();
 
-	_groupBox = sfg::Box::Create( sfg::Box::Orientation::VERTICAL, 5);
+	_groupBox = sfg::Box::Create( sfg::Box::Orientation::VERTICAL, 10);
 	fixed->Put(_groupBox, sf::Vector2f(10, 10));
 	_desktop.Add(_groupBox);
 
@@ -219,7 +220,7 @@ void		NetworkGUI::InitContainers(void)
 
 void		NetworkGUI::UpdateGroupList(void)
 {
-	int		groupCount = _netManager->GetGroupCount();
+	size_t	groupCount = _netManager->GetGroupCount();
 
 	while (groupCount > _oldGroupCount)
 	{
@@ -251,7 +252,7 @@ void		NetworkGUI::UpdateGroupList(void)
 					resetTimeButton->GetSignal(sfg::Widget::OnLeftClick).Connect(
 						[this, programIndex](void)
 						{
-							_netManager->UpdateUniformOnGroup(
+							_netManager->UpdateLocalParamOnGroup(
 								Timer::TimeoutInSeconds(1),
 								_selectedGroup,
 								programIndex,
@@ -265,7 +266,7 @@ void		NetworkGUI::UpdateGroupList(void)
 					auto table = sfg::Table::Create();
 					int row = 1;
 
-					table->Attach(resetTimeButton, sf::Rect<sf::Uint32>(0, 0, 2, 1), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
+					table->Attach(resetTimeButton, sf::Rect<sf::Uint32>(0, 0, 3, 1), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
 
 					if (CheckFileExtension(shader.c_str(), (const char *[]){"cl", NULL}))
 					{
@@ -276,21 +277,33 @@ void		NetworkGUI::UpdateGroupList(void)
 						for (const std::string & localParamName : localParams)
 						{
 							//input values
-							auto valueLabel = sfg::Label::Create(localParamName);
+							auto valueNameLabel = sfg::Label::Create(localParamName);
 							auto valueRange = sfg::Scale::Create(sfg::Scale::Orientation::HORIZONTAL);
+							auto syncDelayLabel = sfg::Label::Create("SyncDelay:");
+							auto syncEntry = sfg::Entry::Create();
+							auto valueLabel = sfg::Label::Create("0.00");
+							syncEntry->SetText("1000");
+							syncEntry->SetRequisition( sf::Vector2f( 80.f, 0.f ) );
 							valueRange->SetRange(0, 1);
 							valueRange->SetRequisition( sf::Vector2f( 100.f, 20.f ) );
 							valueRange->SetIncrements(0.001f, 0.01f);
 							valueRange->GetAdjustment()->GetSignal(sfg::Adjustment::OnChange).Connect(
-								[this, valueRange, localParamName, programIndex](void)
+								[this, valueRange, localParamName, programIndex, valueLabel, syncEntry](void)
 								{
-									AddToDelayChanges(programIndex, localParamName, valueRange->GetValue());
+									int	syncOffset = std::stoi(std::string(syncEntry->GetText()));
+									AddToDelayChanges(programIndex, localParamName, valueRange->GetValue(), syncOffset);
+									std::stringstream value;
+									value << std::fixed << std::setprecision(2) << valueRange->GetValue();
+									valueLabel->SetText(value.str());
 								}
 							);
 
-							table->Attach(valueLabel, sf::Rect<sf::Uint32>( 0, row, 1, 1 ), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
-							table->Attach(valueRange, sf::Rect<sf::Uint32>( 1, row, 1, 1 ), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
-							row++;
+							table->Attach(valueNameLabel, sf::Rect<sf::Uint32>( 0, row, 1, 1 ), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
+							table->Attach(valueRange, sf::Rect<sf::Uint32>( 1, row, 2, 1 ), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
+							table->Attach(valueLabel, sf::Rect<sf::Uint32>( 0, row + 1, 1, 1 ), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
+							table->Attach(syncDelayLabel, sf::Rect<sf::Uint32>( 1, row + 1, 1, 1 ), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
+							table->Attach(syncEntry, sf::Rect<sf::Uint32>( 2, row + 1, 1, 1 ), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
+							row += 2;
 						}
 					}
 
@@ -311,6 +324,17 @@ void		NetworkGUI::UpdateGroupList(void)
 
 		_groupBox->Pack(button);
 		_oldGroupCount++;
+	}
+
+	for (size_t i = 0; i < groupCount; i++)
+	{
+		sf::RectangleShape g(sf::Vector2f(75, 34));
+		sf::Color c = sf::Color::Blue;
+		if (i < _groupColors.size())
+			c = _groupColors[i];
+		g.setFillColor(c);
+		g.setPosition(5, 5 + i * 34);
+		_win->draw(g);
 	}
 }
 
@@ -351,14 +375,16 @@ void		NetworkGUI::RenderLoop(void)
 			}
         }
 
+		_win->clear(sf::Color::Black);
+
 		UpdateGroupList();
+		DrawCluster(clicked);
 		_desktop.Update( clock.restart().asSeconds() );
+		_win->resetGLStates();
+		_sfgui.Display(*_win);
 
 		SendDelayChanges();
 
-		_win->clear(sf::Color::Black);
-		_sfgui.Display(*_win);
-		DrawCluster(clicked);
 		_win->display();
     }
 }
@@ -391,7 +417,7 @@ NetworkGUI::GUIClient &	NetworkGUI::FindGUIClient(const int row, const int seat)
 	return defaultRet;
 }
 
-void		NetworkGUI::AddToDelayChanges(const int programIndex, const std::string & localParamName, const float value)
+void		NetworkGUI::AddToDelayChanges(const int programIndex, const std::string & localParamName, const float value, const int syncDelay)
 {
 	bool found = false;
 
@@ -399,6 +425,7 @@ void		NetworkGUI::AddToDelayChanges(const int programIndex, const std::string & 
 	{
 		if (toDelay.programIndex == programIndex && toDelay.localParamName == localParamName)
 		{
+			toDelay.groupId = _selectedGroup;
 			toDelay.value = value;
 			toDelay.timeout = *Timer::Now();
 			found = true;
@@ -408,7 +435,7 @@ void		NetworkGUI::AddToDelayChanges(const int programIndex, const std::string & 
 	
 	if (!found)
 	{
-		_toDelayChanges.push_back(DelayChange{programIndex, localParamName, value, *Timer::Now()});
+		_toDelayChanges.push_back(DelayChange{programIndex, _selectedGroup, localParamName, value, syncDelay, *Timer::Now()});
 	}
 }
 
@@ -417,9 +444,16 @@ void		NetworkGUI::SendDelayChanges(void)
 	for (size_t i = 0; i < _toDelayChanges.size(); i++)
 	{
 		auto & dc = _toDelayChanges[i];
-		if (dc.timeout - *Timer::Now() < 100)
+		if (*Timer::Now() - dc.timeout > TIMEOUT_BEFORE_SENDING_CHANGES)
 		{
-			std::cout << "sending event to " << dc.programIndex << ":" << dc.localParamName << std::endl;
+			_netManager->UpdateLocalParamOnGroup(
+				Timer::TimeoutInMilliSeconds(dc.syncDelay),
+				dc.groupId,
+				dc.programIndex,
+				dc.localParamName,
+				UniformParameter{.type = UniformType::Float1, .f1 = dc.value, .reset = false},
+				SyncOffset::CreateNoneSyncOffset()
+			);
 			//TODO: network uniform update call
 			_toDelayChanges.erase(_toDelayChanges.begin() + i);
 		}

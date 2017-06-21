@@ -30,8 +30,10 @@ class		NetworkGUI
 	struct		DelayChange
 	{
 		int				programIndex;
+		int				groupId;
 		std::string		localParamName;
 		float			value;
+		int				syncDelay; //ms
 		Timeval			timeout;
 	};
 
@@ -47,7 +49,7 @@ class		NetworkGUI
 		NetworkManager *		_netManager;
 		std::vector< DelayChange > _toDelayChanges;
 		int						_selectedGroup;
-		int						_oldGroupCount;
+		size_t					_oldGroupCount;
 		std::map< int, std::map< int, GUIClient > >	_GUIClients;
 		std::vector< sf::Color > _groupColors;
 
@@ -56,7 +58,7 @@ class		NetworkGUI
 		void		UpdateGroupList(void);
 		void		InitContainers(void);
 		void		FillColorList(void);
-		void		AddToDelayChanges(const int programIndex, const std::string & localParamName, const float value);
+		void		AddToDelayChanges(const int programIndex, const std::string & localParamName, const float value, const int syncDelay);
 		void		SendDelayChanges(void);
 		GUIClient &	FindGUIClient(const int row, const int seat);
 

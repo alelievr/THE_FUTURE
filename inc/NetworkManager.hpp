@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/21 00:08:47 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/21 15:41:41 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,7 +143,7 @@ struct			Client
 typedef std::function< bool (const Timeval *timing, const int programIndex, const int transitionIndex) > ShaderFocusCallback;
 typedef std::function< void (const std::string & shaderName, const bool last) >				ShaderLoadCallback;
 typedef std::function< Timeval & (const int seat, const int row, const int index) >			CustomSyncOffsetCallback;
-typedef std::function< void (const Timeval *timming, const int programIndex, const std::string uniformName, const UniformParameter & param) > ShaderUniformCallback;
+typedef std::function< void (const Timeval *timming, const int programIndex, const std::string uniformName, const UniformParameter & param) > ShaderLocalParamCallback;
 
 //Server callbacks:
 //                              row       saet
@@ -151,7 +151,7 @@ typedef std::function< void (const int, const int, const ClientStatus status) >	
 typedef std::function< void (const int, const int, const int newGroup) >			ClientGroupChangeCallback;
 typedef std::function< void (const int, const int, const bool success) >			ClientShaderLoadCallback;
 typedef std::function< void (const int, const int, const bool success) >			ClientShaderFocusCallback;
-typedef std::function< void (const int, const int, const bool success) >			ClientShaderUniformCallback;
+typedef std::function< void (const int, const int, const bool success) >			ClientShaderLocalParamCallback;
 typedef std::function< void (const int, const int) >								ClientTimeoutCallback;
 typedef std::function< void (const int, const int) >								ClientQuitCallback;
 
@@ -163,7 +163,7 @@ class		NetworkManager
 			Status,
 			ShaderFocus,
 			ShaderLoad,
-			UniformUpdate,
+			LocalParamUpdate,
 			ChangeGroup,
 			HelloServer,
 			TimeoutCheck,
@@ -171,7 +171,7 @@ class		NetworkManager
 			ShaderLoadResponse,
 			GroupChangeResponse,
 			ShaderFocusResponse,
-			ShaderUniformResponse,
+			ShaderLocalParamResponse,
 			TimeoutCheckResponse,
 		};
 
@@ -199,7 +199,7 @@ class		NetworkManager
 				};
 				struct //update client uniform
 				{
-					//int				programIndex;
+					GLuint				:32; //programIndex;
 					char				uniformName[MAX_UNIFORM_LENGTH];
 					UniformParameter	uniformParam;
 				};
@@ -241,14 +241,14 @@ class		NetworkManager
 		int						_localClientIndex;
 
 		ShaderFocusCallback		_shaderFocusCallback = NULL;
-		ShaderUniformCallback	_shaderUniformCallback = NULL;
+		ShaderLocalParamCallback	_shaderLocalParamCallback = NULL;
 		ShaderLoadCallback		_shaderLoadCallback = NULL;
 
 		ClientStatusUpdateCallback	_clientStatusUpdateCallback = NULL;
 		ClientGroupChangeCallback	_clientGroupChangeCallback = NULL;
 		ClientShaderLoadCallback	_clientShaderLoadCallback = NULL;
 		ClientShaderFocusCallback	_clientShaderFocusCallback = NULL;
-		ClientShaderUniformCallback	_clientShaderUniformCallback = NULL;
+		ClientShaderLocalParamCallback	_clientShaderLocalParamCallback = NULL;
 		ClientTimeoutCallback		_clientTimeoutCallback = NULL;
 		ClientQuitCallback			_clientQuitCallback = NULL;
 
@@ -275,7 +275,7 @@ class		NetworkManager
 		Packet					_CreateShaderLoadResponsePacket(const bool success) const;
 		Packet					_CreateChangeGroupPacket(const int groupId) const;
 		Packet					_CreateChangeGroupResponsePacket(const bool success) const;
-		Packet					_CreateUpdateUniformPacket(const int groupId, const Timeval *tv, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam) const;
+		Packet					_CreateUpdateLocalParamPacket(const int groupId, const Timeval *tv, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam) const;
 		Packet					_CreateHelloPacket(void) const;
 		Packet					_CreateShaderLoadErrorPacket(void) const;
 		Packet					_CreateShaderLoadedPacket(void) const;
@@ -301,18 +301,18 @@ class		NetworkManager
 		void			SetClientGroupChangeCallback(ClientGroupChangeCallback callback);
 		void			SetClientShaderLoadCallback(ClientShaderLoadCallback callback);
 		void			SetClientShaderFocusCallback(ClientShaderFocusCallback callback);
-		void			SetClientShaderUniformCallback(ClientShaderUniformCallback callback);
+		void			SetClientShaderLocalParamCallback(ClientShaderLocalParamCallback callback);
 		void			SetClientTimeoutCallback(ClientTimeoutCallback callback);
 		void			SetClientQuitCallback(ClientQuitCallback callback);
 
 		//Client callbacks:
 		void			SetShaderFocusCallback(ShaderFocusCallback callback);
 		void			SetShaderLoadCallback(ShaderLoadCallback callback);
-		void			SetShaderUniformCallback(ShaderUniformCallback callback);
+		void			SetShaderLocalParamCallback(ShaderLocalParamCallback callback);
 
 		//server control functions:
 		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const int transitionIndex, const SyncOffset & syncOffset) const;
-		NetworkStatus	UpdateUniformOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const;
+		NetworkStatus	UpdateLocalParamOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const;
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		int				CreateNewGroup(void);
 		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat);

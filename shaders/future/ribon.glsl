@@ -14,12 +14,14 @@ void mainImage( in vec2 fragCoord )
 	{
 		float d = dot(z,z);
 		z = (vec2( z.x, -z.y ) / d) + p; 
-		z.x =  abs(z.x);
+		z.x = abs(z.x);
 		f = max( f, (dot(z-p,z-p) ));
 		g = min( g, sin(dot(z+p,z+p))+1);
 	}
 	f = abs(-log(f) / 3.5);
 	g = abs(-log(g) / 8.0);
+	f *= cos(iValue1 * 2);
+	g *= cos(iValue2 * 2);
 	fragColor = vec4(min(vec3(g, g*f, f), 1.0),1.0);
 }
 

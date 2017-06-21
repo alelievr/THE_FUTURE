@@ -73,7 +73,7 @@ void	ShaderApplication::FocusShader(const int programIndex, const int transition
 	shaderRender->SetCurrentRenderedShader(programIndex, transitionIndex);
 }
 
-void	ShaderApplication::UpdateUniform(const int programIndex, const std::string & uniformName, const UniformParameter & param)
+void	ShaderApplication::UpdateLocalParam(const int programIndex, const std::string & uniformName, const UniformParameter & param)
 {
 	shaderRender->UpdateLocalParam(programIndex, uniformName, param);
 }
