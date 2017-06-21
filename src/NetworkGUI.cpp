@@ -228,6 +228,8 @@ void		NetworkGUI::UpdateGroupList(void)
 		button->GetSignal( sfg::Widget::OnLeftClick ).Connect(
 			[this, groupIndex](void)
 			{
+				if (groupIndex == _selectedGroup)
+					return ;
 				_selectedGroup = groupIndex;
 				_groupWindow->SetTitle("Group " + std::to_string(groupIndex));
 

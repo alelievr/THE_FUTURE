@@ -540,6 +540,7 @@ NetworkStatus				NetworkManager::ConnectCluster(int clusterNumber)
 
 	_clients.clear();
 
+	LOCK;
 	for (int r = 1; r <= CLUSTER_MAX_ROWS; r++)
 		for (int s = 1; s <= CLUSTER_MAX_ROW_SEATS; s++)
 		{
@@ -559,6 +560,7 @@ NetworkStatus				NetworkManager::ConnectCluster(int clusterNumber)
 
 			_clients[0][_localClientIndex++] = c;
 		}
+	UNLOCK;
 
 	_SendPacketToAllClients(_CreatePokeStatusPacket());
 	first = false;
@@ -843,7 +845,7 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	LOCK;
 	if ((group = _clients.find(groupId)) != _clients.end())
 	{
-		for (auto & clientKP : _clients)
+		for (auto clientKP : _clients)
 		{
 			for (auto it = clientKP.second.begin(); it != clientKP.second.end(); ++it)
 			{
@@ -854,6 +856,7 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 					nRemoved++;
 					oldGroup = c.groupId;
 					clientKP.second.erase(it);
+					goto found;
 				}
 			}
 		}
@@ -865,12 +868,14 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 		return NetworkStatus::OutOfBound;
 	}
 
+	found:
+
 	if (nRemoved == 1)
 	{
 		_clients[groupId][_localClientIndex++] = moved;
 
 		//Sort to be in the same order than the config file:
-		auto clientList = _clients[groupId];
+		const auto clientList = _clients[groupId];
 		for (const auto & clientKP : clientList)
 		{
 			auto & m = _clients[groupId];

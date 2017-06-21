@@ -278,7 +278,7 @@ fclean: clean
 
 #	All removing then compiling
 re: fclean
-	$(MAKE) all
+	@$(MAKE) all
 
 f:	all run
 
