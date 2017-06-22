@@ -65,7 +65,7 @@ NAME		=	visualishader
 
 #	Compiler
 WERROR		=	#-Werror
-CFLAGS		=	-Wall -Wextra -ferror-limit=999
+CFLAGS		=	-Wall -Wextra -ferror-limit=999 -O3
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb

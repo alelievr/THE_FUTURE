@@ -140,7 +140,8 @@ __kernel	void	draw_line(write_only image2d_t img
 	int		i;
 	int		id, id_col;
 	bool	is_inside;
-	int2	pos;
+	int		w = spec->ecr_x;
+	int		h = spec->ecr_y;
 
 	id_col = get_global_id(0);
 	id = id_col + spec->beg_id[spec->nb_iter - 1];
@@ -154,13 +155,10 @@ __kernel	void	draw_line(write_only image2d_t img
 	c = (float4)(col[id].x, col[id].y, col[id].z, 0);
 	while(i <= nb_point)
 	{
-		indice = ((int) p.x) + (int)((int)(p.y) * WIN_H);
 		col_value = 0xFFFFFF;//((((int)c.x) & 0xFF) << 16) | ((((int)c.y) & 0xFF) << 8) | ((((int)c.z)) & 0xFF);
-		is_inside = ((p.x >= 0 && p.x < WIN_W) && (p.y >= 0 && p.y < WIN_H));	
-		pos.x =(int) p.x;
-		pos.y =(int) p.y;
+		is_inside = (p.x >= 0 && p.x < w) && (p.y >= 0 && p.y < h);	
 		if (is_inside)
-			write_imagef(img, pos, col_value);;//			img[indice] = col_value;
+			write_imagef(img, (int2){p.x, p.y}, col_value);
 		p += unit_pos;
 		c += unit_col;
 		i++;
@@ -187,5 +185,13 @@ __kernel	void	calcul_ifs_point(__global float2 *pt_ifs
 	uy = (float2)(-ux.y, ux.x);
 
 	pt_ifs[id_now] = pt_ifs[id_parent] + spec->pt_trans[id_trans].x * ux + spec->pt_trans[id_trans].y * uy;
-//	printf("glob_id:%d	dad[%d]:{%f, %f}	\n", glob_id, id_parent, pt_ifs[id_parent].x, pt_ifs[id_parent].y);
+	//printf("glob_id:%d	dad[%d]:{%f, %f}	\n", glob_id, id_parent, pt_ifs[id_parent].x, pt_ifs[id_parent].y);
+}
+
+__kernel	void	clear(write_only image2d_t img)
+{
+	int	x = get_global_id(0);
+	int	y = get_global_id(1);
+
+	write_imagef(img, (int2)(x, y), 0);
 }

@@ -231,8 +231,8 @@ static	const char * FRAGMENT_SHADER_HEADER =
 "void main()\n"
 "{\n"
 "	vec2 uv = gl_FragCoord.xy / iResolution;\n"
-"	uv *= iResolution.x / iResolution.y;\n"
-"	fragColor = texture(iChannel0, uv);\n"
+//"	uv.x *= iResolution.y / iResolution.x;\n"
+"	fragColor = vec4(texture(iChannel0, uv).xyz, 1);\n"
 "}\n"
 "#line 1\n";
 
@@ -247,12 +247,12 @@ static	const char * VERTEX_SHADER_DEFAULT =
 
 
 static	float _renderVertices[] = {
-	-.75f, -.75f,
-	-.75f,  .75f,
-	.75f,  .75f,
-	.75f,  .75f,
-	.75f, -.75f,
-	-.75f, -.75f,
+	-1.0f, -1.0f,
+	-1.0f,  1.0f,
+	1.0f,  1.0f,
+	1.0f,  1.0f,
+	1.0f, -1.0f,
+	-1.0f, -1.0f,
 };
 static	GLuint _renderCount = 6;
 
@@ -330,6 +330,7 @@ bool			KernelProgram::CompileAndLink(void)
 //	if (_fragmentFileSources.size() == 0)
 //		return false;
 
+	///////////////		OpenGL part	///////////////////
 	GLuint		fragmentShaderId;
 	//TODO: multi-shader file management for fragments and vertex
 	const char	*fragmentSources[] = {FRAGMENT_SHADER_HEADER};// fichirer en dure 
@@ -367,11 +368,12 @@ bool			KernelProgram::CompileAndLink(void)
 	glEnableVertexAttribArray(fragPos);
 	glVertexAttribPointer(fragPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*) 0);
 
-	/////////////////////////////////
+	//////////////	OpenCL part ///////////////////
 	const char * 			src = _cl_source.c_str();
 	size_t					src_size = _cl_source.length();
 	cl_int					err[19];
 
+	bzero(err, sizeof(err));
 	_program = clCreateProgramWithSource(_context, 1, &src, &src_size, err + 0);
     err[18] = clBuildProgram(_program, 1, &_device_id, NULL, NULL, NULL);
 	if (err[18])
@@ -386,25 +388,26 @@ bool			KernelProgram::CompileAndLink(void)
 	_kernels["calcul_ifs_point"] = clCreateKernel(_program, "calcul_ifs_point", err + 1);
 	_kernels["define_color"] = clCreateKernel(_program, "define_color", err + 2);
 	_kernels["draw_line"] = clCreateKernel(_program, "draw_line", err + 3);	
-
+	_kernels["clear"] = clCreateKernel(_program, "clear", 0);
    /** Create a texture to be displayed as the final image. */
-    glGenTextures(1, &_screen_tex);
+	glActiveTexture(GL_TEXTURE1);
+//	_screen_tex = SOIL_load_OGL_texture("textures/Kifs1.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS |	SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
+    
+	glGenTextures(1, &_screen_tex);
     glBindTexture(GL_TEXTURE_2D, _screen_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIN_W, WIN_H, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_size.x, framebuffer_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+//	printf("==>%d\n", _screen_tex);
     _buff["screen"] = clCreateFromGLTexture(_context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, _screen_tex, 0);
 
 	_buff["pt_ifs"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF, NULL, err + 4);
 	_buff["col_pt"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, sizeof(t_ifs_param), NULL, err + 5);
 	_buff["ifs_param"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF / 2, NULL, err + 6);
 
-	err[7] = clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
-    {
-		err[8]	= clSetKernelArg(_kernels["draw_line"], 0, sizeof(cl_mem), &_buff["screen"]);
-    }
-	err[9] = clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
-	err[10] = clFlush(_queue);
+	err[8]	= clSetKernelArg(_kernels["draw_line"], 0, sizeof(cl_mem), &_buff["screen"]);
 	
 	err[11] = clSetKernelArg(_kernels["define_color"], 0, sizeof(cl_mem), &_buff["col_pt"]);
 	err[12] = clSetKernelArg(_kernels["define_color"], 1, sizeof(cl_mem), &_buff["ifs_param"]);
@@ -415,6 +418,7 @@ bool			KernelProgram::CompileAndLink(void)
 	err[15] = clSetKernelArg(_kernels["draw_line"], 1, sizeof(cl_mem), &_buff["pt_ifs"]);
 	err[16] = clSetKernelArg(_kernels["draw_line"], 2, sizeof(cl_mem), &_buff["col_pt"]);
 	err[17] = clSetKernelArg(_kernels["draw_line"], 3, sizeof(cl_mem), &_buff["ifs_param"]);
+	clSetKernelArg(_kernels["clear"], 0, sizeof(cl_mem), &_buff["screen"]);
 
 	_loaded = true;
 	// ---- 
@@ -456,8 +460,12 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	setParam(&_param);
 	err[1] = clEnqueueWriteBuffer(_queue, _buff["ifs_param"], CL_TRUE, 0, sizeof(t_ifs_param), &_param, 0, NULL, NULL);
 
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, _screen_tex);
 	int id = glGetUniformLocation(_id, "iChannel0");
 	glUniform1i(id, _screen_tex);
+	id = glGetUniformLocation(_id, "iResolution");
+	glUniform2f(id, winSize.x, winSize.y);
 }
 
 /*
@@ -485,11 +493,14 @@ void		KernelProgram::Draw(void)
 {
 	// -------- on lance le calcul des point
 	cl_int		err[3];
+	size_t		screen[2];
 	size_t		global_work_size[3] = {1, 0, 0};
 	size_t		local_work_size[3] = {1, 0, 0};
 	int	i;
 
+	bzero(err, sizeof(err));
 	i = 1;
+	
 	while (i < HARD_ITER)
 	{
 		global_work_size[0] = _idPtBuff[i + 1] - _idPtBuff[i];
@@ -499,27 +510,26 @@ void		KernelProgram::Draw(void)
 		i++;
 	}
 
+	screen[0] = framebuffer_size.x;
+	screen[1] = framebuffer_size.y;
+
 	//////////
 
 //	#------		On draw les ligne dans le buffer partager	------#
 
-
 	clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	{
+		clEnqueueNDRangeKernel(_queue, _kernels["clear"], 2, NULL, screen, NULL, 0, NULL, NULL);
 		global_work_size[0] = _idPtBuff[HARD_ITER - 1] - _idPtBuff[HARD_ITER - 2] - 1;
 		err[2] = clEnqueueNDRangeKernel(_queue, _kernels["draw_line"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	}
 	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
-	clFlush(_queue);
+	clFinish(_queue);
 
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	if (_renderId != -1)
-	{
-		GLenum buffers[] = {GL_COLOR_ATTACHMENT0};
-		glDrawBuffers(1, buffers);
-	}
+//	#------		On affiche le buffer avec OpenGL	------#
+
 #ifdef DEBUG
 	std::cout << "drawing program: " << _id << " to " << _vao << "\n";
 #endif
@@ -597,8 +607,8 @@ void	KernelProgram::setParam(t_ifs_param *spec)
 	_setIdPtBuff(spec->len_base, spec->len_trans, spec->max_iter, _idPtBuff);
 
 	spec->max_pt = _idPtBuff[HARD_ITER] - _idPtBuff[HARD_ITER - 1]; 
-	spec->ecr_x = WIN_W;
-	spec->ecr_y = WIN_H;
+	spec->ecr_x = framebuffer_size.x;
+	spec->ecr_y = framebuffer_size.y;
 	spec->nb_iter = HARD_ITER;
 
 	_setRangeVal(&(spec->hue), 0, 1);

@@ -61,15 +61,16 @@ const char * VERTEX_SHADER_DEFAULT =
 "}\n";
 
 
-float _renderVertices[] = {
-	-.75f, -.75f,
-	-.75f,  .75f,
-	.75f,  .75f,
-	.75f,  .75f,
-	.75f, -.75f,
-	-.75f, -.75f,
+static	float _renderVertices[] = {
+	-1.0f, -1.0f,
+	-1.0f,  1.0f,
+	1.0f,  1.0f,
+	1.0f,  1.0f,
+	1.0f, -1.0f,
+	-1.0f, -1.0f,
 };
-GLuint _renderCount = 6;
+
+static	GLuint _renderCount = 6;
 
 ShaderProgram::ShaderProgram(void)
 {
