@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <algorithm>
 
+#define IMAC	"e[1-3]r(1[0-3]|[1-9])p(2[0-3]|1[0-9]|[1-9])"
 #define SPACE	"\\s\\s*"
 #define FLOAT	"([+-]?[0-9]*[.]?[0-9]+f?|RESET)"
 #define F1		FLOAT
@@ -10,9 +11,9 @@
 #define F3		F2 SPACE F1
 #define F4		F3 SPACE F1
 
-std::vector< ImacConfig >					ClusterConfig::_clusterConfig;
-std::map< int, std::list< std::string > >	ClusterConfig::_groupConfig;
-std::map< int, RenderLoop >					ClusterConfig::_renderLoops;
+std::vector< ImacConfig >			ClusterConfig::_clusterConfig;
+std::map< int, GroupConfig >		ClusterConfig::_groupConfigs;
+std::map< int, RenderLoop >			ClusterConfig::_renderLoops;
 
 UniformType	ClusterConfig::_UniformTypeStringToType(const std::string & uniType)
 {
@@ -58,10 +59,12 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 	std::regex		closingBraceLine("\\s*\\}\\s*");
 	std::regex		focusLine("\\s*Focus\\s\\s*(\\d\\d*)\\s\\s*(\\d\\d*)\\s\\s*" + syncRegex);
 	std::regex		uniformLine("\\s*Uniform([1-4]f|1i)\\s\\s*(\\w+)\\s\\s*" + uniformParameters + SPACE + syncRegex);
+	std::regex		localParamLine("\\s*LocalParam\\s+" IMAC "\\s+(\\w+)\\s+" FLOAT);
 	std::regex		waitLine("\\s*Wait\\s\\s*(\\d\\d*)");
 	bool			openbrace = false;
 	int				currentProgramIndex = -1;
 
+	std::cout << "\\s*LocalParam\\s+" IMAC "\\s+(\\w+)\\s+" FLOAT <<  std::endl;
 	while (std::getline(configFile, line))
 	{
 		line = std::regex_replace(line, commentLine, "");
@@ -89,10 +92,9 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 			std::string			uniformType = matches[1];
 			std::string			uniformName = matches[2];
 			UniformParameter	param;
-			UniformType			type;
 			SyncOffset			sOffset;
 
-			type = _UniformTypeStringToType(uniformType);
+			param.type = _UniformTypeStringToType(uniformType);
 
 			if (matches[4].length()) //4 params: 4 5 6 7
 			{
@@ -122,7 +124,23 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 
 			if (matches.size() == 14)
 				sOffset = _ParseSyncOffset(matches, 14, 15, nLines, line);
-			_renderLoops[groupId].push_back(RenderLoopCommand(currentProgramIndex, uniformName, sOffset));
+			_renderLoops[groupId].push_back(RenderLoopCommand(currentProgramIndex, uniformName, param, sOffset));
+		}
+		else if (std::regex_match(line, matches, localParamLine))
+		{
+			int					row = std::stoi(matches[1]);
+			int					seat = std::stoi(matches[2]);
+			std::string			name = matches[3];
+			UniformParameter	param;
+
+			param.type = UniformType::Float1;
+			param.reset = false;
+			if (std::string(matches[4]).find("RESET") != std::string::npos)
+				param.reset = true;
+			else
+				param.f1 = std::stof(matches[4]);
+
+			_renderLoops[groupId].push_back(RenderLoopCommand(currentProgramIndex, row, seat, name, param));
 		}
 		else if (std::regex_match(line, matches, openingBraceLine))
 		{
@@ -154,9 +172,10 @@ void		ClusterConfig::LoadConfigFile(const std::string & fName)
 
 	std::ifstream	configFile(fileName);
 	std::string		line;
-	std::regex		iMacGroupLine("e[1-3]r(1[0-3]|[1-9])p(2[0-3]|1[0-9]|[1-9])\\s\\s*(\\d\\d*)");
-	std::regex		groupShaderLine("(\\d\\d*)\\s\\s*(.*)");
+	std::regex		iMacGroupLine("\\s*" IMAC "\\s\\s*(\\d\\d*)");
+	std::regex		groupFileLine("\\s*(\\d+)\\s\\s*(.*)");
 	std::regex		renderLoopLine("RenderLoop\\s\\s*(\\d\\d*)");
+	std::regex		localParamLine("\\s*LocalParam\\s+" IMAC "\\s+(\\d+)\\s+(\\w+)\\s+" FLOAT);
 	std::regex		commentLine("\\s*#.*");
 	std::smatch		matches;
 	int				n = 1;
@@ -179,18 +198,31 @@ void		ClusterConfig::LoadConfigFile(const std::string & fName)
 			int row = std::stoi(matches[1]);
 			int seat = std::stoi(matches[2]);
 			int	groupId = std::stoi(matches[3]);
-			_clusterConfig.push_back(ImacConfig{row, seat, groupId});
+			_clusterConfig.push_back(ImacConfig{row, seat, groupId, {}});
 		}
-		else if (std::regex_match(line, matches, groupShaderLine))
+		else if (std::regex_match(line, matches, groupFileLine))
 		{
 			int groupId = std::stoi(matches[1]);
-			std::string shaderFile = matches[2];
-			_groupConfig[groupId].push_back(shaderFile);
+			std::string file = matches[2];
+			if (CheckFileExtension(file.c_str(), (const char *[]){"glsl", "frag", "sf", "cl", "ocl", "kern"}))
+				_groupConfigs[groupId].shaders.push_back(file);
+			else if (CheckFileExtension(file.c_str(), (const char *[]){"ogg", "oga", "wav", "flac"}))
+				_groupConfigs[groupId].audioFiles.push_back(file);
 		}
 		else if (std::regex_match(line, matches, renderLoopLine))
 		{
 			int	groupId = std::stoi(matches[1]);
 			LoadRenderLoop(configFile, groupId, n);
+		}
+		else if (std::regex_match(line, matches, localParamLine))
+		{
+			int					row = std::stoi(matches[1]);
+			int					seat = std::stoi(matches[2]);
+			int					programIndex = std::stoi(matches[3]);
+			std::string			localParamName = matches[4];
+			UniformParameter	param;
+
+			//TODO !
 		}
 		else
 			std::cout << "syntax error at line " << n << ": \"" << line << "\"\n";
@@ -203,9 +235,9 @@ std::vector< ImacConfig > &	ClusterConfig::GetClusterConfig(void)
 	return _clusterConfig;
 }
 
-std::list< std::string > &	ClusterConfig::GetShadersInGroup(const int groupId)
+GroupConfig &				ClusterConfig::GetShadersInGroup(const int groupId)
 {
-	return _groupConfig[groupId];
+	return _groupConfigs[groupId];
 }
 
 int							ClusterConfig::GetGroupForImac(const int row, const int seat)
@@ -251,6 +283,8 @@ void		ClusterConfig::StartAllRenderLoops(NetworkManager *netManager)
 						case RenderLoopCommandType::Uniform:
 							netManager->UpdateLocalParamOnGroup(Timer::TimeoutInSeconds(1), groupId, command.programIndex, command.uniformName, command.uniformParam, command.syncOffset);
 							break ;
+						case RenderLoopCommandType::LocalParam:
+							netManager->UpdateLocalParamOnClient(Timer::TimeoutInSeconds(1), command.row, command.seat, command.programIndex, command.localParamName, command.localParamValue);
 						default:
 							break ;
 					}
@@ -280,7 +314,7 @@ size_t			ClusterConfig::GetImacIndexInGroup(const int groupId, const int row, co
 
 int			ClusterConfig::GetGroupNumber(void)
 {
-	return _groupConfig.size();
+	return _groupConfigs.size();
 }
 
 std::ostream &	operator<<(std::ostream & o, ClusterConfig const & r)

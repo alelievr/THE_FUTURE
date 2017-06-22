@@ -404,6 +404,29 @@ NetworkManager::Packet		NetworkManager::_CreateUpdateLocalParamPacket(const int 
 	return p;
 }
 
+NetworkManager::Packet		NetworkManager::_CreateLoadAudioFilePacket(const int groupId, const std::string & fileName) const
+{
+	Packet	p;
+
+	p.type = PacketType::LoadAudioFile;
+	p.groupId = groupId;
+	strcpy(p.audioFile, fileName.c_str());
+	return p;
+}
+
+NetworkManager::Packet		NetworkManager::_CreateAudioUpdatePacket(const int groupId, const Timeval *timeout, const AudioUpdateType type, const int audioIndex, const float volume) const
+{
+	Packet	p;
+
+	p.type = PacketType::AudioUpdate;
+	p.timing = *timeout;
+	p.groupId = groupId;
+	p.audioUpdateType = type;
+	p.audioIndex = audioIndex;
+	p.audioVolume = volume;
+	return p;
+}
+
 //Client Packet creation functions
 
 NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(void) const
@@ -427,7 +450,7 @@ NetworkManager::Packet		NetworkManager::_CreatePokeStatusResponsePacket(void) co
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreateShaderFocusResponsePacket(const bool success) const
+NetworkManager::Packet		NetworkManager::_CreateShaderFocusResponsePacket(const bool success) const
 {
 	if (_isServer)
 		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
@@ -442,7 +465,7 @@ NetworkManager::Packet	NetworkManager::_CreateShaderFocusResponsePacket(const bo
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreateChangeGroupResponsePacket(const bool success) const
+NetworkManager::Packet		NetworkManager::_CreateChangeGroupResponsePacket(const bool success) const
 {
 	if (_isServer)
 		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
@@ -457,7 +480,7 @@ NetworkManager::Packet	NetworkManager::_CreateChangeGroupResponsePacket(const bo
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreateHelloPacket(void) const
+NetworkManager::Packet		NetworkManager::_CreateHelloPacket(void) const
 {
 	if (_isServer)
 		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
@@ -472,7 +495,7 @@ NetworkManager::Packet	NetworkManager::_CreateHelloPacket(void) const
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreateShaderLoadErrorPacket(void) const
+NetworkManager::Packet		NetworkManager::_CreateShaderLoadErrorPacket(void) const
 {
 	if (_isServer)
 		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
@@ -487,7 +510,7 @@ NetworkManager::Packet	NetworkManager::_CreateShaderLoadErrorPacket(void) const
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreateShaderLoadedPacket(void) const
+NetworkManager::Packet		NetworkManager::_CreateShaderLoadedPacket(void) const
 {
 	if (_isServer)
 		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
@@ -502,7 +525,7 @@ NetworkManager::Packet	NetworkManager::_CreateShaderLoadedPacket(void) const
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreateTimeoutCheckResponsePacket(void) const
+NetworkManager::Packet		NetworkManager::_CreateTimeoutCheckResponsePacket(void) const
 {
 	if (_isServer)
 		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
@@ -516,7 +539,7 @@ NetworkManager::Packet	NetworkManager::_CreateTimeoutCheckResponsePacket(void) c
 	return p;
 }
 
-NetworkManager::Packet	NetworkManager::_CreateClientQuitPacket(const bool crash) const
+NetworkManager::Packet		NetworkManager::_CreateClientQuitPacket(const bool crash) const
 {
 	if (_isServer)
 		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
@@ -528,6 +551,38 @@ NetworkManager::Packet	NetworkManager::_CreateClientQuitPacket(const bool crash)
 	p.seat = _me->seat;
 	p.row = _me->row;
 	p.groupId = _me->groupId;
+	return p;
+}
+
+NetworkManager::Packet		NetworkManager::_CreateLoadAudioFileResponsePacket(const bool success) const
+{
+	if (_isServer)
+		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
+
+	Packet	p;
+
+	p.type = PacketType::LoadAudioFileResponse;
+	p.success = success;
+	p.ip = _me->ip;
+	p.groupId = _me->groupId;
+	p.seat = _me->seat;
+	p.row = _me->row;
+	return p;
+}
+
+NetworkManager::Packet		NetworkManager::_CreateAudioUpdateResponsePacket(const bool success) const
+{
+	if (_isServer)
+		std::cout << "Attempted to create poke response packet in server mode !\n", exit(-1);
+
+	Packet	p;
+
+	p.type = PacketType::AudioUpdateResponse;
+	p.success = success;
+	p.ip = _me->ip;
+	p.groupId = _me->groupId;
+	p.seat = _me->seat;
+	p.row = _me->row;
 	return p;
 }
 
@@ -649,6 +704,7 @@ int							NetworkManager::GetGroupCount(void) const
 void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connection, const Packet & packet)
 {
 	Timeval		packetTiming = packet.timing;
+	bool		success = false;
 
 	switch (packet.type)
 	{
@@ -685,6 +741,17 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 			std::cout << "responding to timeout !\n";
 			_SendPacketToServer(_CreateTimeoutCheckResponsePacket());
 			break ;
+		case PacketType::LoadAudioFile:
+			success = false;
+			if (_loadAudioFileCallback != NULL)
+				success = _loadAudioFileCallback(packet.audioFile);
+			_SendPacketToServer(_CreateLoadAudioFileResponsePacket(success));
+			break ;
+		case PacketType::AudioUpdate:
+			success = false;
+			if (_audioUpdateCallback != NULL)
+				success = _audioUpdateCallback(&packetTiming, packet.audioUpdateType, packet.audioIndex, packet.audioVolume);
+			_SendPacketToServer(_CreateAudioUpdateResponsePacket(success));
 		default:
 			break ;
 	}
@@ -721,9 +788,11 @@ void						NetworkManager::_ServerSocketEvent(void)
 							if (clientGroupId != -1)
 								MoveIMacToGroup(clientGroupId, packet.row, packet.seat);
 
-							const auto & clientShaders = ClusterConfig::GetShadersInGroup(clientGroupId);
-							for (const std::string & shader : clientShaders)
-								LoadShaderOnGroup(clientGroupId, shader, (&shader == &clientShaders.back()));
+							const auto & clientConfig = ClusterConfig::GetShadersInGroup(clientGroupId);
+							for (const std::string & shader : clientConfig.shaders)
+								LoadShaderOnGroup(clientGroupId, shader, (&shader == &clientConfig.shaders.back()));
+							for (const std::string & audioFile : clientConfig.audioFiles)
+								LoadAudioFileOnGroup(clientGroupId, audioFile);
 						}
 					}
 
@@ -789,6 +858,12 @@ void						NetworkManager::_ServerSocketEvent(void)
 
 					if (_clientQuitCallback != NULL)
 						_clientQuitCallback(packet.row, packet.seat);
+					break ;
+				case PacketType::AudioUpdateResponse:
+					std::cout << "olol1\n";
+					break ;
+				case PacketType::LoadAudioFileResponse:
+					std::cout << "olol2\n";
 					break ;
 				default:
 					break ;
@@ -915,13 +990,31 @@ NetworkStatus		NetworkManager::FocusShaderOnGroup(const Timeval *timeout, const 
 
 NetworkStatus		NetworkManager::UpdateLocalParamOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const
 {
-	_SendPacketToGroup(groupId, _CreateUpdateLocalParamPacket(groupId, timeout, programIndex, uniformName, uniformParam), syncOffset);
-	return NetworkStatus::Success;
+	return _SendPacketToGroup(groupId, _CreateUpdateLocalParamPacket(groupId, timeout, programIndex, uniformName, uniformParam), syncOffset);
+}
+
+NetworkStatus		NetworkManager::UpdateLocalParamOnClient(const Timeval *timeout, const int row, const int seat, const int programIndex, const std::string name, const UniformParameter & value)
+{
+	std::string sip = "10.11." + std::to_string(row) + "." + std::to_string(seat);
+	struct in_addr	addr;
+	inet_aton(sip.c_str(), &addr);
+
+	return _SendPacketToClient(addr.s_addr, _CreateUpdateLocalParamPacket(-1, timeout, programIndex, name, value));
 }
 
 NetworkStatus		NetworkManager::LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last) const
 {
 	return _SendPacketToGroup(groupId, _CreateShaderLoadPacket(groupId, shaderName, last), SyncOffset::CreateNoneSyncOffset());
+}
+
+NetworkStatus		NetworkManager::LoadAudioFileOnGroup(const int groupId, const std::string & fileName) const
+{
+	return _SendPacketToGroup(groupId, _CreateLoadAudioFilePacket(groupId, fileName), SyncOffset::CreateNoneSyncOffset());
+}
+
+NetworkStatus		NetworkManager::UpdateAudioOnGroup(const Timeval *timeout, const int groupId, const AudioUpdateType type, const int audioIndex, const float audioVolume, const SyncOffset & syncOffset) const
+{
+	return _SendPacketToGroup(groupId, _CreateAudioUpdatePacket(groupId, timeout, type, audioIndex, audioVolume), syncOffset);
 }
 
 //public client functions:
@@ -954,6 +1047,8 @@ void	NetworkManager::SendQuit(const bool crash)
 void	NetworkManager::SetShaderFocusCallback(ShaderFocusCallback callback) { _shaderFocusCallback = callback; }
 void	NetworkManager::SetShaderLocalParamCallback(ShaderLocalParamCallback callback) { _shaderLocalParamCallback = callback; }
 void	NetworkManager::SetShaderLoadCallback(ShaderLoadCallback callback) { _shaderLoadCallback = callback; }
+void	NetworkManager::SetAudioUpdateCallback(AudioUpdateCallback callback) { _audioUpdateCallback = callback; }
+void	NetworkManager::SetLoadAudioFileCallback(LoadAudioFileCallback callback) { _loadAudioFileCallback = callback; }
 
 //server callbacks:
 
@@ -964,6 +1059,8 @@ void	NetworkManager::SetClientShaderFocusCallback(ClientShaderFocusCallback call
 void	NetworkManager::SetClientShaderLocalParamCallback(ClientShaderLocalParamCallback callback) { _clientShaderLocalParamCallback = callback; }
 void	NetworkManager::SetClientTimeoutCallback(ClientTimeoutCallback callback) { _clientTimeoutCallback = callback; }
 void	NetworkManager::SetClientQuitCallback(ClientQuitCallback callback) { _clientQuitCallback = callback; }
+void	NetworkManager::SetClientAudioStatusCallback(ClientAudioStatusCallback callback) { _clientAudioStatusCallback = callback; }
+void	NetworkManager::SetClientLoadAudioFileCallback(ClientLoadAudioFileCallback callback) { _clientLoadAudioFileCallback = callback; }
 
 //Utils
 

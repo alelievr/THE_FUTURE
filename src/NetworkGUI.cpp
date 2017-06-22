@@ -234,14 +234,14 @@ void		NetworkGUI::UpdateGroupList(void)
 				_selectedGroup = groupIndex;
 				_groupWindow->SetTitle("Group " + std::to_string(groupIndex));
 
-				const auto shaders = ClusterConfig::GetShadersInGroup(_selectedGroup);
+				const auto & clientConfig = ClusterConfig::GetShadersInGroup(_selectedGroup);
 
 				_groupWindow->RemoveAll();
 
 				auto windowBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 10);
 
 				int		programIndex = 0;
-				for (const auto shader : shaders)
+				for (const auto & shader : clientConfig.shaders)
 				{
 					//shared properties:
 					auto shaderNameLabel = sfg::Label::Create(basename(shader));
@@ -311,7 +311,7 @@ void		NetworkGUI::UpdateGroupList(void)
 
 					windowBox->Pack(shaderBox);
 
-					if (&shader == &shaders.back())
+					if (&shader == &clientConfig.shaders.back())
 					{
 						auto separator = sfg::Separator::Create( sfg::Separator::Orientation::HORIZONTAL );
 						windowBox->Pack( separator, false, true );

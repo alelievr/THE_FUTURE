@@ -5,6 +5,7 @@
 #include "Timeval.hpp"
 #include "NetworkGUI.hpp"
 #include "ClusterConfig.hpp"
+#include "AudioManager.hpp"
 #include <iostream>
 #include <string>
 #include <list>
@@ -72,6 +73,8 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 {
 	if (!server)
 	{
+		AudioManager		am;
+
 		nm->SetShaderFocusCallback(
 			[app](const Timeval *timing, const int programIndex, const int transitionIndex)
 			{
@@ -110,6 +113,49 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 						return app->UpdateLocalParam(programIndex, uniformName, param);
 					}
 				);
+			}
+		);
+
+		nm->SetLoadAudioFileCallback(
+			[&am](const std::string & fileName)
+			{
+				return am.LoadAudioFile(fileName);
+			}
+		);
+
+		nm->SetAudioUpdateCallback(
+			[app, &am](const Timeval *timing, const AudioUpdateType type, const size_t audioIndex, const float audioVolume)
+			{
+				switch (type)
+				{
+					case AudioUpdateType::Play:
+						Timer::Timeout(timing,
+							[&am, audioIndex](void)
+							{
+								return am.Play(audioIndex);
+							}
+						);
+						break ;
+					case AudioUpdateType::Pause:
+						Timer::Timeout(timing,
+							[&am](void)
+							{
+								return am.Pause();
+							}
+						);
+						break ;
+					case AudioUpdateType::Volume:
+						Timer::Timeout(timing,
+							[&am, audioVolume](void)
+							{
+								return am.Volume(audioVolume);
+							}
+						);
+						break ;
+					default:
+						break ;
+				}
+				return false;
 			}
 		);
 
