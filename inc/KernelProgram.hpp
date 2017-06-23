@@ -16,7 +16,7 @@
 # define MAX_ITER 20
 # define MAX_NODE 16
 
-# define HARD_ITER 6
+# define HARD_ITER 7
 
 typedef	struct	s_vec_2
 {
@@ -49,6 +49,8 @@ typedef	struct	s_ifs_param
 	t_range	sat;
 	t_range	val;
 }				t_ifs_param;
+
+void	gl_test(const int line, const char * func, const char * file);
 
 class		KernelProgram : public ICGProgram
 {
