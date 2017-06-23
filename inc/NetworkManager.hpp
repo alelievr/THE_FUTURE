@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/23 00:58:37 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/23 13:11:16 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,7 @@ enum class		AudioStatus
 {
 	OK,
 	FailedToLoad,
+	Loaded,
 	Playing,
 	Paused,
 	Unknown,
@@ -120,6 +121,8 @@ struct			Client
 	unsigned int	ip;
 	Timeval			averageTimeDelta;
 	bool			willTimeout;
+	bool			audioLoaded;
+	bool			shaderLoaded;
 
 	Client(int row, int seat, int cluster, const char *cip)
 	{
@@ -130,6 +133,8 @@ struct			Client
 		this->row = row;
 		this->cluster = cluster;
 		this->groupId = 0;
+		this->audioLoaded = false;
+		this->shaderLoaded = false;
 		status = ClientStatus::Unknown;
 		inet_aton(cip, &connection.sin_addr);
 		ip = connection.sin_addr.s_addr;
@@ -139,7 +144,9 @@ struct			Client
 	{
 		if (this != &oth)
 		{
+			this->audioLoaded = oth.audioLoaded;
 			this->audioStatus = oth.audioStatus;
+			this->shaderLoaded = oth.shaderLoaded;
 			this->seat = oth.seat;
 			this->cluster = oth.cluster;
 			this->row = oth.row;
@@ -255,9 +262,11 @@ class		NetworkManager
 				};
 				struct //audio update
 				{
+					char			:8; //success padding
 					AudioUpdateType	audioUpdateType;
 					size_t			audioIndex;
 					float			audioVolume;
+					bool			lastAudioFile;
 				};
 				struct //audio file load
 				{
@@ -306,6 +315,7 @@ class		NetworkManager
 		void					_SendHelloPacket(void);
 		bool					_ImacExists(const int row, const int seat) const;
 		Client &				_FindClient(const int groupId, const size_t ip);
+		void					OnClientResourcesLoaded(Client & c);
 
 		//Create packet functions:
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;
@@ -324,10 +334,10 @@ class		NetworkManager
 		Packet					_CreateTimeoutCheckPacket(void) const;
 		Packet					_CreateTimeoutCheckResponsePacket(void) const;
 		Packet					_CreateClientQuitPacket(const bool crash) const;
-		Packet					_CreateLoadAudioFilePacket(const int groupId, const std::string & fileName) const;
-		Packet					_CreateLoadAudioFileResponsePacket(const bool success) const;
+		Packet					_CreateLoadAudioFilePacket(const int groupId, const std::string & fileName, const bool last) const;
+		Packet					_CreateLoadAudioFileResponsePacket(const bool success, const bool last) const;
 		Packet					_CreateAudioUpdatePacket(const int groupId, const Timeval *timeout, const AudioUpdateType type, const int audioIndex, const float volume) const;
-		Packet					_CreateAudioUpdateResponsePacket(const bool success) const;
+		Packet					_CreateAudioUpdateResponsePacket(const AudioUpdateType type, const bool success) const;
 
 	public:
 		NetworkManager(bool server = false, bool connection = false);
@@ -365,7 +375,7 @@ class		NetworkManager
 		NetworkStatus	UpdateLocalParamOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const;
 		NetworkStatus	UpdateLocalParamOnClient(const Timeval *timeout, const int row, const int seat, const int programIndex, const std::string name, const UniformParameter & value);
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
-		NetworkStatus	LoadAudioFileOnGroup(const int groupId, const std::string & fileName) const;
+		NetworkStatus	LoadAudioFileOnGroup(const int groupId, const std::string & fileName, const bool last) const;
 		NetworkStatus	UpdateAudioOnGroup(const Timeval *timeout, const int groupId, const AudioUpdateType type, const int audioIndex, const float audioVolume, const SyncOffset & syncOffset) const;
 		int				CreateNewGroup(void);
 		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat);

@@ -134,22 +134,6 @@ void		ShaderRender::Render(void)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void		ShaderRender::displayWindowFps(void)
-{
-	static int		frames = 0;
-	static double	last_time = 0;
-	double			current_time = glfwGetTime();
-
-	frames++;
-	if (current_time - last_time >= 1.0)
-	{
-		printf("%sfps:%.3f%s", "\x1b\x37", 1.0 / (1000.0 / (float)frames) * 1000.0, "\x1b\x38");
-		frames = 0;
-		fflush(stdout);
-		last_time++;
-	}
-}
-
 bool		ShaderRender::attachShader(const std::string file)
 {
 	ICGProgram	*newProgram;

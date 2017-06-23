@@ -150,7 +150,6 @@ bool		ShaderProgram::CompileAndLink(void)
 		return false;
 
 	GLuint		fragmentShaderId;
-	//TODO: multi-shader file management for fragments and vertex
 	const char	*fragmentSources[] = {FRAGMENT_SHADER_HEADER, _fragmentFileSources[0].source.c_str()};
 	const char	*vertexSources[] = {((_vertexFileSources.size() == 0) ? VERTEX_SHADER_DEFAULT : _vertexFileSources[0].source.c_str())};
    

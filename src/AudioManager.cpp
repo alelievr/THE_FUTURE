@@ -22,6 +22,9 @@ bool		AudioManager::Play(const size_t index)
 	if (index > _audioBuffers.size())
 		return false;
 
+	if (_currentPlayingIndex == index)
+		return true;
+
 	if (_currentPlayingIndex != -1 && _sound.getStatus() != sf::Music::Status::Stopped)
 		_sound.stop();
 	_sound.setBuffer(_audioBuffers[index]);

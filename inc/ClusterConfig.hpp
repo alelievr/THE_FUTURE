@@ -14,11 +14,9 @@
 
 struct LocalParam
 {
-	int			seat;
-	int			row;
-	std::string	localParamName;
-	int			programId;
-	float		value;
+	std::string			localParamName;
+	int					programIndex;
+	UniformParameter	value;
 };
 
 struct ImacConfig
@@ -36,6 +34,7 @@ enum class RenderLoopCommandType
 	Wait,
 	Uniform,
 	LocalParam,
+	AudioUpdate,
 	None,
 };
 
@@ -60,6 +59,11 @@ struct	RenderLoopCommand
 	int					seat;
 	std::string			localParamName;
 	UniformParameter	localParamValue;
+
+	//audio control
+	int					audioIndex;
+	AudioUpdateType		audioUpdateType;
+	float				audioVolume;
 
 	//Wait constructor
 	RenderLoopCommand(const int wTime)
@@ -88,14 +92,26 @@ struct	RenderLoopCommand
 	}
 
 	//LocalParam constructor
-	RenderLoopCommand(const int pIndex, const int row, const int seat, const std::string & name, const UniformParameter & value)
+	RenderLoopCommand(const int pIndex, const int row, const int seat, const std::string & name, const UniformParameter & value, const SyncOffset & syncOffset)
 	{
 		this->type = RenderLoopCommandType::LocalParam;
 		this->programIndex = pIndex;
 		this->localParamName = name;
 		this->row = row;
 		this->seat = seat;
+		this->syncOffset = syncOffset;
 		this->localParamValue = value;
+	}
+
+	//audio update constructor
+	RenderLoopCommand(const int pIndex, const int audioIndex, const AudioUpdateType type, const float vol, const SyncOffset & syncOffset)
+	{
+		this->type = RenderLoopCommandType::AudioUpdate;
+		this->syncOffset = syncOffset;
+		this->programIndex = pIndex;
+		this->audioIndex = audioIndex;
+		this->audioUpdateType = type;
+		this->audioVolume = vol;
 	}
 };
 
@@ -113,10 +129,12 @@ class		ClusterConfig
 		static std::vector< ImacConfig >					_clusterConfig;
 		static std::map< int, GroupConfig >					_groupConfigs;
 		static std::map< int, RenderLoop >					_renderLoops;
+		static std::map< int, std::map< int, std::vector< LocalParam > > >	_localParams;
 
 		static void			LoadRenderLoop(std::ifstream & condigFile, const int groupId, int & nLines);
 		static UniformType	_UniformTypeStringToType(const std::string & uniType);
 		static SyncOffset	_ParseSyncOffset(const std::smatch & matches, const int typeIndex, const int paramIndex, const int nLines, const std::string & line);
+		static UniformParameter	_ParseUniformParameter(const std::smatch & matches, const int startIndex, const int nLInes, const std::string & line);
 
 	public:
 		ClusterConfig(void) = delete;
@@ -127,12 +145,13 @@ class		ClusterConfig
 
 		static void	LoadConfigFile(const std::string & fileName = "");
 		//static void	SaveConfigFile(const NetworkGUI & gui);
-		static GroupConfig &				GetShadersInGroup(const int groupId);
-		static std::vector< ImacConfig > &	GetClusterConfig(void);
+		static GroupConfig &				GetConfigForGroup(const int groupId);
+		static const std::vector< ImacConfig > &	GetClusterConfig(void);
 		static int							GetGroupForImac(const int row, const int seat);
 		static void							StartAllRenderLoops(NetworkManager *netManager);
 		static int							GetGroupNumber(void);
 		static size_t						GetImacIndexInGroup(const int groupId, const int row, const int seat);
+		static const std::vector< LocalParam > &	GetLocalParamsForClient(const int row, const int seat);
 };
 
 std::ostream &	operator<<(std::ostream & o, ClusterConfig const & r);

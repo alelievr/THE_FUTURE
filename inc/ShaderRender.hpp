@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/20 15:36:32 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/23 13:23:08 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,8 +44,6 @@ class ShaderRender
 		int				cursor_mode;
 		float			lastPausedTime;
 		bool			programLoaded;
-
-		void			displayWindowFps(void);
 
 	public:
 		ShaderRender(void);

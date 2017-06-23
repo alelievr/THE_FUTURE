@@ -234,7 +234,7 @@ void		NetworkGUI::UpdateGroupList(void)
 				_selectedGroup = groupIndex;
 				_groupWindow->SetTitle("Group " + std::to_string(groupIndex));
 
-				const auto & clientConfig = ClusterConfig::GetShadersInGroup(_selectedGroup);
+				const auto & clientConfig = ClusterConfig::GetConfigForGroup(_selectedGroup);
 
 				_groupWindow->RemoveAll();
 
