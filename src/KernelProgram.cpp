@@ -404,8 +404,8 @@ bool			KernelProgram::CompileAndLink(void)
     _buff["screen"] = clCreateFromGLTexture(_context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, _screen_tex, 0);
 
 	_buff["pt_ifs"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF, NULL, err + 4);
-	_buff["col_pt"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, sizeof(t_ifs_param), NULL, err + 5);
-	_buff["ifs_param"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF / 2, NULL, err + 6);
+	_buff["col_pt"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF / 2, NULL, err + 5);
+	_buff["ifs_param"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, sizeof(t_ifs_param), NULL, err + 6);
 
 	err[8]	= clSetKernelArg(_kernels["draw_line"], 0, sizeof(cl_mem), &_buff["screen"]);
 	
@@ -451,21 +451,38 @@ void			KernelProgram::CreateVAO(void)
 // <---
 void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 {
+	size_t	global_work_size[3] = {1, 0, 0};
+	size_t	local_work_size[3] = {1, 0, 0};
+//	cl_int	err[10];
 	cl_int	err[4];
 	float	hard_base[4][2] =
-	{{657.534241, 341.694916},{250.684937, 919.322021},{1035.616455, 1004.745789},{661.643860, 341.694916}};
+	{{657.534241, 341.694916},{250.684937, 919.322021},{1035.616455, 1004.745789},{657.534241, 341.694916}};
 
-	err[0] = clEnqueueWriteBuffer(_queue, _buff["pt_ifs"], CL_TRUE, 0, 4 * 2 * sizeof(float), hard_base, 0, NULL, NULL);
+	bzero(err, sizeof(err));
+
+	_set_base();
+
+	err[0] = clEnqueueWriteBuffer(_queue, _buff["pt_ifs"], CL_TRUE, 0, 4 * 2 * sizeof(float), &_param.pt_base, 0, NULL, NULL);
 	_setIdPtBuff(4, 2, HARD_ITER, _idPtBuff);
 	setParam(&_param);
+
 	err[1] = clEnqueueWriteBuffer(_queue, _buff["ifs_param"], CL_TRUE, 0, sizeof(t_ifs_param), &_param, 0, NULL, NULL);
 
+	global_work_size[0] = _idPtBuff[HARD_ITER - 1] - _idPtBuff[HARD_ITER - 2];
+//	printf("worksize def_col:%d\n", global_work_size[0]);
+	err[2] = clEnqueueNDRangeKernel(_queue, _kernels["define_color"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
+
+	if (!_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__))
+	{
+		exit(0);
+	}
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, _screen_tex);
 	int id = glGetUniformLocation(_id, "iChannel0");
 	glUniform1i(id, _screen_tex);
 	id = glGetUniformLocation(_id, "iResolution");
 	glUniform2f(id, winSize.x, winSize.y);
+//	printf("yoloooo\n");
 }
 
 /*
@@ -521,8 +538,10 @@ void		KernelProgram::Draw(void)
 	{
 		clEnqueueNDRangeKernel(_queue, _kernels["clear"], 2, NULL, screen, NULL, 0, NULL, NULL);
 		global_work_size[0] = _idPtBuff[HARD_ITER - 1] - _idPtBuff[HARD_ITER - 2] - 1;
+//		printf("glob:");
 		err[2] = clEnqueueNDRangeKernel(_queue, _kernels["draw_line"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	}
+//	printf("worksize last_draw_line:%d\n", global_work_size[0]);
 	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	clFinish(_queue);
 
@@ -586,37 +605,43 @@ void		KernelProgram::_setIdPtBuff(int nb_base, int nb_trans, int nb_iter, int *i
 	}
 }
 
-void	KernelProgram::setParam(t_ifs_param *spec)
+void	KernelProgram::setParam(t_ifs_param *param)
 {
-	static		int id_trans = 0;
+	static	float	add = 0.5;
+	static	float	id_trans = 32;
+	int				lim = 9;
+	int				beg = 50;
 	int			i;
 
 
+//	id_trans = 32;
 	for (i = 0; i < 4; i++)
 	{
-		spec->pt_trans[i][0] = trans_raw[id_trans][i][0];
-		spec->pt_trans[i][1] = trans_raw[id_trans][i][1];
+		param->pt_trans[i][0] = trans_raw[(int)id_trans][i][0];
+		param->pt_trans[i][1] = trans_raw[(int)id_trans][i][1];
 	}
-	id_trans = (id_trans + 1) % TRANS_TEST;
-	spec->len_trans = 2;
+	if ((add > 0 && id_trans > beg + lim) || (add < 0 && id_trans < beg - lim))
+		add *= -1;
+	id_trans += add;
+	param->len_trans = 2;
 
 
-	spec->len_base = 4;//get_polygone_len(e->base);
+	param->len_base = 4;//get_polygone_len(e->base);
 
-	spec->max_iter = 4;
-	_setIdPtBuff(spec->len_base, spec->len_trans, spec->max_iter, _idPtBuff);
+	param->max_iter = 4;
+	_setIdPtBuff(param->len_base, param->len_trans, param->max_iter, _idPtBuff);
 
-	spec->max_pt = _idPtBuff[HARD_ITER] - _idPtBuff[HARD_ITER - 1]; 
-	spec->ecr_x = framebuffer_size.x;
-	spec->ecr_y = framebuffer_size.y;
-	spec->nb_iter = HARD_ITER;
+	param->max_pt = _idPtBuff[HARD_ITER] - _idPtBuff[HARD_ITER - 1]; 
+	param->ecr_x = framebuffer_size.x;
+	param->ecr_y = framebuffer_size.y;
+	param->nb_iter = HARD_ITER;
 
-	_setRangeVal(&(spec->hue), 0, 1);
-	_setRangeVal(&(spec->sat), 0, 1);
-	_setRangeVal(&(spec->val), 0, 1);
+	_setRangeVal(&(param->hue), 0.6, 1);
+	_setRangeVal(&(param->sat), 0, 1);
+	_setRangeVal(&(param->val), 0.6, 1);
 
-	memmove(&(spec->beg_id), _idPtBuff, sizeof(int) * MAX_ITER);
-//	printf("spec->ecrX:%d	spec->ecrY:%d\n", spec->dim_ecr[0], spec->dim_ecr[1]);
+	memmove(&(param->beg_id), _idPtBuff, sizeof(int) * MAX_ITER);
+//	printf("param->ecrX:%d	param->ecrY:%d\n", param->dim_ecr[0], param->dim_ecr[1]);
 }
 
 
@@ -658,4 +683,56 @@ bool		KernelProgram::CheckLink(GLuint program)
 		return false;
 	}
 	return true;
+}
+
+
+vec_2	add_rot(vec_2 beg, vec_2 ux, vec_2 uy, const float r, float val, float speed, float offset)
+{
+	vec_2 ret;
+	
+	val = (val * speed + offset) * 2 * M_PI;
+	ret.x = beg.x + ux.x * cos(val) * r + uy.x * sin(val) * r;
+	ret.y = beg.y + ux.y * cos(val) * r + uy.y * sin(val) * r;
+	return (ret);
+}
+
+void	KernelProgram::_set_base()
+{
+	float	r;
+	float	time = glfwGetTime() - __localParams["localStartTime"];
+//	std::cout << (glfwGetTime() - __localParams["localStartTime"]) << std::endl;
+	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
+//	vec_2	ret;
+	vec_2	ux = {0, 1};
+	vec_2	uy = {1, 0};
+	vec_2	base[MAX_NODE];
+	
+	r = 200 + 20 * sin(time);
+	bzero(base, sizeof(base));
+
+	base[0] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 0);
+	base[1] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 1.0 / 3.0);
+	base[2] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 2.0 / 3.0);
+	base[3] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 0);
+
+	base[1] = add_rot(base[1], ux, uy, 100, time, -0.5, 0);
+	base[2] = add_rot(base[2], ux, uy, 70, time, 0.6, 0);
+	base[3] = add_rot(base[3], ux, uy, 30, time, -0.3, 0);
+
+
+	base[1] = add_rot(base[1], ux, uy, 30, time, -0.6, 0);
+	base[2] = add_rot(base[2], ux, uy, 20, time, -0.3, 0);
+	base[3] = add_rot(base[3], ux, uy, 40, time, 0.4, 0);
+
+	base[0] = base[3];
+
+	std::cout << "" ;
+
+	for (int i = 0; i < MAX_NODE; i++)
+	{
+		_param.pt_base[i][0] = base[i].x;
+		_param.pt_base[i][1] = base[i].y;
+//		std::cout << "pt:{" << _param.pt_base[i][0] << ", " << _param.pt_base[i][1]<< "}"<< std::endl;
+	}
+	
 }

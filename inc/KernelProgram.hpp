@@ -7,15 +7,22 @@
 # include <fstream>
 # include <OpenCL/OpenCL.h>
 # include <OpenGL/OpenGL.h>
+# include <cmath>
 # include "shaderpixel.h"
 # include "ICGProgram.hpp"
 
 
-# define MAX_GPU_BUFF (1024 * 1024)
+# define MAX_GPU_BUFF ((size_t)(1048576 * 5)) 
 # define MAX_ITER 20
 # define MAX_NODE 16
 
-# define HARD_ITER 5
+# define HARD_ITER 7
+
+typedef	struct	s_vec_2
+{
+	float	x;
+	float	y;
+}				vec_2;
 
 typedef	struct	s_range
 {
@@ -37,6 +44,7 @@ typedef	struct	s_ifs_param
 	int		ecr_x;
 	int		ecr_y;
 	int		nb_iter;
+	int		nb_part;
 	t_range	hue;
 	t_range	sat;
 	t_range	val;
@@ -56,6 +64,7 @@ class		KernelProgram : public ICGProgram
     	GLuint 								_screen_tex;
 		bool								_loaded;
     	cl_device_id						_device_id;
+		bool								_firstUse;
 
 		GLuint								_id; //opengl program id
 		int									_renderId;
@@ -63,7 +72,7 @@ class		KernelProgram : public ICGProgram
 		GLuint								_vao;
 		GLuint								_vbo;
 
-		bool								_firstUse;
+		void								_set_base();
 		std::string							_LoadSourceFile(std::string & filePath);
 		void								_print_err(cl_int err, std::string msg, int line, std::string func, std::string file);
 		bool								_check_err_tab(cl_int * err, int nb_err, std::string func, std::string file);
@@ -79,8 +88,8 @@ class		KernelProgram : public ICGProgram
 		KernelProgram(void);
 		KernelProgram(const KernelProgram&) = delete;
 		virtual ~KernelProgram(void);
-
 		KernelProgram &	operator=(KernelProgram const & src) = delete;
+
 
 		void	setParam(t_ifs_param *spec);
 		bool	LoadSourceFile(const std::string & fileName);
