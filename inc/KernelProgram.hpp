@@ -12,11 +12,11 @@
 # include "ICGProgram.hpp"
 
 
-# define MAX_GPU_BUFF ((size_t)(1048576 * 5)) 
+# define MAX_GPU_BUFF ((size_t)(1048577)) 
 # define MAX_ITER 20
 # define MAX_NODE 16
 
-# define HARD_ITER 7
+# define HARD_ITER 6
 
 typedef	struct	s_vec_2
 {
