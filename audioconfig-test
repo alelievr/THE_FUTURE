@@ -1,0 +1,12 @@
+1 shaders/Bal-KhanShaders/Newton1.glsl
+1 music/Nyancat.ogga
+
+e1r2p21 1
+
+RenderLoop 1
+{
+	AudioPlay 0 Sync None
+	AudioVolume 0.1 0 Sync None
+	Focus 0 0 Sync None
+	Wait 8
+}

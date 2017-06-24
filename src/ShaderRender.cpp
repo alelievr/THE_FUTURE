@@ -47,7 +47,7 @@ ShaderRender::ShaderRender(void)
 		_transitionPrograms.push_back(prog);
 	}
 
-	init_LuaGL(this);
+	//init_LuaGL(this);
 }
 
 void		ShaderRender::Render(void)
@@ -117,7 +117,7 @@ void		ShaderRender::Render(void)
 
 	static int frames = 0;
 
-	load_run_script(getL(NULL), "lua/draw.lua");
+//	load_run_script(getL(NULL), "lua/draw.lua");
 
 	for (const std::size_t pIndex : _currentRenderedPrograms)
 		if (pIndex < _programs.size())
@@ -241,5 +241,5 @@ ShaderRender::~ShaderRender()
 {
 	for (auto program : _programs)
 		delete program;
-	lua_close(getL(NULL));		// Cya, Lua
+	//lua_close(getL(NULL));		// Cya, Lua
 }

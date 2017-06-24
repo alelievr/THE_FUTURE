@@ -760,11 +760,11 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 				success = _loadAudioFileCallback(packet.audioFile);
 			_SendPacketToServer(_CreateLoadAudioFileResponsePacket(success, packet.lastAudioFile));
 			break ;
-//		case PacketType::AudioUpdate:
-//			success = false;
-//			if (_audioUpdateCallback != NULL)
-//				success = _audioUpdateCallback(&packetTiming, packet.audioUpdateType, packet.audioIndex, packet.audioVolume);
-//			//_SendPacketToServer(_CreateAudioUpdateResponsePacket(packet.audioUpdateType, success));
+		case PacketType::AudioUpdate:
+			success = false;
+			if (_audioUpdateCallback != NULL)
+				success = _audioUpdateCallback(&packetTiming, packet.audioUpdateType, packet.audioIndex, packet.audioVolume);
+			//_SendPacketToServer(_CreateAudioUpdateResponsePacket(packet.audioUpdateType, success));
 		default:
 			break ;
 	}

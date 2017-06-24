@@ -282,7 +282,7 @@ void		NetworkGUI::UpdateGroupList(void)
 							auto syncDelayLabel = sfg::Label::Create("SyncDelay:");
 							auto syncEntry = sfg::Entry::Create();
 							auto valueLabel = sfg::Label::Create("0.00");
-							syncEntry->SetText("1000");
+							syncEntry->SetText("100");
 							syncEntry->SetRequisition( sf::Vector2f( 80.f, 0.f ) );
 							valueRange->SetRange(0, 1);
 							valueRange->SetRequisition( sf::Vector2f( 100.f, 20.f ) );
