@@ -52,7 +52,7 @@ vec3 evaluateLight(vec3 pos)
 
 bool hit;
 
-void mainImage(out vec4 o, in vec2 f )
+void mainImage( in vec2 f )
 {
     h = vec3(0.);
     hit = false;
@@ -68,7 +68,7 @@ void mainImage(out vec4 o, in vec2 f )
     col.xyz = blackbody((15.-inter.y*.06125+.1*inter.x)*100.);
     //col.xyz += vec3(1.)*inter.y*.002;
 //    col.xyz += h;
-      o = col+inter.y*.001*vec4(.0, 1.2, 1., 1.)*2.;
+      fragColor = col+inter.y*.001*vec4(.0, 1.2, 1., 1.)*2.;
 }
 
 float	scene(vec3 p)

@@ -19,10 +19,10 @@ float tri( in vec2 p0, in vec2 p1, in vec2 p2, in vec2 p )
 		       return -sqrt(d.x)*sign(d.y);
 }
 
-void mainImage( out vec4 o, in vec2 f )
+void mainImage( in vec2 f )
 {
     float	t = iGlobalTime;
-    o = vec4(0.,0.,0.,1.0);
+    fragColor = vec4(0.,0.,0.,1.0);
     vec2 R = iResolution.xy,
           uv  = vec2(f-R/2.) / R.y;
     vec2  a,b,c;
@@ -31,7 +31,7 @@ void mainImage( out vec4 o, in vec2 f )
     a = vec2(-.25,-.25);
     b = vec2(+.25,-.25);
     c = vec2(+.00,.25);
-//    o.x = 1.-sign( tri(b, a, c, uv) );
+//    fragColor.x = 1.-sign( tri(b, a, c, uv) );
     float an = 1.57+t*.0125;//+t*.251;
     mat2  rot = mat2(
         cos(an),
@@ -51,11 +51,11 @@ void mainImage( out vec4 o, in vec2 f )
         a*=-rot;//+1.+sin(i*.31+t*.5);
         b*=rot;//+1.+sin(i*.31+t*.5);
         c*=sign(a.x*b.x)+rot;//+1.+sin(i*.31+t*.5);
-        o.x = max(1.-sign( -.1*(sin(3.14*i/20.+t*1.))+tri(b, a, c, uv+vec2(.5, 3.) ) ), o.x);
-        if (o.x>0.)
+        fragColor.x = max(1.-sign( -.1*(sin(3.14*i/20.+t*1.))+tri(b, a, c, uv+vec2(.5, 3.) ) ), fragColor.x);
+        if (fragColor.x>0.)
             break;
         s++;
     }
     
-    o.xyz = 1.-o.xxx ;//* vec3(sin(3.14*s/20.+t) );
+    fragColor.xyz = 1.-fragColor.xxx ;//* vec3(sin(3.14*s/20.+t) );
 }

@@ -20,7 +20,7 @@ void		rotate(inout vec2 v, float angle);
 
 vec3		base; // base color for the item, this is modified in the spaghetti distance estimator
 
-void mainImage(out vec4 c_out, in vec2 f)
+void mainImage(in vec2 f)
 {
     t = iGlobalTime;
     vec3	col = vec3(0., 0., 0.);
@@ -53,7 +53,7 @@ void mainImage(out vec4 c_out, in vec2 f)
         col.xyz -= 1.5*vec3( inter.w / 200. ); // add more fake light effect (AO distance based)
         #endif
     }
-    c_out =  vec4(col,1.0);
+    fragColor =  vec4(col,1.0);
 }    
 
 float	de_0(vec3 p) // Spaghettis

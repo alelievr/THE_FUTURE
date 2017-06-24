@@ -38,7 +38,7 @@ vec3 blackbody(float Temp)
 // -------------blackbody----------------- //
 
 
-void mainImage(out vec4 o, in vec2 f )
+void mainImage( in vec2 f )
 {t = iGlobalTime;
     vec2 R = iResolution.xy,
           uv  = vec2(f-R/2.) / R.y;
@@ -49,7 +49,7 @@ void mainImage(out vec4 o, in vec2 f )
     vec2  inter = (march(pos, dir));
 
     col.xyz = blackbody((1.1-length(uv)*1.1)*inter.x*300./inter.y);
-    o = col;
+    fragColor = col;
 }
 
 float	scene(vec3 p)

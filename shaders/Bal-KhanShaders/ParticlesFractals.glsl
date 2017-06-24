@@ -12,11 +12,11 @@ vec2 df(vec2 p)
     //return vec2(max(abs(p.x)+p.y,-p.y))-0.1; // triangle
     //return vec2(length(p))-0.1; // circle
 }
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
+void mainImage( in vec2 fragCoord )
 {
 	vec2 g = fragCoord.xy;
 	vec2 si = iResolution.xy;
-    vec2 m = iMouse.xy/si;
+    //vec2 m = iMouse.xy/si;
     float t = iGlobalTime;
     vec3 stars = vec3(0);
     

@@ -40,7 +40,7 @@ OBJDIR		=	obj
 
 #	Variables
 LIBFT		=	2	#1 or 0 to include the libft / 2 for autodetct
-DEBUGLEVEL	=	0	#can be 0 for no debug 1 for or 2 for harder debug
+DEBUGLEVEL	=	1	#can be 0 for no debug 1 for or 2 for harder debug
 					#Warrning: non null debuglevel will disable optlevel
 OPTLEVEL	=	2	#same than debuglevel
 					#Warrning: non null optlevel will disable debuglevel

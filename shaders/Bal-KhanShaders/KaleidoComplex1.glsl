@@ -23,7 +23,7 @@ vec2 cdiv(vec2 a, vec2 b) {
         (a.y*b.x - a.x*b.y)) / d;;
 }
 
-void	mainImage( out vec4 fragColor, in vec2 fragCoord )
+void	mainImage( in vec2 fragCoord )
 {
     t = iGlobalTime*.25;
     vec2 R = iResolution.xy,

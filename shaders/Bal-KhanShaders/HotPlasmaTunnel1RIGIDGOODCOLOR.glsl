@@ -47,7 +47,7 @@ vec3 blackbody(float Temp)
 
 // -------------blackbody----------------- //
 
-void mainImage(out vec4 c_out, in vec2 f)
+void mainImage( in vec2 f)
 {
     t  = iGlobalTime*.5125;
     vec3 col = vec3(0., 0., 0.);
@@ -92,7 +92,7 @@ void mainImage(out vec4 c_out, in vec2 f)
         col.xyz += ( (specular + diffuse) * col.xyz);//vec3(.25, .25, .25));
     }
     #endif
-    c_out =  vec4(col,1.0);
+    fragColor =  vec4(col,1.0);
 }
 
 float	de_0(vec3 p)

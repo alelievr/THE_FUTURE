@@ -1,5 +1,5 @@
 
-local progs = {gol.get_prog(0), gol.get_prog(1), gol.get_prog(2)}
+local progs = {gol.get_prog(0), gol.get_prog(0), gol.get_prog(0)}
 local t = gol.get_time()
 local st = math.sin(t)
 local ct = math.cos(t)
@@ -29,7 +29,7 @@ for i in pairs(progs) do
 	}
 	if progs[i] then
 		if i < #phases then
-			vert = translate_bot_to_top(vert, phases[i])
+		--	vert = translate_bot_to_top(vert, phases[i])
 		end
 		if vert == nil then
 			return

@@ -13,7 +13,7 @@ void	rotate(inout vec2 v, float angle);
 float	DE(vec3 p);
 vec4	march(vec3 pos, vec3 dir);
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord)
+void mainImage( in vec2 fragCoord)
 {
 	vec2	uv = fragCoord.xy / iResolution.xy;
     vec3	col = vec3(0.0);

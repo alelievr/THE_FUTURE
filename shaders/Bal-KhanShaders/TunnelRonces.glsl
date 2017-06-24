@@ -10,7 +10,7 @@ vec3	calcNormal(in vec3 pos, float e, vec3 dir, vec3 balls[NUMBALLS], vec3 ba);
 void	init(inout vec3 balls[NUMBALLS]);
 vec3	color_func(vec3 pos, vec3 dir, vec3 balls[NUMBALLS]);
 
-void mainImage(out vec4 c_out, in vec2 f)
+void mainImage(in vec2 f)
 {
     t = iGlobalTime;
     vec3	col = vec3(0., 0., 0.);
@@ -28,7 +28,7 @@ void mainImage(out vec4 c_out, in vec2 f)
     vec3  base = vec3(.8, .0, 1.);
 
     col.xyz = (vec3(.7, .5,.9)*(base-inter.w*.01));
-    c_out =  vec4(col,1.0);
+    fragColor =  vec4(col,1.0);
 }    
 
 #define POWER	9.

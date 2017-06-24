@@ -51,7 +51,7 @@ vec3 blackbody(float Temp)
 
 // -------------blackbody----------------- //
 
-void mainImage(out vec4 o, in vec2 f )
+void mainImage( in vec2 f )
 {
     h = vec3(0.);
     t = iGlobalTime*.5;
@@ -63,12 +63,12 @@ void mainImage(out vec4 o, in vec2 f )
     vec3  pos = vec3(.0, 0., 7.0);
     //rotate(dir.zx, cos(t)*.25);
     vec2	     inter = (march(pos, dir));
-    //o.xyz = 1.-vec3( (inter.y)*.00251);
-    o.xyz += h*1.;
-    //o.xyz *= vec3(abs(sin(1.04+t) ), abs(sin(2.09+t) ), abs(sin(3.14+t) ));
-    o.xyz += .25*blackbody(( (inter.y) )*150.);
-    //o.xyz += (1.-sin(t))*vec3(abs(sin(t+1.04+g)), abs(sin(t+2.09+g)), abs(sin(t+3.14+g)))*inter.x*.005;
-    //o.xyz *= (1.1-length(uv)*1.);
+    //fragColor.xyz = 1.-vec3( (inter.y)*.00251);
+    fragColor.xyz += h*1.;
+    //fragColor.xyz *= vec3(abs(sin(1.04+t) ), abs(sin(2.09+t) ), abs(sin(3.14+t) ));
+    fragColor.xyz += .25*blackbody(( (inter.y) )*150.);
+    //fragColor.xyz += (1.-sin(t))*vec3(abs(sin(t+1.04+g)), abs(sin(t+2.09+g)), abs(sin(t+3.14+g)))*inter.x*.005;
+    //fragColor.xyz *= (1.1-length(uv)*1.);
 }
 
 float sdCappedCylinder( vec3 p, vec2 h )

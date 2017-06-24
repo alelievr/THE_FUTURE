@@ -161,7 +161,7 @@ vec2	march(vec3 pos, vec3 dir)
     return (s);
 }
 
-void mainImage( out vec4 o, in vec2 f )
+void mainImage( in vec2 f )
 {
     g = 0.;
     t  = iGlobalTime*.5;
@@ -175,22 +175,22 @@ void mainImage( out vec4 o, in vec2 f )
     vec2  inter = (march(pos, dir));
 
     #ifdef	BLACKBODY
-    o.xyz = blackbody( ( 15.-inter.y+.051*inter.x ) * 75. );
+    fragColor.xyz = blackbody( ( 15.-inter.y+.051*inter.x ) * 75. );
     return ;
     #endif
     #ifdef	SINUSITE
-    o.xyz = inter.y*.05*vec3(abs(sin(dir.x*3.14+t+1.04)), abs(sin(dir.y*3.14+t+2.09)), abs(sin(dir.z*3.14+t+3.14)));
+    fragColor.xyz = inter.y*.05*vec3(abs(sin(dir.x*3.14+t+1.04)), abs(sin(dir.y*3.14+t+2.09)), abs(sin(dir.z*3.14+t+3.14)));
     return ;
     #endif
     #ifdef	GEODESIC
     float	g = (pos+dir*inter.y).y;
     #endif
     #ifdef	GRIDS
-    o.xyz = vec3(abs(sin(t+1.32+1.04*g)), abs(sin(t+1.32+2.09*g)), abs(sin(t+1.32+3.14*g)))*inter.x*.005;
+    fragColor.xyz = vec3(abs(sin(t+1.32+1.04*g)), abs(sin(t+1.32+2.09*g)), abs(sin(t+1.32+3.14*g)))*inter.x*.005;
     return ;
     #endif
     #ifdef	HEATWAVES
-    o.xyz = vec3(abs(sin(t+1.04+(15.-inter.y*.05) )), abs(sin(t+2.09+(15.-inter.y*.05) )), abs(sin(t+3.14+(15.-inter.y*.05) )));
+    fragColor.xyz = vec3(abs(sin(t+1.04+(15.-inter.y*.05) )), abs(sin(t+2.09+(15.-inter.y*.05) )), abs(sin(t+3.14+(15.-inter.y*.05) )));
     return ;
     #endif
 }

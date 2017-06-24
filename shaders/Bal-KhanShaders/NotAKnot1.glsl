@@ -35,7 +35,7 @@ vec3 blackbody(float Temp)
 
 // -------------blackbody----------------- //
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord)
+void mainImage( in vec2 fragCoord)
 {
     rot_t = mat2(cos(iGlobalTime),sin(iGlobalTime),-sin(iGlobalTime),cos(iGlobalTime));
     vec2  uv = fragCoord.xy / iResolution.xy;

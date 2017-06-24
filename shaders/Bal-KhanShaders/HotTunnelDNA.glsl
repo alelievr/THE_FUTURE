@@ -52,7 +52,7 @@ vec3 blackbody(float Temp)
 
 // -------------blackbody----------------- //
 
-void mainImage(out vec4 c_out, in vec2 f)
+void mainImage( in vec2 f)
 {
     t  = iGlobalTime;
     vec3 col = vec3(0., 0., 0.);
@@ -76,7 +76,7 @@ void mainImage(out vec4 c_out, in vec2 f)
     #ifdef	VIGNETTE_RENDER
     col.xyz = blackbody( ( (1.1-length(uv)*1.1)*inter.x) *70. );
     #endif
-    c_out =  vec4(col,1.0);
+    fragColor =  vec4(col,1.0);
 }    
 
 float	de_0(vec3 p)

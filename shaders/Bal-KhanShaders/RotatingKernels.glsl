@@ -76,7 +76,7 @@ vec3 evaluateLight(in vec3 pos)
 
 // ------------volumetric light----------- //
 
-void mainImage(out vec4 o, in vec2 f )
+void mainImage(in vec2 f )
 {
     mine = 1e5;
     t = iGlobalTime*.5;
@@ -95,10 +95,10 @@ void mainImage(out vec4 o, in vec2 f )
     #endif
     vec2	inter = (march(pos, dir));
 
-    o.xyz = blackbody(((h.x+h.y+h.z) )*100.);
-    o.xyz += vec3(abs(sin(t+1.04+g)), abs(sin(t+2.09+g)), abs(sin(t+3.14+g)))*(1.-inter.y*.067515);
-    o.xyz += h*.125;
-    o.xyz *= (1.25-length(uv)*1.); // vignette
+    fragColor.xyz = blackbody(((h.x+h.y+h.z) )*100.);
+    fragColor.xyz += vec3(abs(sin(t+1.04+g)), abs(sin(t+2.09+g)), abs(sin(t+3.14+g)))*(1.-inter.y*.067515);
+    fragColor.xyz += h*.125;
+    fragColor.xyz *= (1.25-length(uv)*1.); // vignette
 }
 
 float sdCy( vec3 p, vec2 h )

@@ -1,5 +1,5 @@
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
+void mainImage( in vec2 fragCoord )
 {
     float time = .5*iGlobalTime;
     vec2 uv = fragCoord.xy / iResolution.xy;

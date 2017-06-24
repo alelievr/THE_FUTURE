@@ -12,7 +12,7 @@ mat4	lookat(vec3 eye, vec3 target, vec3 up);
 vec2 	cmult(vec2 a, vec2 b);
 vec4	march(vec3 pos, vec3 dir);
 
-void mainImage(out vec4 fragColor, in vec2 fragCoord )
+void mainImage( in vec2 fragCoord )
 {
     vec4	col = vec4(0.0);
     vec3	dir = normalize(vec3(fragCoord.xy - iResolution.xy/2.0, -iResolution.y));

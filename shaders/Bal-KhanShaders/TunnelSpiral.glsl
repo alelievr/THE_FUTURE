@@ -78,7 +78,7 @@ vec3 evaluateLight(in vec3 pos)
 
 // ------------volumetric light----------- //
    
-void mainImage(out vec4 o, in vec2 f )
+void mainImage( in vec2 f )
 {
 	bass = texture(iChannel0, vec2(.1, .015)).x*20.;
 	medium = texture(iChannel0, vec2(.5, .015)).x*20.;
@@ -113,15 +113,15 @@ void mainImage(out vec4 o, in vec2 f )
         							         cos(20.*length(p+vec3(high, medium, bass)*.5)+3.14) )*.5
         ;
         if (mind == tess)
-            o.xyz+=vec3(cos(20.*length(p)+1.04), cos(20.*length(p)+2.08), cos(20.*length(p)+3.14) )*.75;
+            fragColor.xyz+=vec3(cos(20.*length(p)+1.04), cos(20.*length(p)+2.08), cos(20.*length(p)+3.14) )*.75;
         else
-			o.xyz += tech;
+			fragColor.xyz += tech;
     #endif
-        o.xyz += blackbody(length(h)*20000.+(inter*.51)*(100.-min(100.,100.*exp(-t*1.+3.)) ));
-	    o.xyz *= (1.-length(uv)*1.); // vignette
+        fragColor.xyz += blackbody(length(h)*20000.+(inter*.51)*(100.-min(100.,100.*exp(-t*1.+3.)) ));
+	    fragColor.xyz *= (1.-length(uv)*1.); // vignette
     }
-    o.xyz *= .5;
-    o.xyz += h*1.;
+    fragColor.xyz *= .5;
+    fragColor.xyz += h*1.;
 }
 #undef ANIM
 #define ANIM .5

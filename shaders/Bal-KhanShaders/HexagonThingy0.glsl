@@ -10,7 +10,7 @@ float hex(vec2 p) {
 #define H2(uv) (step(hex(uv), 3.) )
 #define H3(uv) (step(hex(uv), 2.) )
 #define H4(uv) (step(hex(uv), 1.) )
-void mainImage( out vec4 o, in vec2 f )
+void mainImage( in vec2 f )
 {
     float	t = iGlobalTime;
     t = mod(t, 9.75);
@@ -19,11 +19,11 @@ void mainImage( out vec4 o, in vec2 f )
     vec2 U;
 //  o = vec4(uv,0.5+0.5*sin(iGlobalTime),1.0);
     
-    //o.xyz = vec3(step(hex(uv), .1)*(1.-2.*hex(uv)) );
+    //fragColor.xyz = vec3(step(hex(uv), .1)*(1.-2.*hex(uv)) );
     
     //#define H(uv) (step(hex(uv), .1)*(1.-2.*hex(uv)))
     
-    //o.x = H(uv);
+    //fragColor.x = H(uv);
     
     uv.x += step(0., t-1.65)*step(t, 3.75)*(t*.1-1.66*.1);
     if (t > 3.75)
@@ -75,10 +75,10 @@ void mainImage( out vec4 o, in vec2 f )
         abs(sin(+ceil(fract(U.y) )*.25*ceil(U.x)*.25+2.08))
 							    );
     //uv = abs(uv)-.50;
-    o.x = H0(uv*5.);
-    o.x -= H1(uv*5.);
-    o.x += H2(uv*5.);
-    o.x -= H3(uv*5.);
-    o.x += H4(uv*5.);
-    o.xyz = o.x * col;
+    fragColor.x = H0(uv*5.);
+    fragColor.x -= H1(uv*5.);
+    fragColor.x += H2(uv*5.);
+    fragColor.x -= H3(uv*5.);
+    fragColor.x += H4(uv*5.);
+    fragColor.xyz = fragColor.x * col;
 }

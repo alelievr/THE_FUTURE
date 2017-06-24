@@ -39,7 +39,7 @@ vec3 blackbody(float Temp)
 
 bool hit;
 
-void mainImage(out vec4 o, in vec2 f )
+void mainImage( in vec2 f )
 {
     hit = false;
     t = iGlobalTime;
@@ -56,7 +56,7 @@ void mainImage(out vec4 o, in vec2 f )
     col.xyz += blackbody((1.1-length(uv)*1.1)*inter.x*2000./inter.y);
     }
 //  col.xyz = vec3(1.)*inter.y*.02;    
-    o = col;
+    fragColor = col;
 }
 
 float	scene(vec3 p)

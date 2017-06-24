@@ -112,7 +112,7 @@ vec3 blackbody(float Temp)
 
 // -------------blackbody----------------- //
 
-void mainImage(out vec4 o, in vec2 f )
+void mainImage( in vec2 f )
 {
     tilt = 0.;
     t = iGlobalTime /4.;
@@ -157,7 +157,7 @@ void mainImage(out vec4 o, in vec2 f )
     #ifdef ED
     col = col/2. + col*(50.*(dFdx(col)*dFdy(col)) )/2.;
     #endif
-    o = col;
+    fragColor = col;
 }
 
 vec3 hash( vec3 p )
