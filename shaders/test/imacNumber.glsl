@@ -34,11 +34,11 @@ float c_a = float(0x119F)
 
 float c_0 = float(0x00FF);
 float c_1 = float(0x0281);
-float c_2 = float(0x8866);
+float c_2 = float(0x1177);
 float c_3 = float(0x11E7);
 float c_4 = float(0x1189);
 float c_5 = float(0x11EE);
-float c_6 = float(0x11F8);
+float c_6 = float(0x11FE);
 float c_7 = float(0x0087);
 float c_8 = float(0x11FF);
 float c_9 = float(0x11EF);
@@ -122,7 +122,7 @@ float dchar(float bits, vec2 uv)
 	return d;
 }
 
-uniform float iMacNumber;
+uniform float iMacNumber = 42;
 const int NUM_CHARS = 8;
 
 void mainImage( in vec2 fragCoord )
@@ -139,10 +139,9 @@ void mainImage( in vec2 fragCoord )
 	ch[ 4] = c_spc;
 	for (int i = 0; i < 3; ++i)
 	{
-		ch[ 5 + i] = c_numbers[im % 10];
+		ch[ 7 - i] = c_numbers[im % 10];
 		im /= 10;
 	}
-	
 
 	//Printing and spacing
 	vec2 ch_size = vec2(1.0, 2.0);
@@ -181,7 +180,7 @@ void mainImage( in vec2 fragCoord )
 	}
 
     //Glitch fade-in animation
-	float anim_time = clamp(iGlobalTime * 0.3, 0.0, 1.0) * float(NUM_CHARS);
+	float anim_time = clamp(iGlobalTime * 0.3, 0.0, 1.0) * float(NUM_CHARS) * 2;
 
     char = mix(0.0, char, clamp(anim_time - index, 0.0, 1.0));
 
