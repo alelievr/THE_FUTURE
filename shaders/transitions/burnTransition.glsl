@@ -2,12 +2,12 @@
 
 vec3 TextureSource(vec2 uv)
 {
-	return texture(iChannel0, uv).rgb;;
+	return vec3(0);
 }
 
 vec3 TextureTarget(vec2 uv)
 {
-	return texture(iChannel1, uv).rgb;;
+	return vec3(0);
 }
 
 
@@ -59,4 +59,5 @@ void mainImage( in vec2 fragCoord )
 		else col += tgt; }
 	
 	fragColor.rgb = col;
+	fragColor.a = 0.5;
 }

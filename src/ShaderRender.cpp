@@ -21,10 +21,10 @@
 vec2		framebuffer_size = {0, 0};
 std::list< const std::string > transitionShaders = {
 	"shaders/transitions/blockyTrasition.glsl",
-	"shaders/transitions/burnTransition.glsl",
+//	"shaders/transitions/burnTransition.glsl",
 	"shaders/transitions/fadeTransition.glsl",
-	"shaders/transitions/flashTransition.glsl",
-	"shaders/transitions/perlinTransition.glsl",
+//	"shaders/transitions/flashTransition.glsl",
+//	"shaders/transitions/perlinTransition.glsl",
 };
 
 ShaderRender::ShaderRender(void)

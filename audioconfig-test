@@ -1,5 +1,12 @@
-1 shaders/Bal-KhanShaders/Newton1.glsl
-1 music/Nyancat.ogga
+#shaders
+1 shaders/Bal-KhanShaders/Newton1.glsl			#0
+1 shaders/Bal-KhanShaders/Newton0.glsl			#1
+1 shaders/Bal-KhanShaders/HotTunnelDNA.glsl		#2
+1 shaders/Bal-KhanShaders/KaleidoComplex1.glsl	#3
+1 shaders/Bal-KhanShaders/2Dcircular.glsl		#4
+
+#musics
+1 music/Nyancat.ogg								#0
 
 e1r2p21 1
 
@@ -8,5 +15,13 @@ RenderLoop 1
 	AudioPlay 0 Sync None
 	AudioVolume 0.1 0 Sync None
 	Focus 0 0 Sync None
-	Wait 8
+	Wait 2
+	Focus 1 1 Sync None
+	Wait 2
+	Focus 2 2 Sync None
+	Wait 2
+	Focus 3 3 Sync None
+	Wait 2
+	Focus 4 4 Sync None
+	Wait 2
 }

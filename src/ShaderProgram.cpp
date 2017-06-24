@@ -11,7 +11,7 @@
 
 #include "ShaderProgram.hpp"
 
-#define DEBUG
+//#define DEBUG
 
 const char * FRAGMENT_SHADER_HEADER =
 "#version 330\n"
@@ -227,7 +227,6 @@ void		ShaderProgram::Use(void)
 void		ShaderProgram::Draw(void)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, _framebufferId);
-	std::cout << "bound fbo " << _framebufferId << " for program " << _id << std::endl;
 	if (_renderId != -1)
 	{
 		GLenum buffers[] = {GL_COLOR_ATTACHMENT0};

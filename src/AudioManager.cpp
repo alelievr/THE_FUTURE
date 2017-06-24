@@ -1,4 +1,10 @@
 #include "AudioManager.hpp"
+#include <thread>
+
+static std::mutex		_audioMutex;
+
+#define LOCK			_audioMutex.lock()
+#define UNLOCK			_audioMutex.unlock()
 
 AudioManager::AudioManager(void) : _currentPlayingIndex(-1)
 {
@@ -26,6 +32,7 @@ bool		AudioManager::Play(const size_t index)
 	if (static_cast< size_t >(_currentPlayingIndex) == index)
 		return true;
 
+	LOCK;
 	if (_currentPlayingIndex != -1 && _sound.getStatus() != sf::Music::Status::Stopped)
 		_sound.stop();
 	_sound.setBuffer(_audioBuffers[index]);
@@ -33,6 +40,7 @@ bool		AudioManager::Play(const size_t index)
 	_sound.play();
 	_sound.setLoop(true);
 	_currentPlayingIndex = index;
+	UNLOCK;
 	return true;
 }
 
@@ -46,11 +54,16 @@ bool		AudioManager::Volume(const float vol)
 
 bool		AudioManager::Pause(void)
 {
+	LOCK;
 	std::cout << "pause" << std::endl;
 	if (_sound.getStatus() == sf::Music::Status::Playing)
 		_sound.pause();
 	else
+	{
+		UNLOCK;
 		return false;
+	}
+	UNLOCK;
 	return true;
 }
 
@@ -59,6 +72,7 @@ int			AudioManager::GetCurrentAudioTexture(void)
 	if (_currentPlayingIndex == -1)
 		return -1;
 
+	LOCK;
 	const auto &		b = _audioBuffers[_currentPlayingIndex];
 	//const sf::Int16 *	samples = b.getSamples();
 	size_t			sampleRate = b.getSampleRate();
@@ -67,6 +81,7 @@ int			AudioManager::GetCurrentAudioTexture(void)
 	sf::Time		offset = _sound.getPlayingOffset();
 
 	std::cout << "playing offset: " << offset.asMilliseconds() << ", sampler rate: " << sampleRate << ", channelCount: " << channelCount << ", duration: " << duration.asMilliseconds() << std::endl;
+	UNLOCK;
 
 	return _audioTexture;
 }
