@@ -221,8 +221,6 @@ void		ShaderProgram::Use(void)
 	if (_firstUse)
 		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
 
-	std::cout << "localParam yolol2: " << __localParams["yolol2"] << std::endl;
-
 	glUseProgram(_id);
 }
 

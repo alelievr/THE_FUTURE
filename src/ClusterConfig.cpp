@@ -60,13 +60,12 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 	std::regex		closingBraceLine("\\s*\\}\\s*");
 	std::regex		focusLine("\\s*Focus\\s\\s*(\\d\\d*)\\s\\s*(-?\\d\\d*)\\s\\s*" + syncRegex);
 	std::regex		uniformLine("\\s*Uniform([1-4]f|1i)\\s\\s*(\\w+)\\s\\s*" + uniformParameters + SPACE + syncRegex);
-	std::regex		localParamLine("\\s*LocalParam\\s+" IMAC "\\s+(\\w+)\\s+" + std::string(FLOAT) + SPACE + syncRegex);
+	std::regex		localParamLine("\\s*LocalParam\\s+" IMAC "\\s+(\\w+)\\s+" + std::string(FLOAT));
 	std::regex		waitLine("\\s*Wait\\s\\s*(\\d\\d*)");
 	std::regex		audioLine("\\s*Audio(Play|Pause|Volume\\s+" FLOAT ")\\s+(\\d+)\\s+" + syncRegex);
 	bool			openbrace = false;
 	int				currentProgramIndex = -1;
 
-	std::cout << "\\s*LocalParam\\s+" IMAC "\\s+(\\w+)\\s+" FLOAT <<  std::endl;
 	while (std::getline(configFile, line))
 	{
 		line = std::regex_replace(line, commentLine, "");
@@ -262,6 +261,7 @@ void		ClusterConfig::LoadConfigFile(const std::string & fName)
 			lp.programIndex = programIndex;
 			lp.localParamName = localParamName;
 			lp.value = param;
+			std::cout << "loaded client config for r" << row << "p" << seat << std::endl;
 			_localParams[row][seat].push_back(lp);
 		}
 		else
@@ -302,10 +302,16 @@ const std::vector< LocalParam > &  ClusterConfig::GetLocalParamsForClient(const 
 	static const std::vector< LocalParam > defaultValue = {};
 	const auto	mapRow = _localParams.find(row);
 	if (mapRow == _localParams.end())
+	{
+		std::cout << "imac not found in client configs" << std::endl;
 		return defaultValue;
+	}
 	const auto	mapSeat = mapRow->second.find(seat);
 	if (mapSeat == mapRow->second.end())
+	{
+		std::cout << "imac not found in client configs" << std::endl;
 		return defaultValue;
+	}
 	return mapSeat->second;
 }
 

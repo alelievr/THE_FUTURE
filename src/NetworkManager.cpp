@@ -10,7 +10,7 @@
 #include <locale>
 #include <sys/time.h>
 
-#define DEBUG		0
+#define DEBUG		1
 
 #ifdef DEBUG
 # if DEBUG == 1
@@ -185,9 +185,12 @@ bool				NetworkManager::_ImacExists(const int row, const int seat) const
 	return true;
 }
 
-Client &		NetworkManager::_FindClient(const int groupId, const size_t ip)
+Client &		NetworkManager::_FindClient(const int groupId, const size_t ip, bool deepSearch)
 {
 	static Client	defaultClient;
+	struct in_addr ia;
+	ia.s_addr = ip;
+	const char *sip = inet_ntoa(ia);
 
 	LOCK;
 	if (groupId < 0 || _clients.find(groupId) == _clients.end())
@@ -206,7 +209,18 @@ Client &		NetworkManager::_FindClient(const int groupId, const size_t ip)
 		}
 	}
 	UNLOCK;
-	DEBUG("Client %zu not found in group: %i\n", ip, groupId);
+	DEBUG("Client %s not found in group: %i\n", sip, groupId);
+	if (deepSearch)
+	{
+		for (auto & lst : _clients)
+			for (auto & kp : lst.second)
+			{
+				auto & c = kp.second;
+				if (c.ip == ip)
+					return c;
+			}
+		DEBUG("Client %s not found in deepsearch !\n", sip);
+	}
 	return defaultClient;
 }
 
@@ -214,10 +228,36 @@ void				NetworkManager::OnClientResourcesLoaded(Client & c)
 {
 	const auto & cLocalConfig = ClusterConfig::GetLocalParamsForClient(c.row, c.seat);
 
+	std::cout << "onClient Resources loaded: " << c << std::endl;
 	for (const LocalParam & lp : cLocalConfig)
 	{
+		std::cout << "updated local param on client: " << c << " | " << lp.programIndex << ": " << lp.localParamName << " -> " << lp.value.f1 << std::endl;
 		UpdateLocalParamOnClient(Timer::Now(), c.row, c.seat, lp.programIndex, lp.localParamName, lp.value);
 	}
+}
+
+const std::string &	NetworkManager::_PacketTypeToString(const PacketType type) const
+{
+	static const std::string packetTypes[] = {
+		"Status",
+		"ShaderFocus",
+		"ShaderLoad",
+		"LocalParamUpdate",
+		"ChangeGroup",
+		"HelloServer",
+		"TimeoutCheck",
+		"ClientQuit",
+		"LoadAudioFile",
+		"AudioUpdate",
+		"ShaderLoadResponse",
+		"GroupChangeResponse",
+		"ShaderFocusResponse",
+		"ShaderLocalParamResponse",
+		"TimeoutCheckResponse",
+		"AudioUpdateResponse",
+		"LoadAudioFileResponse",
+	};
+	return packetTypes[static_cast< int >(type)];
 }
 
 NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) const
@@ -309,7 +349,7 @@ NetworkStatus		NetworkManager::_SendPacketToServer(const Packet & packet) const
 	if (inet_aton(_serverIp, &connection.sin_addr) == 0)
 		perror("inet_aton");
 
-	DEBUG("sending packet to server(%s) on port %i\n", inet_ntoa(connection.sin_addr), SERVER_PORT);
+	DEBUG("sending packet to server(%s), type: %s\n", inet_ntoa(connection.sin_addr), _PacketTypeToString(packet.type).c_str());
 	if (sendto(_clientSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), sizeof(connection)) < 0)
 
 		error = true, perror("[To server] sendto");
@@ -473,6 +513,7 @@ NetworkManager::Packet		NetworkManager::_CreateShaderFocusResponsePacket(const b
 	p.row = _me->row;
 	p.success = success;
 	p.groupId = _me->groupId;
+	p.ip = _me->ip;
 	return p;
 }
 
@@ -487,6 +528,7 @@ NetworkManager::Packet		NetworkManager::_CreateChangeGroupResponsePacket(const b
 	p.seat = _me->seat;
 	p.row = _me->row;
 	p.groupId = _me->groupId;
+	p.ip = _me->ip;
 	p.success = success;
 	return p;
 }
@@ -518,6 +560,7 @@ NetworkManager::Packet		NetworkManager::_CreateShaderLoadErrorPacket(void) const
 	p.row = _me->row;
 	p.success = false;
 	p.groupId = _me->groupId;
+	p.ip = _me->ip;
 	return p;
 }
 
@@ -533,6 +576,7 @@ NetworkManager::Packet		NetworkManager::_CreateShaderLoadedPacket(void) const
 	p.row = _me->row;
 	p.success = true;
 	p.groupId = _me->groupId;
+	p.ip = _me->ip;
 	return p;
 }
 
@@ -562,6 +606,7 @@ NetworkManager::Packet		NetworkManager::_CreateClientQuitPacket(const bool crash
 	p.seat = _me->seat;
 	p.row = _me->row;
 	p.groupId = _me->groupId;
+	p.ip = _me->ip;
 	return p;
 }
 
@@ -725,7 +770,6 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 			_connectedToServer = true;
 			strcpy(_serverIp, inet_ntoa(connection.sin_addr));
 			_SendPacketToServer(_CreatePokeStatusResponsePacket());
-			printf("responding to status\n");
 			break ;
 		case PacketType::LocalParamUpdate:
 			if (_shaderLocalParamCallback != NULL)
@@ -751,7 +795,6 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 			_SendPacketToServer(_CreateChangeGroupResponsePacket(true));
 			break ;
 		case PacketType::TimeoutCheck:
-			std::cout << "responding to timeout !\n";
 			_SendPacketToServer(_CreateTimeoutCheckResponsePacket());
 			break ;
 		case PacketType::LoadAudioFile:
@@ -778,9 +821,11 @@ void						NetworkManager::_ServerSocketEvent(void)
 	long					r;
 	Timeval					now;
 
+
 	connectionLen = sizeof(connection);
 	if ((r = recvfrom(_serverSocket, &packet, sizeof(packet), 0, reinterpret_cast< struct sockaddr * >(&connection), &connectionLen)) > 0)
 	{
+		DEBUG("received a packet of type: %s\n", _PacketTypeToString(packet.type).c_str());
 		if (_isServer)
 		{
 			switch (packet.type)
@@ -791,7 +836,7 @@ void						NetworkManager::_ServerSocketEvent(void)
 
 					//update the client status:
 					{
-						auto & c = _FindClient(packet.groupId, packet.ip);
+						auto & c = _FindClient(packet.groupId, packet.ip, true);
 
 						c.status = packet.status;
 						if (c.status == ClientStatus::WaitingForCommand)
@@ -822,6 +867,7 @@ void						NetworkManager::_ServerSocketEvent(void)
 				case PacketType::ShaderLoadResponse:
 					//WARNING: this event is received only when ALL the shaders are successfuly loaded
 					{
+						std::cout << "loadShaderResponse called !\n";
 						auto & c = _FindClient(packet.groupId, packet.ip);
 						if (!packet.success)
 							c.status = ClientStatus::Error;
@@ -833,7 +879,7 @@ void						NetworkManager::_ServerSocketEvent(void)
 						const auto & cConfig = ClusterConfig::GetConfigForGroup(packet.groupId);
 						c.shaderLoaded = true;
 						if (cConfig.audioFiles.size() == 0 || (cConfig.audioFiles.size() != 0 && c.audioLoaded))
-								OnClientResourcesLoaded(c);
+							OnClientResourcesLoaded(c);
 					}
 					break ;
 				case PacketType::GroupChangeResponse:
@@ -890,7 +936,6 @@ void						NetworkManager::_ServerSocketEvent(void)
 						case AudioUpdateType::Volume:
 							break ;
 					}
-					std::cout << "olol1\n";
 					break ;
 				case PacketType::LoadAudioFileResponse:
 					{
@@ -899,7 +944,7 @@ void						NetworkManager::_ServerSocketEvent(void)
 							c.audioStatus = AudioStatus::Loaded;
 						else
 							c.audioStatus = AudioStatus::FailedToLoad;
-						std::cout << "olol2\n";
+						std::cout << "LoadAudioFileResponse called !\n";
 
 						if (packet.lastAudioFile)
 							c.audioLoaded = true;

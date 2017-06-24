@@ -37,7 +37,7 @@ void		mainImage(vec2 coord)
 	vec2 uv = (coord / iResolution.xy) * 2. - 1.;
 	uv.x *= iResolution.x / iResolution.y;
 
-    vec3	iForward = normalize(vec3(sin(iGlobalTime / 10.) / 3. + 0.8, cos(iGlobalTime / 20.) / 3., .5));
+    vec3	iForward = normalize(vec3(sin(iGlobalTime / 10.) + 0.8, cos(iGlobalTime / 20.), .5));
 	float   fov = 1.5;
 	vec3    right = normalize(cross(iForward, vec3(0, 1, 0)));
 	vec3    up = normalize(cross(right, iForward));

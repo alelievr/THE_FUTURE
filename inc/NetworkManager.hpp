@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/23 13:11:16 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/24 18:17:42 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -314,8 +314,9 @@ class		NetworkManager
 		void					_FillLocalInfos(void);
 		void					_SendHelloPacket(void);
 		bool					_ImacExists(const int row, const int seat) const;
-		Client &				_FindClient(const int groupId, const size_t ip);
+		Client &				_FindClient(const int groupId, const size_t ip, bool deepSearch = false);
 		void					OnClientResourcesLoaded(Client & c);
+		const std::string &		_PacketTypeToString(const PacketType type) const;
 
 		//Create packet functions:
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;

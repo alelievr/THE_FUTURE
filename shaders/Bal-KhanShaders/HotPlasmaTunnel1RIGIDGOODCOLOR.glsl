@@ -68,7 +68,7 @@ void mainImage( in vec2 f)
     // coloring
     #ifndef PERF_COLS
     col.xyz = step(id_t, 0.)*blackbody( ( inter.y-.0251*inter.x ) * 500. );
-    col.xyz += blackbody( ( inter.y-.0251*inter.x ) * 500. )*step(1.,id_t)*vec3(abs(sin(t+1.04)), abs(sin(t+2.09)), abs(sin(t+3.14)))*inter.x*.01; // .01 == 1./float(I_MAX)
+    col.xyz += blackbody( ( inter.y-.0251*inter.x ) * 500. )*step(1.,id_t)*vec3(abs(sin(t+1.04+iValue1)), abs(sin(t+2.09+iValue2)), abs(sin(t+3.14+iValue3)))*inter.x*.01; // .01 == 1./float(I_MAX)
     #else
     col.xyz = step(id_t, 0.)*blackbody( ( inter.y-.0251*inter.x ) * 500. )*inter.x*.01*vec3(0.866555, 0.001592, 0.865759);
     col.xyz += step(1.,id_t)*vec3(0.865759, 0.866555, 0.001592)*inter.x*.01;
@@ -210,9 +210,9 @@ vec2	rot(vec2 p, vec2 ang)
 vec3	camera(vec2 uv)
 {
     float		fov = 1.;
-    vec3		    forw  = vec3(0.0, 0.0, -1.0);
-    vec3    		    right = vec3(1.0, 0.0, 0.0);
-    vec3    		    up    = vec3(0.0, 1.0, 0.0);
+    vec3	    forw  = vec3(0.0, 0.0, -1.0);
+    vec3   	    right = vec3(1.0, 0.0, 0.0);
+    vec3   	    up    = vec3(0.0, 1.0, 0.0);
 
     return (normalize((uv.x) * right + (uv.y) * up + fov * forw));
 }

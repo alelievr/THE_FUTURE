@@ -19,10 +19,8 @@ const float c1R = 1.;
 const float c2R = 4.;
 const float c3R = 4.;
 
-uniform float yolol = 1;
-
 vec2 circleInverse(vec2 pos, vec2 circlePos, float circleR){
-	return (((pos - circlePos) * circleR * circleR)/(length(pos - circlePos) * length(pos - circlePos) ) + circlePos) * yolol;
+	return ((pos - circlePos) * circleR * circleR)/(length(pos - circlePos) * length(pos - circlePos) ) + circlePos;
 }
 
 const int ITERATIONS = 13;
@@ -58,7 +56,7 @@ vec3 hsv2rgb(vec3 c)
 {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y) * iValue1;
 }
 
 const float SAMPLE_NUM = 8.;
