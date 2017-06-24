@@ -370,9 +370,7 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 //	printf("worksize def_col:%d\n", global_work_size[0]);
 	err[2] = clEnqueueNDRangeKernel(_queue, _kernels["define_color"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	if (!_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__))
-	{
 		exit(0);
-	}
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, _screen_tex);
 	int id = glGetUniformLocation(_id, "iChannel0");
@@ -384,6 +382,31 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 // <---
 void		KernelProgram::UpdateFramebufferSize(const vec2 fbSize)
 {
+	cl_int	err[5];
+
+	bzero(err, sizeof(err));
+
+	clReleaseMemObject(_buff["screen"]);
+	glDeleteTextures(1, &_screen_tex);
+
+	glGenTextures(1, &_screen_tex);
+    glBindTexture(GL_TEXTURE_2D, _screen_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, fbSize.x, fbSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+//	printf("==>%d\n", _screen_tex);
+
+	_buff["screen"] = clCreateFromGLTexture(_context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, _screen_tex, 0);
+	
+	err[0]	= clSetKernelArg(_kernels["draw_line"], 0, sizeof(cl_mem), &_buff["screen"]);
+	err[1] = clSetKernelArg(_kernels["clear"], 0, sizeof(cl_mem), &_buff["screen"]);
+
+	if (!_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__))
+		exit(0);
+
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_size.x, framebuffer_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 }
 
 void		KernelProgram::Draw(void)
