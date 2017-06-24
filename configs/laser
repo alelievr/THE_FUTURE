@@ -1,9 +1,9 @@
 1 shaders/test/laser.glsl
 
-1 e1r1p8
-1 e1r1p10
-1 e1r1p12
-1 e1r1p14
+e1r1p8	1
+e1r1p10	1
+e1r1p12	1
+e1r1p14	1
 
 LocalParam e1r1p8 0 LaserStart 1
 LocalParam e1r1p14 0 LaserEnd 1

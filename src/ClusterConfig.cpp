@@ -62,7 +62,7 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 	std::regex		focusLine("\\s*Focus\\s\\s*(\\d\\d*)\\s\\s*(-?\\d\\d*)\\s\\s*" + syncRegex);
 	std::regex		uniformLine("\\s*Uniform([1-4]f|1i)\\s\\s*(\\w+)\\s\\s*" + uniformParameters + SPACE + syncRegex);
 	std::regex		localParamLine("\\s*LocalParam\\s+" IMAC "\\s+(\\w+)\\s+" + std::string(FLOAT));
-	std::regex		waitLine("\\s*Wait\\s\\s*(\\d\\d*)");
+	std::regex		waitLine("\\s*Wait\\s\\s*(-?\\d\\d*)");
 	std::regex		audioLine("\\s*Audio(Play|Pause|Volume\\s+" FLOAT ")\\s+(\\d+)\\s+" + syncRegex);
 	bool			openbrace = false;
 	int				currentProgramIndex = -1;
