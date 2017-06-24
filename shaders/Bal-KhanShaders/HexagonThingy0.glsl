@@ -81,4 +81,5 @@ void mainImage( in vec2 f )
     fragColor.x -= H3(uv*5.);
     fragColor.x += H4(uv*5.);
     fragColor.xyz = fragColor.x * col;
+    fragColor.w = 1.;
 }

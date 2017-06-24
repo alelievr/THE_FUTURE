@@ -14,7 +14,7 @@ vec4	march(vec3 pos, vec3 dir);
 
 void mainImage( in vec2 fragCoord )
 {
-    vec4	col = vec4(0.0);
+    vec4	col = vec4(0.0,0.,0.,1.);
     vec3	dir = normalize(vec3(fragCoord.xy - iResolution.xy/2.0, -iResolution.y));
     vec3	pos = vec3(-2.0, 0.0, 2.0);
     mat4	look = lookat(pos, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));

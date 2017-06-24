@@ -123,7 +123,7 @@ void mainImage( in vec2 f )
     vec2 R = iResolution.xy;
           uv  = vec2(f-R/2.) / R.y;
 	  vec3	dir = camera(uv);
-    vec4  col = vec4(0.0);
+    vec4  col = vec4(0.0,0.0,0.0,1.);
     vec3  pos = vec3(.0, .0, 11.0);
 
     vec4  inter = (march(pos, dir));
