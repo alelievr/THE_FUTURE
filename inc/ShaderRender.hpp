@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/23 13:23:08 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/24 01:04:26 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,8 @@ class ShaderRender
 		std::vector< std::size_t >		_currentRenderedPrograms;
 		std::vector< ICGProgram * >		_transitionPrograms;
 
-		vec2			angleAmount;
-		int				cursor_mode;
-		float			lastPausedTime;
-		bool			programLoaded;
+		bool			_programLoaded;
+		int				_currentTransitionIndex;
 
 	public:
 		ShaderRender(void);

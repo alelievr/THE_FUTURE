@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "ShaderRender.hpp"
+#include "Timer.hpp"
 #include "LuaGL.hpp"
 #include <functional>
 #include <algorithm>
@@ -28,10 +29,8 @@ std::list< const std::string > transitionShaders = {
 
 ShaderRender::ShaderRender(void)
 {
-	angleAmount = vec2{0, 0};
-	cursor_mode = 0;
-	lastPausedTime = 0;
-	programLoaded = false;
+	_programLoaded = false;
+	_currentTransitionIndex = -1;
 
 	//Load transition shaders:
 	for (const std::string & shader : transitionShaders)
@@ -53,7 +52,7 @@ ShaderRender::ShaderRender(void)
 
 void		ShaderRender::Render(void)
 {
-	if (!programLoaded)
+	if (!_programLoaded)
 		return ;
 
 	//process render buffers if used:
@@ -130,6 +129,14 @@ void		ShaderRender::Render(void)
 			_programs[pIndex]->Draw();
 		}
 
+	if (_currentTransitionIndex != -1)
+	{
+		auto & p = _transitionPrograms[_currentTransitionIndex];
+		p->Use();
+		p->UpdateUniforms(framebuffer_size);
+		p->Draw();
+	}
+
 	frames++;
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -153,7 +160,7 @@ bool		ShaderRender::attachShader(const std::string file)
 		return std::cout << "shader " << file << " failed to compile !\n", false;
 	}
 	else
-		programLoaded = true;
+		_programLoaded = true;
 
 	_programs.push_back(newProgram);
 
@@ -162,8 +169,29 @@ bool		ShaderRender::attachShader(const std::string file)
 
 void		ShaderRender::SetCurrentRenderedShader(const size_t programIndex, const int transitionIndex)
 {
-	_currentRenderedPrograms.clear();
-	_currentRenderedPrograms.push_back(programIndex);
+	if (transitionIndex >= 0 && static_cast< size_t >(transitionIndex) < _transitionPrograms.size())
+	{
+		_currentTransitionIndex = transitionIndex;
+		_transitionPrograms[_currentTransitionIndex]->UpdateLocalParam("localStartTime", 0, true);
+		Timer::Timeout(Timer::TimeoutInMilliSeconds(500),
+			[this, programIndex](void)
+			{
+				_currentRenderedPrograms.clear();
+				_currentRenderedPrograms.push_back(programIndex);
+			}
+		);
+		Timer::Timeout(Timer::TimeoutInMilliSeconds(1000),
+			[this](void)
+			{
+				_currentTransitionIndex = -1;
+			}
+		);
+	}
+	else //no transition
+	{
+		_currentRenderedPrograms.clear();
+		_currentRenderedPrograms.push_back(programIndex);
+	}
 }
 
 void		ShaderRender::AddCurrentRenderedShader(const size_t programIndex)

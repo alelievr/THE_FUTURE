@@ -11,7 +11,7 @@
 
 #include "ShaderProgram.hpp"
 
-//#define DEBUG
+#define DEBUG
 
 const char * FRAGMENT_SHADER_HEADER =
 "#version 330\n"
@@ -226,8 +226,8 @@ void		ShaderProgram::Use(void)
 
 void		ShaderProgram::Draw(void)
 {
-	//TODO: renderbuffer management
 	glBindFramebuffer(GL_FRAMEBUFFER, _framebufferId);
+	std::cout << "bound fbo " << _framebufferId << " for program " << _id << std::endl;
 	if (_renderId != -1)
 	{
 		GLenum buffers[] = {GL_COLOR_ATTACHMENT0};
@@ -237,6 +237,7 @@ void		ShaderProgram::Draw(void)
 	std::cout << "drawing program: " << _id << " to " << _vao << "\n";
 #endif
 	glBindVertexArray(_vao);
+	glUseProgram(_id);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, _renderCount);
 }
 
@@ -293,6 +294,8 @@ void			ShaderProgram::CreateVAO(void)
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 }
 
+#include <fcntl.h>
+#include <unistd.h>
 void			ShaderProgram::UpdateUniforms(const vec2 winSize, bool pass)
 {
 	if (!_loaded)
@@ -328,6 +331,29 @@ void			ShaderProgram::UpdateUniforms(const vec2 winSize, bool pass)
 				p->Use();
 				p->UpdateUniforms(winSize, pass);
 				p->Draw();
+
+				{
+				uint8_t *data = (uint8_t *)malloc((int)framebuffer_size.x * (int)framebuffer_size.y * 4);
+				typedef struct
+				{
+					int width;
+					int height;
+					uint8_t *data;
+					size_t size;
+				}	ppm_image;
+
+				glReadBuffer(GL_COLOR_ATTACHMENT0);
+				glReadPixels(0, 0, (int)framebuffer_size.x, (int)framebuffer_size.y, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+				int fd = open("f.ppm", O_WRONLY | O_CREAT, 0644);
+				ppm_image img = (ppm_image){(int)framebuffer_size.x, (int)framebuffer_size.y, data, static_cast< size_t >((int)framebuffer_size.x * (int)framebuffer_size.y * 3)};
+
+				dprintf(fd, "P6\n# THIS IS A COMMENT\n%d %d\n%d\n", 
+						img.width, img.height, 0xFF);
+				write(fd, img.data, img.width * img.height * 3);
+				}
+
+				Use();
 
 				glActiveTexture(GL_TEXTURE1 + j);
 				glBindTexture(GL_TEXTURE_2D, channel->getTextureId());

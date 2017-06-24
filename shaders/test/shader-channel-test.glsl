@@ -1,9 +1,10 @@
 #pragma iChannel0 shaders/test/renderbuffer.glsl
-#pragma iChannel1 shaders/test/renderbuffer.glsl
+#pragma iChannel1 textures/chelou.jpg
 
 void		mainImage(vec2 fragCoord)
 {
 	vec2 uv = fragCoord / iResolution;
 
-	fragColor = vec4(texture(iChannel0, uv).xyz, 1);
+	vec4 tx = texture(iChannel1, uv);
+	fragColor = vec4(tx.xyz * (1-length(uv - 0.5)*2), 1);
 }
