@@ -19,6 +19,8 @@ const float c1R = 1.;
 const float c2R = 4.;
 const float c3R = 4.;
 
+uniform float	xOffset = 0;
+
 vec2 circleInverse(vec2 pos, vec2 circlePos, float circleR){
 	return ((pos - circlePos) * circleR * circleR)/(length(pos - circlePos) * length(pos - circlePos) ) + circlePos;
 }
@@ -56,7 +58,7 @@ vec3 hsv2rgb(vec3 c)
 {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y) * iValue1;
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
 const float SAMPLE_NUM = 8.;
@@ -65,6 +67,7 @@ void mainImage( in vec2 fragCoord ){
 	float ratio = iResolution.x / iResolution.y / 2.0;
     for(float i = 0. ; i < SAMPLE_NUM ; i++){
         vec2 position = ( (fragCoord.xy + rand2n(fragCoord.xy, i)) / iResolution.yy ) - vec2(ratio, 0.5);
+        position.x += xOffset;
 		position *= 4;
 		position += vec2(sin(iGlobalTime / 6), cos(iGlobalTime / 4.4)) * 3;
 
