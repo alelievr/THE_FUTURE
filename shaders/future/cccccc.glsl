@@ -23,7 +23,7 @@ float trace(vec3 o, vec3 r, out vec3 color)
 {
 	float t = 0.;
 
-	for (int i = 0; i < 30; i++)
+	for (int i = 0; i < 20; i++)
 	{
 		vec3 p = o + r * t;
 		float d = map(p, color);

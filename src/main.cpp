@@ -25,7 +25,7 @@ static bool		serverSentAllShadersToLoad;
 static std::list< const std::string >	shadersToLoad;
 
 static struct option longopts[] = {
-	{ "server",     optional_argument,      NULL,           1},
+	{ "server",     no_argument,            NULL,           1},
 	{ "connection", no_argument,			NULL, 			'c'},
 	{ "nonetwork",  required_argument,      NULL,           'n'},
 	{ NULL,         0,                      NULL,           0}
@@ -47,10 +47,6 @@ static void options(int *ac, char ***av)
         switch (ch) {
             case 1:
                 server = true;
-				if (optarg != NULL)
-					ClusterConfig::LoadConfigFile(optarg);
-				else
-					ClusterConfig::LoadConfigFile("");
                 break;
 			case 'f':
 				fullScreen = true;
@@ -197,6 +193,12 @@ int		main(int ac, char **av)
 	{
 		NetworkManager		nm(server, connection);
 		std::thread			serverThread(NetworkThread, &nm, (ShaderApplication *)NULL);
+
+		if (ac == 0)
+			ClusterConfig::LoadConfigFile("");
+		else
+			while (*av)
+				ClusterConfig::LoadConfigFile(*av++);
 
 		NetworkGUI			gui(&nm);
 		serverGUINotInitialized = false;

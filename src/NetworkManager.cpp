@@ -257,7 +257,10 @@ const std::string &	NetworkManager::_PacketTypeToString(const PacketType type) c
 		"AudioUpdateResponse",
 		"LoadAudioFileResponse",
 	};
-	return packetTypes[static_cast< int >(type)];
+	int t = static_cast< int >(type);
+	if (t < 0 || t >= 17)
+		return "";
+	return packetTypes[t];
 }
 
 NetworkStatus		NetworkManager::_SendPacketToAllClients(const Packet & packet) const

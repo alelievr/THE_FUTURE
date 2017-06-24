@@ -169,6 +169,9 @@ bool		ShaderRender::attachShader(const std::string file)
 
 void		ShaderRender::SetCurrentRenderedShader(const size_t programIndex, const int transitionIndex)
 {
+	if (programIndex >= _programs.size())
+		return ;
+
 	if (transitionIndex >= 0 && static_cast< size_t >(transitionIndex) < _transitionPrograms.size())
 	{
 		_currentTransitionIndex = transitionIndex;
@@ -177,6 +180,7 @@ void		ShaderRender::SetCurrentRenderedShader(const size_t programIndex, const in
 			[this, programIndex](void)
 			{
 				_currentRenderedPrograms.clear();
+				_programs[programIndex]->UpdateLocalParam("localStartTime", 0, true);
 				_currentRenderedPrograms.push_back(programIndex);
 			}
 		);
@@ -189,6 +193,7 @@ void		ShaderRender::SetCurrentRenderedShader(const size_t programIndex, const in
 	}
 	else //no transition
 	{
+		_programs[programIndex]->UpdateLocalParam("localStartTime", 0, true);
 		_currentRenderedPrograms.clear();
 		_currentRenderedPrograms.push_back(programIndex);
 	}

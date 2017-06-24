@@ -130,6 +130,7 @@ class		ClusterConfig
 		static std::map< int, GroupConfig >					_groupConfigs;
 		static std::map< int, RenderLoop >					_renderLoops;
 		static std::map< int, std::map< int, std::vector< LocalParam > > >	_localParams;
+		static bool											_renderLoopStarted;
 
 		static void			LoadRenderLoop(std::ifstream & condigFile, const int groupId, int & nLines);
 		static UniformType	_UniformTypeStringToType(const std::string & uniType);

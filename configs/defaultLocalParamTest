@@ -1,30 +1,13 @@
-1 shaders/Bal-KhanShaders/HotPlasmaTunnel1RIGIDGOODCOLOR.glsl	#0
-1 shaders/future/appolonian-packing.glsl						#1
+2 shaders/Bal-KhanShaders/HotPlasmaTunnel1RIGIDGOODCOLOR.glsl	#0
+2 shaders/future/appolonian-packing.glsl						#1
 
-e1r2p21 1
+e1r2p21 2
 
 #syntax: LocalParam imac programIndex localParamName value
 LocalParam e1r2p21 0 iValue1 0
 
-RenderLoop 1
+RenderLoop 2
 {
-	Focus 0 -1 Sync None
-	Uniform1f yolol 0.1 Sync None
-	Wait 1
-	Uniform1f yolol 0.2 Sync None
-	Wait 1
-	Uniform1f yolol 0.3 Sync None
-	Wait 1
-	Uniform1f yolol 0.4 Sync None
-	Wait 1
-	Uniform1f yolol 0.5 Sync None
-	Wait 1
-	Uniform1f yolol 0.6 Sync None
-	Wait 1
-	Uniform1f yolol 0.7 Sync None
-	Wait 1
-	Uniform1f yolol 0.8 Sync None
-	Wait 1
-	Uniform1f yolol 0.9 Sync None
-	Wait 1
+	Focus 0 1 Sync None
+	Wait 3
 }

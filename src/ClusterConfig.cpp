@@ -15,6 +15,7 @@ std::vector< ImacConfig >			ClusterConfig::_clusterConfig;
 std::map< int, GroupConfig >		ClusterConfig::_groupConfigs;
 std::map< int, RenderLoop >			ClusterConfig::_renderLoops;
 std::map< int, std::map< int, std::vector< LocalParam > > >	ClusterConfig::_localParams;
+bool								ClusterConfig::_renderLoopStarted = false;
 
 UniformType	ClusterConfig::_UniformTypeStringToType(const std::string & uniType)
 {
@@ -240,6 +241,8 @@ void		ClusterConfig::LoadConfigFile(const std::string & fName)
 		else if (std::regex_match(line, matches, renderLoopLine))
 		{
 			int	groupId = std::stoi(matches[1]);
+			if (_renderLoops.find(groupId) != _renderLoops.end())
+				std::cout << "parse error: multiple renderloops with same program Id !\n" << std::endl;
 			LoadRenderLoop(configFile, groupId, n);
 		}
 		else if (std::regex_match(line, matches, localParamLine))
@@ -261,7 +264,6 @@ void		ClusterConfig::LoadConfigFile(const std::string & fName)
 			lp.programIndex = programIndex;
 			lp.localParamName = localParamName;
 			lp.value = param;
-			std::cout << "loaded client config for r" << row << "p" << seat << std::endl;
 			_localParams[row][seat].push_back(lp);
 		}
 		else
@@ -317,6 +319,9 @@ const std::vector< LocalParam > &  ClusterConfig::GetLocalParamsForClient(const 
 
 void		ClusterConfig::StartAllRenderLoops(NetworkManager *netManager)
 {
+	if (_renderLoopStarted)
+		std::cout << "rendering already started !" << std::endl;
+	_renderLoopStarted = true;
 	for (auto & renderLoopKP : _renderLoops)
 	{
 		int		groupId = renderLoopKP.first;
