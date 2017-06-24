@@ -1,246 +1,197 @@
-// Simple Bitmap Text by Gerard Geer
-// 
-// Essentially a "hmm, how does that work?" educational rewrite of P_Malin's text renderer:
-// https://www.shadertoy.com/view/4sBSWW
-// Each character is a 4x5 bitmap encoded into a float, where each hex digit convieniently
-// represents one row.
-// License: Creative Commons CC0 1.0 Universal (CC-0) 
-
-uniform float iMacNumber = 0;
-
-#define _f float
-const lowp _f CH_A    = _f(0x69f99), CH_B    = _f(0x79797), CH_C    = _f(0xe111e),
-       	  	  CH_D    = _f(0x79997), CH_E    = _f(0xf171f), CH_F    = _f(0xf1711),
-		  	  CH_G    = _f(0xe1d96), CH_H    = _f(0x99f99), CH_I    = _f(0xf444f),
-		  	  CH_J    = _f(0x88996), CH_K    = _f(0x95159), CH_L    = _f(0x1111f),
-		  	  CH_M    = _f(0x9f999), CH_N    = _f(0x9bd99), CH_O    = _f(0x69996),
-		  	  CH_P    = _f(0x79971), CH_Q    = _f(0x69b5a), CH_R    = _f(0x79759),
-		  	  CH_S    = _f(0xe1687), CH_T    = _f(0xf4444), CH_U    = _f(0x99996),
-		  	  CH_V    = _f(0x999a4), CH_W    = _f(0x999f9), CH_X    = _f(0x99699),
-    	  	  CH_Y    = _f(0x99e8e), CH_Z    = _f(0xf843f), CH_0    = _f(0x6bd96),
-		  	  CH_1    = _f(0x46444), CH_2    = _f(0x6942f), CH_3    = _f(0x69496),
-		  	  CH_4    = _f(0x99f88), CH_5    = _f(0xf1687), CH_6    = _f(0x61796),
-		  	  CH_7    = _f(0xf8421), CH_8    = _f(0x69696), CH_9    = _f(0x69e84),
-		  	  CH_APST = _f(0x66400), CH_PI   = _f(0x0faa9), CH_UNDS = _f(0x0000f),
-		  	  CH_HYPH = _f(0x00600), CH_TILD = _f(0x0a500), CH_PLUS = _f(0x02720),
-		  	  CH_EQUL = _f(0x0f0f0), CH_SLSH = _f(0x08421), CH_EXCL = _f(0x33303),
-		  	  CH_QUES = _f(0x69404), CH_COMM = _f(0x00032), CH_FSTP = _f(0x00002),
-    	  	  CH_QUOT = _f(0x55000), CH_BLNK = _f(0x00000), CH_COLN = _f(0x00202),
-			  CH_LPAR = _f(0x42224), CH_RPAR = _f(0x24442);
-const lowp vec2 MAP_SIZE = vec2(4,5);
-#undef flt
-
 /*
-	returns the status of a bit in a bitmap. This is done value-wise, so
-	the exact representation of the float doesn't really matter.
-*/
-float getBit( in float map, in float index )
+   16 segment display
+
+   Segment bit positions:
+
+   __2__ __1__
+   |\    |    /|
+   | \   |   / |
+   3  11 10 9  0
+   |   \ | /   |
+   |    \|/    |
+   _12__ __8__
+   |           |
+   |    /|\    |
+   4   / | \   7
+   | 13 14  15 |
+   | /   |   \ |
+   __5__|__6__
+
+   15                 0
+   |                 |
+   0000 0000 0000 0000
+
+example: letter A
+
+12    8 7  4 3210
+|    | |  | ||||
+0001 0001 1001 1111
+
+binary to hex -> 0x119F
+
+float c_a = float(0x119F)
+ */
+
+float c_0 = float(0x00FF);
+float c_1 = float(0x0281);
+float c_2 = float(0x8866);
+float c_3 = float(0x11E7);
+float c_4 = float(0x1189);
+float c_5 = float(0x11EE);
+float c_6 = float(0x11F8);
+float c_7 = float(0x0087);
+float c_8 = float(0x11FF);
+float c_9 = float(0x11EF);
+
+float[10] c_numbers = float[10](c_0, c_1, c_2, c_3, c_4, c_5, c_6, c_7, c_8, c_9);
+
+float c_a = float(0x119F);
+float c_b = float(0x927E);
+float c_c = float(0x007E);
+float c_d = float(0x44E7);
+float c_e = float(0x107E);
+float c_f = float(0x101E);
+float c_g = float(0x807E);
+float c_h = float(0x1199);
+float c_i = float(0x4466);
+float c_j = float(0x4436);
+float c_k = float(0x9218);
+float c_l = float(0x0078);
+float c_m = float(0x0A99);
+float c_n = float(0x8899);
+float c_o = float(0x00FF);
+float c_p = float(0x111F);
+float c_q = float(0x80FF);
+float c_r = float(0x911F);
+float c_s = float(0x8866);
+float c_t = float(0x4406);
+float c_u = float(0x00F9);
+float c_v = float(0x2218);
+float c_w = float(0xA099);
+float c_x = float(0xAA00);
+float c_y = float(0x4A00);
+float c_z = float(0x2266);
+
+float c_com = float(0x2000);
+float c_spc = 0.0;
+
+float c_nl = -1.0;
+
+//Distance to line p0,p1 at uv
+float dseg(vec2 p0,vec2 p1,vec2 uv)
 {
-    // Ooh -index takes out that divide :)
-    return mod( floor( map*exp2(-index) ), 2.0 );
+	vec2 dir = normalize(p1 - p0);
+	uv = (uv - p0) * mat2(dir.x, dir.y,-dir.y, dir.x);
+	return distance(uv, clamp(uv, vec2(0), vec2(distance(p0, p1), 0)));   
 }
 
-/*
-	Trades a float for a character bitmap. Here's to eliminating
-	branches with step()!
-*/
-float floatToChar( in float x )
+//Checks if bit 'b' is set in number 'n'
+bool bit(float n, float b)
 {
-    float res = CH_BLNK;
-    res += (step(-.5,x)-step(0.5,x))*CH_0;
-    res += (step(0.5,x)-step(1.5,x))*CH_1;
-    res += (step(1.5,x)-step(2.5,x))*CH_2;
-    res += (step(2.5,x)-step(3.5,x))*CH_3;
-    res += (step(3.5,x)-step(4.5,x))*CH_4;
-    res += (step(4.5,x)-step(5.5,x))*CH_5;
-    res += (step(5.5,x)-step(6.5,x))*CH_6;
-    res += (step(6.5,x)-step(7.5,x))*CH_7;
-    res += (step(7.5,x)-step(8.5,x))*CH_8;
-    res += (step(8.5,x)-step(9.5,x))*CH_9;
-    return res;
+	return mod(floor(n / exp2(floor(b))), 2.0) != 0.0;
 }
 
-/*
-	Draws a character, given its encoded value, a position, size and
-	current [0..1] uv coordinate.
-*/
-float drawChar( in float char, in vec2 pos, in vec2 size, in vec2 uv )
+//Distance to the character defined in 'bits'
+float dchar(float bits, vec2 uv)
 {
-    // Subtract our position from the current uv so that we can
-    // know if we're inside the bounding box or not.
-    uv-=pos;
-    
-    // Divide the screen space by the size, so our bounding box is 1x1.
-    uv /= size;    
-    
-    // Create a place to store the result.
-    float res;
-    
-    // Branchless bounding box check.
-    res = step(0.0,min(uv.x,uv.y)) - step(1.0,max(uv.x,uv.y));
-    
-    // Go ahead and multiply the UV by the bitmap size so we can work in
-    // bitmap space coordinates.
-    uv *= MAP_SIZE;
-    
-    // Get the appropriate bit and return it.
-    res*=getBit( char, 4.0*floor(uv.y) + floor(uv.x) );
-    return clamp(res,0.0,1.0);
+	float d = 1e6;	
+
+	float n = floor(bits);
+
+	if(bits != 0.0)
+	{
+        //Segment layout and checking.
+		d = bit(n,  0.0) ? min(d, dseg(vec2( 0.500,  0.063), vec2( 0.500,  0.937), uv)) : d;
+		d = bit(n,  1.0) ? min(d, dseg(vec2( 0.438,  1.000), vec2( 0.063,  1.000), uv)) : d;
+		d = bit(n,  2.0) ? min(d, dseg(vec2(-0.063,  1.000), vec2(-0.438,  1.000), uv)) : d;
+		d = bit(n,  3.0) ? min(d, dseg(vec2(-0.500,  0.937), vec2(-0.500,  0.062), uv)) : d;
+		d = bit(n,  4.0) ? min(d, dseg(vec2(-0.500, -0.063), vec2(-0.500, -0.938), uv)) : d;
+		d = bit(n,  5.0) ? min(d, dseg(vec2(-0.438, -1.000), vec2(-0.063, -1.000), uv)) : d;
+		d = bit(n,  6.0) ? min(d, dseg(vec2( 0.063, -1.000), vec2( 0.438, -1.000), uv)) : d;
+		d = bit(n,  7.0) ? min(d, dseg(vec2( 0.500, -0.938), vec2( 0.500, -0.063), uv)) : d;
+		d = bit(n,  8.0) ? min(d, dseg(vec2( 0.063,  0.000), vec2( 0.438, -0.000), uv)) : d;
+		d = bit(n,  9.0) ? min(d, dseg(vec2( 0.063,  0.063), vec2( 0.438,  0.938), uv)) : d;
+		d = bit(n, 10.0) ? min(d, dseg(vec2( 0.000,  0.063), vec2( 0.000,  0.937), uv)) : d;
+		d = bit(n, 11.0) ? min(d, dseg(vec2(-0.063,  0.063), vec2(-0.438,  0.938), uv)) : d;
+		d = bit(n, 12.0) ? min(d, dseg(vec2(-0.438,  0.000), vec2(-0.063, -0.000), uv)) : d;
+		d = bit(n, 13.0) ? min(d, dseg(vec2(-0.063, -0.063), vec2(-0.438, -0.938), uv)) : d;
+		d = bit(n, 14.0) ? min(d, dseg(vec2( 0.000, -0.938), vec2( 0.000, -0.063), uv)) : d;
+		d = bit(n, 15.0) ? min(d, dseg(vec2( 0.063, -0.063), vec2( 0.438, -0.938), uv)) : d;
+	}
+
+	return d;
 }
 
-/*
-	Prints a float as an int. Be very careful about overflow.
-	This as a side effect will modify the character position,
-	so that multiple calls to this can be made without worrying
-	much about kerning.
-*/
-float drawIntCarriage( in int val, inout vec2 pos, in vec2 size, in vec2 uv, in int places )
-{
-    // Create a place to store the current values.
-    float res = 0.0,digit = 0.0;
-    // Surely it won't be more than 10 chars long, will it?
-    // (MAX_INT is 10 characters)
-    for( int i = 0; i < 10; ++i )
-    {
-        // If we've run out of film, cut!
-        if(val == 0 && i >= places) break;
-        // The current lsd is the difference between the current
-        // value and the value rounded down one place.
-        digit = float( val-(val/10)*10 );
-        // Draw the character. Since there are no overlaps, we don't
-        // need max().
-        res += drawChar(floatToChar(digit),pos,size,uv);
-        // Move the carriage.
-        pos.x -= size.x*1.2;
-        // Truncate away this most recent digit.
-        val /= 10;
-    }
-    return res;
-}
+uniform float iMacNumber;
+const int NUM_CHARS = 8;
 
-/*
-	Draws an integer to the screen. No side-effects, but be ever vigilant
-	so that your cup not overfloweth.
-*/
-float drawInt( in int val, in vec2 pos, in vec2 size, in vec2 uv )
-{
-    vec2 p = vec2(pos);
-    float s = sign(float(val));
-    val *= int(s);
-    
-    float c = drawIntCarriage(val,p,size,uv,1);
-    return c + drawChar(CH_HYPH,p,size,uv)*max(0.0, -s);
-}
-
-/*
-	Prints a fixed point fractional value. Be even more careful about overflowing.
-*/
-float drawFixed( in float val, in int places, in vec2 pos, in vec2 size, in vec2 uv )
-{
-    // modf() sure would be nice right about now.
-    vec2 p = vec2(pos);
-    float res = 0.0;
-    
-    // Draw the floating point part.
-    res = drawIntCarriage( int( fract(val)*pow(10.0,float(places)) ), p, size, uv, places );
-    // The decimal is tiny, so we back things up a bit before drawing it.
-    p.x += size.x*.4;
-//    res = max(res, drawChar(CH_FSTP,p,size,uv)); p.x-=size.x*1.2;
-    // And after as well.
-    p.x += size.x *.1;
-    // Draw the integer part.
-    res = max(res, drawIntCarriage(int(floor(val)),p,size,uv,1));
-	return res;
-}
-
-float text( in vec2 uv )
-{
-    // Set a general character size...
-    vec2 charSize = vec2(.03, .0375);
-    // and a starting position.
-    vec2 charPos = vec2(0.05, 0.90);
-    // Draw some text!
-    float chr = 0.0;
-    // Bitmap text rendering!
-    chr += drawChar( CH_B, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_I, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_T, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_M, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_A, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_P, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_BLNK, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_T, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_E, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_X, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_T, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_BLNK, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_R, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_E, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_N, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_D, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_E, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_R, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_I, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_N, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_G, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_EXCL, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_EXCL, charPos, charSize, uv); charPos.x += .04;
-    
-    // Today's Date: {date}
-    charPos = vec2(0.05, .75);
-    chr += drawChar( CH_T, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_O, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_D, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_A, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_Y, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_APST, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_S, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_BLNK, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_D, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_A, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_T, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_E, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_BLNK, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_LPAR, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_M, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_M, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_HYPH, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_D, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_D, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_HYPH, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_Y, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_Y, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_Y, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_Y, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_RPAR, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_COLN, charPos, charSize, uv); charPos.x += .1;
-
-    // Shader uptime:
-    charPos = vec2(0.05, .6);
-    chr += drawChar( CH_I, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_M, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_A, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_C, charPos, charSize, uv); charPos.x += .04;
-   	charPos.x += .04;
-    chr += drawChar( CH_N, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_COLN, charPos, charSize, uv); charPos.x += .04;
-    // The uptime itself.
-    charPos.x += .3;
-    chr += drawFixed(iMacNumber, 0, charPos, charSize, uv);
-    return chr;
-}
-
-/*
-	Shadertoy's fancy entry function.
-*/
 void mainImage( in vec2 fragCoord )
 {
-    // Get normalized UV coords.
-	vec2 uv = fragCoord.xy / iResolution.xy;
-    uv.x *= iResolution.x/iResolution.y; //fix aspect ratio
-    
-    // Draw some text!
-    float txt = text(uv);
-    
-	fragColor = vec4(txt,txt,txt,1.0);
+	vec2 uv = ( fragCoord / iResolution.y ) * 8.0;
+
+	float ch[NUM_CHARS];
+	int im = int(iMacNumber);
+
+	ch[ 0] = c_i;
+	ch[ 1] = c_m;
+	ch[ 2] = c_a;
+	ch[ 3] = c_c;
+	ch[ 4] = c_spc;
+	for (int i = 0; i < 3; ++i)
+	{
+		ch[ 5 + i] = c_numbers[im % 10];
+		im /= 10;
+	}
+	
+
+	//Printing and spacing
+	vec2 ch_size = vec2(1.0, 2.0);
+	vec2 ch_space = ch_size + vec2(0.25, 0.25);
+
+    vec2 uvc = mod(uv, ch_space) - (ch_size / 2.0) - 0.125; //Per-character repeated uv space
+    vec2 uvt = floor(uv / ch_space); //Character screen position
+
+    float char = 0.0; //Character to print
+
+	vec2 cursor = vec2(0.0,2.0); //Print position cursor
+
+    float index = 0.0; //Character index (for animation)
+
+	for(int i = 0;i < NUM_CHARS;i++)
+	{
+        if(uvt == cursor)
+        {
+            if(ch[i] >= 0.0) //Don't print control characters.
+            {
+				char = ch[i];
+            }
+            break;
+        }
+
+        if(ch[i] == c_nl) //Insert a new line after c_nl
+        {
+			cursor.y--;
+            cursor.x = 0.0;
+        }
+        else
+        {
+        	index++; 
+            cursor.x++; //Move cursor.
+        }
+	}
+
+    //Glitch fade-in animation
+	float anim_time = clamp(iGlobalTime * 0.3, 0.0, 1.0) * float(NUM_CHARS);
+
+    char = mix(0.0, char, clamp(anim_time - index, 0.0, 1.0));
+
+	float dist = dchar(char, uvc);
+
+	//Shading
+	vec3 color = vec3(0.0);
+	vec3 c = vec3(2.0 + sin(iGlobalTime + 1.11), 0.8 + cos(iGlobalTime / 3.33), 0.1 + sin(iGlobalTime + cos(iGlobalTime)) / 2);
+	color = mix(c, vec3(0.0, 0.0, 0.0), smoothstep(0.01, 0.04, dist) - (0.0001 / (dist * dist)));
+
+	fragColor = vec4(color, 1.0);
+
 }

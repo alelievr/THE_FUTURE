@@ -545,6 +545,6 @@ RenderLoop 1
 {
 	Focus 0 -1 Sync None
 	Wait 10
-	Focus 1 -1 Sync Linear 300
+	Focus 1 -1 Sync Linear 150
 	Wait 60
 }
