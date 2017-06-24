@@ -49,6 +49,8 @@ ShaderApplication::ShaderApplication(bool fullScreen)
 		}
 	);
 
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
 	int		fw, fh;
 	glfwGetFramebufferSize(window, &fw, &fh);
 	framebuffer_size.x = fw;
