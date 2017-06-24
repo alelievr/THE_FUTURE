@@ -145,7 +145,7 @@ float drawFixed( in float val, in int places, in vec2 pos, in vec2 size, in vec2
     res = drawIntCarriage( int( fract(val)*pow(10.0,float(places)) ), p, size, uv, places );
     // The decimal is tiny, so we back things up a bit before drawing it.
     p.x += size.x*.4;
-    res = max(res, drawChar(CH_FSTP,p,size,uv)); p.x-=size.x*1.2;
+//    res = max(res, drawChar(CH_FSTP,p,size,uv)); p.x-=size.x*1.2;
     // And after as well.
     p.x += size.x *.1;
     // Draw the integer part.
@@ -214,38 +214,26 @@ float text( in vec2 uv )
     chr += drawChar( CH_Y, charPos, charSize, uv); charPos.x += .04;
     chr += drawChar( CH_RPAR, charPos, charSize, uv); charPos.x += .04;
     chr += drawChar( CH_COLN, charPos, charSize, uv); charPos.x += .1;
-    // The date itself.
-    charPos.x += .3;
-    chr += drawIntCarriage( int(iDate.x), charPos, charSize, uv, 4);
-    chr += drawChar( CH_HYPH, charPos, charSize, uv); charPos.x-=.04;
-    chr += drawIntCarriage( int(iDate.z)+1, charPos, charSize, uv, 2);
-    chr += drawChar( CH_HYPH, charPos, charSize, uv); charPos.x-=.04;
-    chr += drawIntCarriage( int(iDate.y)+1, charPos, charSize, uv, 2);
-    
+
     // Shader uptime:
     charPos = vec2(0.05, .6);
     chr += drawChar( CH_I, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_G, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_L, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_O, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_B, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_A, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_L, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_T, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_I, charPos, charSize, uv); charPos.x += .04;
     chr += drawChar( CH_M, charPos, charSize, uv); charPos.x += .04;
-    chr += drawChar( CH_E, charPos, charSize, uv); charPos.x += .04;
+    chr += drawChar( CH_A, charPos, charSize, uv); charPos.x += .04;
+    chr += drawChar( CH_C, charPos, charSize, uv); charPos.x += .04;
+   	charPos.x += .04;
+    chr += drawChar( CH_N, charPos, charSize, uv); charPos.x += .04;
     chr += drawChar( CH_COLN, charPos, charSize, uv); charPos.x += .04;
     // The uptime itself.
     charPos.x += .3;
-    chr += drawFixed(iMacNumber, 2, charPos, charSize, uv);
+    chr += drawFixed(iMacNumber, 0, charPos, charSize, uv);
     return chr;
 }
 
 /*
 	Shadertoy's fancy entry function.
 */
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
+void mainImage( in vec2 fragCoord )
 {
     // Get normalized UV coords.
 	vec2 uv = fragCoord.xy / iResolution.xy;
