@@ -2,7 +2,7 @@ float rand(float n){return fract(sin(n) * 43758.5453123);}
 
 float noise(float p){
 	float fl = floor(p);
-  float fc = fract(p);
+  	float fc = fract(p);
 	return mix(rand(fl), rand(fl + 1.0), fc);
 }
 
@@ -23,7 +23,7 @@ float trace(vec3 o, vec3 r, out vec3 color)
 {
 	float t = 0.;
 
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 30; i++)
 	{
 		vec3 p = o + r * t;
 		float d = map(p, color);

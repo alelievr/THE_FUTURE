@@ -10,7 +10,7 @@
 # include <regex>
 # include <map>
 
-#define DEFAULT_CONFIG_FILE		".config"
+#define DEFAULT_CONFIG_FILE		"configs/default"
 
 struct LocalParam
 {

@@ -214,7 +214,7 @@ void		ShaderRender::UpdateLocalParam(const int programIndex, const std::string &
 {
 	if (programIndex < 0 || static_cast< size_t >(programIndex) >= _programs.size())
 	{
-		std::cout << "programIndex out of bounds";
+		std::cout << "programIndex out of bounds" << std::endl;
 		return ;
 	}
 	std::cout << "updating localParam of program " << programIndex << ": " << localParamName << " -> " << param.f1 << " (reset: " << param.reset << ")" << std::endl;

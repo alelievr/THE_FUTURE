@@ -221,6 +221,8 @@ void		ShaderProgram::Use(void)
 	if (_firstUse)
 		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
 
+	std::cout << "localParam yolol2: " << __localParams["yolol2"] << std::endl;
+
 	glUseProgram(_id);
 }
 
@@ -372,6 +374,8 @@ void			ShaderProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	for (auto & param : __localParams)
 		if (_uniforms.find(param.first) != _uniforms.end())
 			glUniform1f(_uniforms[param.first], param.second);
+		else
+			glUniform1f(glGetUniformLocation(_id, param.first.c_str()), param.second);
 }
 
 void	ShaderProgram::UpdateFramebufferSize(const vec2 fbSize)

@@ -19,8 +19,10 @@ const float c1R = 1.;
 const float c2R = 4.;
 const float c3R = 4.;
 
+uniform float yolol = 1;
+
 vec2 circleInverse(vec2 pos, vec2 circlePos, float circleR){
-	return ((pos - circlePos) * circleR * circleR)/(length(pos - circlePos) * length(pos - circlePos) ) + circlePos;
+	return (((pos - circlePos) * circleR * circleR)/(length(pos - circlePos) * length(pos - circlePos) ) + circlePos) * yolol;
 }
 
 const int ITERATIONS = 13;

@@ -58,7 +58,7 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 	std::regex		commentLine("\\s*#.*");
 	std::regex		openingBraceLine("\\s*\\{\\s*");
 	std::regex		closingBraceLine("\\s*\\}\\s*");
-	std::regex		focusLine("\\s*Focus\\s\\s*(\\d\\d*)\\s\\s*(\\d\\d*)\\s\\s*" + syncRegex);
+	std::regex		focusLine("\\s*Focus\\s\\s*(\\d\\d*)\\s\\s*(-?\\d\\d*)\\s\\s*" + syncRegex);
 	std::regex		uniformLine("\\s*Uniform([1-4]f|1i)\\s\\s*(\\w+)\\s\\s*" + uniformParameters + SPACE + syncRegex);
 	std::regex		localParamLine("\\s*LocalParam\\s+" IMAC "\\s+(\\w+)\\s+" + std::string(FLOAT) + SPACE + syncRegex);
 	std::regex		waitLine("\\s*Wait\\s\\s*(\\d\\d*)");
