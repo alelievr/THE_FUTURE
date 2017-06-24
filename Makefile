@@ -32,6 +32,7 @@ SRC			=	ShaderRender.cpp		\
 				NetworkGUI.cpp			\
 				ClusterConfig.cpp		\
 				KernelProgram.cpp		\
+				AudioManager.cpp		\
 
 
 #	Objects
@@ -39,9 +40,9 @@ OBJDIR		=	obj
 
 #	Variables
 LIBFT		=	2	#1 or 0 to include the libft / 2 for autodetct
-DEBUGLEVEL	=	2	#can be 0 for no debug 1 for or 2 for harder debug
+DEBUGLEVEL	=	0	#can be 0 for no debug 1 for or 2 for harder debug
 					#Warrning: non null debuglevel will disable optlevel
-OPTLEVEL	=	1	#same than debuglevel
+OPTLEVEL	=	2	#same than debuglevel
 					#Warrning: non null optlevel will disable debuglevel
 CPPVERSION	=	c++14
 #For simpler and faster use, use commnd line variables DEBUG and OPTI:
@@ -64,7 +65,7 @@ NAME		=	visualishader
 
 #	Compiler
 WERROR		=	#-Werror
-CFLAGS		=	-Wall -Wextra -ferror-limit=999 -O3
+CFLAGS		=	-Wall -Wextra -ferror-limit=999
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb
@@ -113,7 +114,7 @@ endif
 ifeq "$(OS)" "Linux"
 	LDLIBS		+= -lm -lGL -lX11 -lXrandr -lXrender -lXi -lXxf86vm -lpthread -ldl -lXinerama -lXcursor -lrt -lbsd
 	CFLAGS		+= -fPIC
-	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
+#	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
 	LUAMAKEOS	= linux
 endif
 ifeq "$(OS)" "Darwin"

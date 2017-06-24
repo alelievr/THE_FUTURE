@@ -28,7 +28,9 @@ for i in pairs(progs) do
 	-1.0, -1.0
 	}
 	if progs[i] then
-		vert = translate_bot_to_top(vert, phases[i])
+		if i < #phases then
+			vert = translate_bot_to_top(vert, phases[i])
+		end
 		if vert == nil then
 			return
 		end

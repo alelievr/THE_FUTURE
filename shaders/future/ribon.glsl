@@ -10,6 +10,7 @@ void mainImage( in vec2 fragCoord )
 	mou = (mou+1.0) * res;
 	vec2 z = ((-res+2.0 * fragCoord.xy) / res.y);
 	vec2 p = ((-res+2.0+mou) / res.y);
+//	z.x = abs(z.x);
 	for( int i = 0; i < 40; i++) 
 	{
 		float d = dot(z,z);

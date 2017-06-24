@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/21 15:41:41 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/23 13:11:16 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@
 # define MAX_SHADER_NAME		128
 # define MAX_UNIFORM_DATAS		4
 # define MAX_MESSAGE_LENGTH		256
+# define MAX_FILE_LENGTH		256
 
 # define NOW					-1
 
@@ -77,6 +78,23 @@ enum class      UniformType
 	Int1,
 };
 
+enum class		AudioUpdateType
+{
+	Play,
+	Pause,
+	Volume,
+};
+
+enum class		AudioStatus
+{
+	OK,
+	FailedToLoad,
+	Loaded,
+	Playing,
+	Paused,
+	Unknown,
+};
+
 struct  UniformParameter
 {
 	UniformType type;
@@ -99,18 +117,24 @@ struct			Client
 	int				cluster;
 	int				groupId;
 	ClientStatus	status;
+	AudioStatus		audioStatus;
 	unsigned int	ip;
 	Timeval			averageTimeDelta;
 	bool			willTimeout;
+	bool			audioLoaded;
+	bool			shaderLoaded;
 
 	Client(int row, int seat, int cluster, const char *cip)
 	{
 		struct sockaddr_in	connection;
 
+		this->audioStatus = AudioStatus::Unknown;
 		this->seat = seat;
 		this->row = row;
 		this->cluster = cluster;
 		this->groupId = 0;
+		this->audioLoaded = false;
+		this->shaderLoaded = false;
 		status = ClientStatus::Unknown;
 		inet_aton(cip, &connection.sin_addr);
 		ip = connection.sin_addr.s_addr;
@@ -120,6 +144,9 @@ struct			Client
 	{
 		if (this != &oth)
 		{
+			this->audioLoaded = oth.audioLoaded;
+			this->audioStatus = oth.audioStatus;
+			this->shaderLoaded = oth.shaderLoaded;
 			this->seat = oth.seat;
 			this->cluster = oth.cluster;
 			this->row = oth.row;
@@ -143,7 +170,9 @@ struct			Client
 typedef std::function< bool (const Timeval *timing, const int programIndex, const int transitionIndex) > ShaderFocusCallback;
 typedef std::function< void (const std::string & shaderName, const bool last) >				ShaderLoadCallback;
 typedef std::function< Timeval & (const int seat, const int row, const int index) >			CustomSyncOffsetCallback;
-typedef std::function< void (const Timeval *timming, const int programIndex, const std::string uniformName, const UniformParameter & param) > ShaderLocalParamCallback;
+typedef std::function< void (const Timeval *timing, const int programIndex, const std::string uniformName, const UniformParameter & param) > ShaderLocalParamCallback;
+typedef std::function< bool (const Timeval *timing, const AudioUpdateType type, const size_t audioIndex, const float audioVolume) > AudioUpdateCallback;
+typedef std::function< bool (const std::string & fileName )>								LoadAudioFileCallback;
 
 //Server callbacks:
 //                              row       saet
@@ -154,6 +183,8 @@ typedef std::function< void (const int, const int, const bool success) >			Clien
 typedef std::function< void (const int, const int, const bool success) >			ClientShaderLocalParamCallback;
 typedef std::function< void (const int, const int) >								ClientTimeoutCallback;
 typedef std::function< void (const int, const int) >								ClientQuitCallback;
+typedef std::function< void (const int, const int, const AudioStatus status) >		ClientAudioStatusCallback;
+typedef std::function< void (const int, const int, bool success) >					ClientLoadAudioFileCallback;
 
 class		NetworkManager
 {
@@ -168,11 +199,15 @@ class		NetworkManager
 			HelloServer,
 			TimeoutCheck,
 			ClientQuit,
+			LoadAudioFile,
+			AudioUpdate,
 			ShaderLoadResponse,
 			GroupChangeResponse,
 			ShaderFocusResponse,
 			ShaderLocalParamResponse,
 			TimeoutCheckResponse,
+			AudioUpdateResponse,
+			LoadAudioFileResponse,
 		};
 
 		typedef struct timeval		NetworkTimeval;
@@ -217,13 +252,25 @@ class		NetworkManager
 				{
 					int		newGroupId;
 				};
-				struct //Shader load/group change response
+				struct //Shader load/group change response AND audio status responses
 				{
 					bool	success;
 				};
 				struct //application quit packet
 				{
 					bool	crashed;
+				};
+				struct //audio update
+				{
+					char			:8; //success padding
+					AudioUpdateType	audioUpdateType;
+					size_t			audioIndex;
+					float			audioVolume;
+					bool			lastAudioFile;
+				};
+				struct //audio file load
+				{
+					char			audioFile[MAX_FILE_LENGTH];
 				};
 			};
 		};
@@ -241,8 +288,10 @@ class		NetworkManager
 		int						_localClientIndex;
 
 		ShaderFocusCallback		_shaderFocusCallback = NULL;
-		ShaderLocalParamCallback	_shaderLocalParamCallback = NULL;
+		ShaderLocalParamCallback _shaderLocalParamCallback = NULL;
 		ShaderLoadCallback		_shaderLoadCallback = NULL;
+		AudioUpdateCallback		_audioUpdateCallback = NULL;
+		LoadAudioFileCallback	_loadAudioFileCallback = NULL;
 
 		ClientStatusUpdateCallback	_clientStatusUpdateCallback = NULL;
 		ClientGroupChangeCallback	_clientGroupChangeCallback = NULL;
@@ -251,6 +300,8 @@ class		NetworkManager
 		ClientShaderLocalParamCallback	_clientShaderLocalParamCallback = NULL;
 		ClientTimeoutCallback		_clientTimeoutCallback = NULL;
 		ClientQuitCallback			_clientQuitCallback = NULL;
+		ClientAudioStatusCallback	_clientAudioStatusCallback = NULL;
+		ClientLoadAudioFileCallback	_clientLoadAudioFileCallback = NULL;
 
 		NetworkStatus			_SendPacketToAllClients(const Packet & packet) const;
 		NetworkStatus			_SendPacketToGroup(const int groupId, Packet packet, const SyncOffset & sync) const;
@@ -264,6 +315,7 @@ class		NetworkManager
 		void					_SendHelloPacket(void);
 		bool					_ImacExists(const int row, const int seat) const;
 		Client &				_FindClient(const int groupId, const size_t ip);
+		void					OnClientResourcesLoaded(Client & c);
 
 		//Create packet functions:
 		void					_InitPacketHeader(Packet *p, const Client & client, const PacketType type) const;
@@ -282,6 +334,10 @@ class		NetworkManager
 		Packet					_CreateTimeoutCheckPacket(void) const;
 		Packet					_CreateTimeoutCheckResponsePacket(void) const;
 		Packet					_CreateClientQuitPacket(const bool crash) const;
+		Packet					_CreateLoadAudioFilePacket(const int groupId, const std::string & fileName, const bool last) const;
+		Packet					_CreateLoadAudioFileResponsePacket(const bool success, const bool last) const;
+		Packet					_CreateAudioUpdatePacket(const int groupId, const Timeval *timeout, const AudioUpdateType type, const int audioIndex, const float volume) const;
+		Packet					_CreateAudioUpdateResponsePacket(const AudioUpdateType type, const bool success) const;
 
 	public:
 		NetworkManager(bool server = false, bool connection = false);
@@ -304,16 +360,23 @@ class		NetworkManager
 		void			SetClientShaderLocalParamCallback(ClientShaderLocalParamCallback callback);
 		void			SetClientTimeoutCallback(ClientTimeoutCallback callback);
 		void			SetClientQuitCallback(ClientQuitCallback callback);
+		void			SetClientAudioStatusCallback(ClientAudioStatusCallback callback);
+		void			SetClientLoadAudioFileCallback(ClientLoadAudioFileCallback callback);
 
 		//Client callbacks:
 		void			SetShaderFocusCallback(ShaderFocusCallback callback);
 		void			SetShaderLoadCallback(ShaderLoadCallback callback);
 		void			SetShaderLocalParamCallback(ShaderLocalParamCallback callback);
+		void			SetAudioUpdateCallback(AudioUpdateCallback callback);
+		void			SetLoadAudioFileCallback(LoadAudioFileCallback callback);
 
 		//server control functions:
 		NetworkStatus	FocusShaderOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const int transitionIndex, const SyncOffset & syncOffset) const;
 		NetworkStatus	UpdateLocalParamOnGroup(const Timeval *timeout, const int groupId, const int programIndex, const std::string & uniformName, const UniformParameter & uniformParam, const SyncOffset & syncOffset) const;
+		NetworkStatus	UpdateLocalParamOnClient(const Timeval *timeout, const int row, const int seat, const int programIndex, const std::string name, const UniformParameter & value);
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
+		NetworkStatus	LoadAudioFileOnGroup(const int groupId, const std::string & fileName, const bool last) const;
+		NetworkStatus	UpdateAudioOnGroup(const Timeval *timeout, const int groupId, const AudioUpdateType type, const int audioIndex, const float audioVolume, const SyncOffset & syncOffset) const;
 		int				CreateNewGroup(void);
 		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat);
 

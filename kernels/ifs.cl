@@ -16,7 +16,7 @@
 # define WIN_W		1920
 # define WIN_H		1080
 
-
+# define PART_ATR	10
 typedef	struct	s_range
 {
 	float		beg;
@@ -36,10 +36,51 @@ typedef	struct	s_ifs_spec
 	int		ecr_x;
 	int		ecr_y;
 	int		nb_iter;
+	int		nb_part;
 	t_range	hue;
 	t_range	sat;
 	t_range	val;
 }				t_ifs_spec;
+
+
+typedef	struct	s_particule
+{
+	float2	pos;
+	float2	speed;
+	char	alive;
+}				t_particule;
+
+__kernel	void	particles(write_only image2d_t img
+									   , __global float2 *atr
+									   , __global t_particule *part
+									   , __global t_ifs_spec *spec)
+{
+	int		id_part;
+	int		id_atr;
+	float2	acc, pos, diff;
+	float	dist;
+	float4	col;
+
+	id_part = get_global_id(0);
+	id_atr = id_part / spec->nb_part;
+	if (part[id_part].alive)
+	{
+		col = (float4)(1, 1, 1, 1);
+		diff = (atr[id_atr] - part[id_part].pos);
+		acc = diff / (dot(diff, diff) + 100);
+		
+		part[id_part].pos += part[id_part].speed;
+		part[id_part].speed += acc;
+		write_imagef(img, (int2)(part[id_part].pos), col);
+	}
+	else
+	{
+		part[id_part].pos = (float)(atr[id_atr].x + id_part % spec->nb_part, atr[id_atr].y + id_part % spec->nb_part);
+		part[id_part].speed = (float2)(0, 0);
+	}
+}
+
+
 
 __kernel void test_image(__global int *time, __global int *data)
 {
@@ -91,7 +132,7 @@ __kernel	void	define_color(__global char4 *col, __global t_ifs_spec *spec)
 {
 	// puis appeler gentiement la focnitn qui donne les couleurs
 	float	hue, sat, val;
-	float	ok;
+//	float	ok;
 	int	id, iter;
 
 	id = get_global_id(0);
@@ -107,6 +148,7 @@ __kernel	void	define_color(__global char4 *col, __global t_ifs_spec *spec)
 	sat = spec->sat.beg + (sat * spec->sat.delta);
 	val = spec->val.beg + (val * spec->val.delta);
 	col[id] = hsv_to_rgb(hue, sat, val);
+//printf("id:%d\n", id);
 }
 
 float	get_line_length(float2 p1, float2 p2)
@@ -152,13 +194,23 @@ __kernel	void	draw_line(write_only image2d_t img
 	unit_col = (float4)(dc.x, dc.y, dc.z, 0) / dist;
 	i = 0;
 	p = pt[id];
-	c = (float4)(col[id].x, col[id].y, col[id].z, 0);
+	c = (float4)(col[id_col].x, col[id_col].y, col[id_col].z, 0);
+	c /= (float)255;
+	unit_col /= (float)255;
+//	printf("col[%d]:{%d,	%d,	%d}\n", id_col, col[id_col].x, col[id_col].y, col[id_col].z);
+
 	while(i <= nb_point)
 	{
-		col_value = 0xFFFFFF;//((((int)c.x) & 0xFF) << 16) | ((((int)c.y) & 0xFF) << 8) | ((((int)c.z)) & 0xFF);
+//		col_value = 0x0000FF;
+//		col_value = (((int)c.x & 0xFF) << 16) | (((int)c.y & 0xFF) << 8) | ((int)c.z & 0xFF);
 		is_inside = (p.x >= 0 && p.x < w) && (p.y >= 0 && p.y < h);	
 		if (is_inside)
-			write_imagef(img, (int2){p.x, p.y}, col_value);
+			write_imagef(img, (int2){p.x, p.y}, c);
+
+//	printf("id:%d	colval:%d\n", id_col, col_value);
+//	printf("col:{%f,	%f,	%f}\n", c.x, c.y, c.z);
+//	printf("col[%d]:{%d,	%d,	%d}\n", id_col, col[id_col].x, col[id_col].y, col[id_col].z);
+
 		p += unit_pos;
 		c += unit_col;
 		i++;

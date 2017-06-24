@@ -67,69 +67,9 @@ static	std::string	cl_err[65] =	{"CL_SUCCESS",
 							"CL_INVALID_MIP_LEVEL",
 							"CL_INVALID_GLOBAL_WORK_SIZE"};
 
-#define TRANS_TEST 128
+
+#define TRANS_TEST 23
 static	float	trans_raw[TRANS_TEST][4][2] = {
-						{{0.000000, 0.000000},{0.635547, -0.700717},{0.497671, -0.047698},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.632301, -0.705343},{0.498261, -0.055883},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.628625, -0.709354},{0.499492, -0.064428},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.624500, -0.712602},{0.502829, -0.078653},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.620572, -0.714682},{0.505140, -0.086400},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.616174, -0.716030},{0.508161, -0.094419},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.610507, -0.716476},{0.512607, -0.103850},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.605804, -0.715903},{0.516688, -0.110991},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.601543, -0.714738},{0.520644, -0.116973},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.589454, -0.708508},{0.525849, -0.123808},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.552019, -0.704856},{0.531664, -0.130383},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.515712, -0.696356},{0.538711, -0.137191},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.494961, -0.684888},{0.552370, -0.147664},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.481361, -0.669327},{0.568687, -0.156634},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.469257, -0.652953},{0.583624, -0.162199},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.456048, -0.632641},{0.600124, -0.165852},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.444431, -0.612817},{0.614636, -0.167087},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.431905, -0.589485},{0.630123, -0.166435},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.426014, -0.577830},{0.637303, -0.165437},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.410929, -0.546023},{0.655247, -0.160913},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.399228, -0.519408},{0.668588, -0.155490},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.392276, -0.502778},{0.676216, -0.151488},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.384232, -0.482761},{0.684714, -0.146136},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.371881, -0.450345},{0.696971, -0.136414},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.366094, -0.434429},{0.702335, -0.131233},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.353310, -0.397504},{0.713181, -0.118357},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.341748, -0.361836},{0.721602, -0.104990},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.330590, -0.325105},{0.728216, -0.090495},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.319751, -0.286905},{0.732915, -0.074850},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.314728, -0.268232},{0.734408, -0.067053},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.310216, -0.250863},{0.735324, -0.059738},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.304387, -0.227487},{0.735836, -0.049833},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.311041, -0.256407},{0.734786, -0.032917},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.305594, -0.229550},{0.731287, -0.016159},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.322235, -0.264583},{0.728398, -0.007365},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.326028, -0.256324},{0.721563, 0.007688},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.325805, -0.240756},{0.714018, 0.019818},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.325880, -0.232812},{0.709613, 0.025640},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.326552, -0.214374},{0.698008, 0.038089},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.327156, -0.205123},{0.691480, 0.043724},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.328080, -0.194467},{0.683396, 0.049659},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.330009, -0.178001},{0.669750, 0.057552},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.331287, -0.169303},{0.661992, 0.061034},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.332751, -0.160621},{0.653879, 0.063991},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.334383, -0.152098},{0.645562, 0.066351},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.336539, -0.142190},{0.635465, 0.068361},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.338780, -0.133105},{0.625808, 0.069448},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.340918, -0.125326},{0.617243, 0.069746},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.343209, -0.117764},{0.608659, 0.069422},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.345658, -0.110413},{0.600075, 0.068471},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.348209, -0.103425},{0.591701, 0.066922},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.350563, -0.097503},{0.584444, 0.065066},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.353300, -0.091167},{0.576517, 0.062463},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.356243, -0.084934},{0.568560, 0.059203},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.359793, -0.078120},{0.559686, 0.054727},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.363016, -0.072527},{0.552267, 0.050222},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.366295, -0.067355},{0.545302, 0.045265},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.369698, -0.062491},{0.538664, 0.039776},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.373821, -0.057227},{0.531389, 0.032720},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.380994, -0.049551},{0.520627, 0.019576},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.375419, 0.053154},{0.509721, 0.084999},{1.000000, 0.000000}},
 						{{0.000000, 0.000000},{0.402057, 0.109247},{0.518605, 0.114001},{1.000000, 0.000000}},
 						{{0.000000, 0.000000},{0.414170, 0.139253},{0.514511, 0.124288},{1.000000, 0.000000}},
 						{{0.000000, 0.000000},{0.418727, 0.170628},{0.505835, 0.138252},{1.000000, 0.000000}},
@@ -153,51 +93,8 @@ static	float	trans_raw[TRANS_TEST][4][2] = {
 						{{0.000000, 0.000000},{0.338780, -0.133105},{0.625808, 0.069448},{1.000000, 0.000000}},
 						{{0.000000, 0.000000},{0.336539, -0.142190},{0.635465, 0.068361},{1.000000, 0.000000}},
 						{{0.000000, 0.000000},{0.334383, -0.152098},{0.645562, 0.066351},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.332751, -0.160621},{0.653879, 0.063991},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.331287, -0.169303},{0.661992, 0.061034},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.330009, -0.178001},{0.669750, 0.057552},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.328080, -0.194467},{0.683396, 0.049659},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.327156, -0.205123},{0.691480, 0.043724},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.326552, -0.214374},{0.698008, 0.038089},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.325880, -0.232812},{0.709613, 0.025640},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.325805, -0.240756},{0.714018, 0.019818},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.326028, -0.256324},{0.721563, 0.007688},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.322235, -0.264583},{0.728398, -0.007365},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.305594, -0.229550},{0.731287, -0.016159},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.311041, -0.256407},{0.734786, -0.032917},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.304387, -0.227487},{0.735836, -0.049833},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.310216, -0.250863},{0.735324, -0.059738},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.314728, -0.268232},{0.734408, -0.067053},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.319751, -0.286905},{0.732915, -0.074850},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.330590, -0.325105},{0.728216, -0.090495},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.341748, -0.361836},{0.721602, -0.104990},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.353310, -0.397504},{0.713181, -0.118357},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.366094, -0.434429},{0.702335, -0.131233},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.371881, -0.450345},{0.696971, -0.136414},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.384232, -0.482761},{0.684714, -0.146136},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.392276, -0.502778},{0.676216, -0.151488},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.399228, -0.519408},{0.668588, -0.155490},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.410929, -0.546023},{0.655247, -0.160913},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.426014, -0.577830},{0.637303, -0.165437},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.431905, -0.589485},{0.630123, -0.166435},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.444431, -0.612817},{0.614636, -0.167087},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.456048, -0.632641},{0.600124, -0.165852},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.469257, -0.652953},{0.583624, -0.162199},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.481361, -0.669327},{0.568687, -0.156634},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.494961, -0.684888},{0.552370, -0.147664},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.515712, -0.696356},{0.538711, -0.137191},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.552019, -0.704856},{0.531664, -0.130383},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.589454, -0.708508},{0.525849, -0.123808},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.601543, -0.714738},{0.520644, -0.116973},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.605804, -0.715903},{0.516688, -0.110991},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.610507, -0.716476},{0.512607, -0.103850},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.616174, -0.716030},{0.508161, -0.094419},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.620572, -0.714682},{0.505140, -0.086400},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.624500, -0.712602},{0.502829, -0.078653},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.628625, -0.709354},{0.499492, -0.064428},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.632301, -0.705343},{0.498261, -0.055883},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.635547, -0.700717},{0.497671, -0.047698},{1.000000, 0.000000}},
 																												};
+
 
 static	const char * FRAGMENT_SHADER_HEADER =
 "#version 330\n"
@@ -260,6 +157,7 @@ static	GLuint _renderCount = 6;
 
 KernelProgram::KernelProgram(void)
 {
+
 	cl_int					err[3];
 	CGLContextObj			cgl_ctx = CGLGetCurrentContext();              
     CGLShareGroupObj		cgl_sg = CGLGetShareGroup(cgl_ctx);
@@ -270,16 +168,17 @@ KernelProgram::KernelProgram(void)
 
 	if (!contextLoaded)
 	{
-		//load OpenCL contex
-//	printf("%s\n", src);
-
-    err[0] = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &_device_id, NULL);
-	_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 1);
-	_queue = clCreateCommandQueue(_context, _device_id, 0, err + 2);
+			//load OpenCL contex
+	//	printf("%s\n", src);
+    	err[0] = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &_device_id, NULL);
+		_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 1);
+		_queue = clCreateCommandQueue(_context, _device_id, 0, err + 2);
 		contextLoaded = true;
 	}
 	_firstUse = true;
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
+	bzero(&(_param), sizeof(t_ifs_param));
+	CreateVAO();
 }
 
 KernelProgram::~KernelProgram(void)
@@ -305,7 +204,6 @@ std::string		KernelProgram::_LoadSourceFile(const std::string & filePath)
 	int				mode;
 	std::string		fileSource = "";
 	std::string		line;
-
 	std::ifstream	file(filePath);
 
 	while (std::getline(file, line)) {
@@ -341,7 +239,6 @@ bool			KernelProgram::CompileAndLink(void)
 	glCompileShader(fragmentShaderId);
 	if (!CheckCompilation(fragmentShaderId))
 		return false;
-
 	GLuint		vertexShaderId;
 
 	vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
@@ -358,20 +255,23 @@ bool			KernelProgram::CompileAndLink(void)
 	glLinkProgram(_id);
 	if (!CheckLink(_id))
 		return false;
-
 	//inizialize fragPosition
 	GLint       fragPos;
 
 	if ((fragPos = glGetAttribLocation(_id, "fragPosition")) < 0)
 		return false;
+
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+
 	glEnableVertexAttribArray(fragPos);
+
 	glVertexAttribPointer(fragPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*) 0);
+
 
 	//////////////	OpenCL part ///////////////////
 	const char * 			src = _cl_source.c_str();
 	size_t					src_size = _cl_source.length();
-	cl_int					err[19];
+	cl_int					err[20];
 
 	bzero(err, sizeof(err));
 	_program = clCreateProgramWithSource(_context, 1, &src, &src_size, err + 0);
@@ -389,10 +289,10 @@ bool			KernelProgram::CompileAndLink(void)
 	_kernels["define_color"] = clCreateKernel(_program, "define_color", err + 2);
 	_kernels["draw_line"] = clCreateKernel(_program, "draw_line", err + 3);	
 	_kernels["clear"] = clCreateKernel(_program, "clear", 0);
+
    /** Create a texture to be displayed as the final image. */
 	glActiveTexture(GL_TEXTURE1);
 //	_screen_tex = SOIL_load_OGL_texture("textures/Kifs1.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS |	SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
-    
 	glGenTextures(1, &_screen_tex);
     glBindTexture(GL_TEXTURE_2D, _screen_tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_size.x, framebuffer_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -404,11 +304,8 @@ bool			KernelProgram::CompileAndLink(void)
     _buff["screen"] = clCreateFromGLTexture(_context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, _screen_tex, 0);
 
 	_buff["pt_ifs"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF, NULL, err + 4);
-	_buff["col_pt"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, sizeof(t_ifs_param), NULL, err + 5);
-	_buff["ifs_param"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF / 2, NULL, err + 6);
-
-	err[8]	= clSetKernelArg(_kernels["draw_line"], 0, sizeof(cl_mem), &_buff["screen"]);
-	
+	_buff["col_pt"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF / 2, NULL, err + 5);
+	_buff["ifs_param"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, sizeof(t_ifs_param), NULL, err + 6);
 	err[11] = clSetKernelArg(_kernels["define_color"], 0, sizeof(cl_mem), &_buff["col_pt"]);
 	err[12] = clSetKernelArg(_kernels["define_color"], 1, sizeof(cl_mem), &_buff["ifs_param"]);
 
@@ -418,8 +315,12 @@ bool			KernelProgram::CompileAndLink(void)
 	err[15] = clSetKernelArg(_kernels["draw_line"], 1, sizeof(cl_mem), &_buff["pt_ifs"]);
 	err[16] = clSetKernelArg(_kernels["draw_line"], 2, sizeof(cl_mem), &_buff["col_pt"]);
 	err[17] = clSetKernelArg(_kernels["draw_line"], 3, sizeof(cl_mem), &_buff["ifs_param"]);
-	clSetKernelArg(_kernels["clear"], 0, sizeof(cl_mem), &_buff["screen"]);
 
+	clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
+	err[8]	= clSetKernelArg(_kernels["draw_line"], 0, sizeof(cl_mem), &_buff["screen"]);
+	err[19] = clSetKernelArg(_kernels["clear"], 0, sizeof(cl_mem), &_buff["screen"]);
+	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
+	clFinish(_queue);
 	_loaded = true;
 	// ---- 
 	return (_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__));
@@ -428,6 +329,8 @@ bool			KernelProgram::CompileAndLink(void)
 // <---
 void		KernelProgram::Use(void)
 {
+	GLenum gl_err;
+
 	if (_firstUse)
 		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
 	glUseProgram(_id);
@@ -441,7 +344,6 @@ void			KernelProgram::CreateVAO(void)
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 	//TODO: Vector3 management
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderVertices, GL_STATIC_DRAW);
-
 	glGenVertexArrays(1, &_vao);
 	glBindVertexArray(_vao);
 	glEnableVertexAttribArray(0);
@@ -451,15 +353,26 @@ void			KernelProgram::CreateVAO(void)
 // <---
 void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 {
+	size_t	global_work_size[3] = {1, 0, 0};
+	size_t	local_work_size[3] = {1, 0, 0};
+//	cl_int	err[10];
 	cl_int	err[4];
 	float	hard_base[4][2] =
-	{{657.534241, 341.694916},{250.684937, 919.322021},{1035.616455, 1004.745789},{661.643860, 341.694916}};
+	{{657.534241, 341.694916},{250.684937, 919.322021},{1035.616455, 1004.745789},{657.534241, 341.694916}};
 
-	err[0] = clEnqueueWriteBuffer(_queue, _buff["pt_ifs"], CL_TRUE, 0, 4 * 2 * sizeof(float), hard_base, 0, NULL, NULL);
+	bzero(err, sizeof(err));
+	_set_base();
+	err[0] = clEnqueueWriteBuffer(_queue, _buff["pt_ifs"], CL_TRUE, 0, 4 * 2 * sizeof(float), &_param.pt_base, 0, NULL, NULL);
 	_setIdPtBuff(4, 2, HARD_ITER, _idPtBuff);
 	setParam(&_param);
 	err[1] = clEnqueueWriteBuffer(_queue, _buff["ifs_param"], CL_TRUE, 0, sizeof(t_ifs_param), &_param, 0, NULL, NULL);
-
+	global_work_size[0] = _idPtBuff[HARD_ITER - 1] - _idPtBuff[HARD_ITER - 2];
+//	printf("worksize def_col:%d\n", global_work_size[0]);
+	err[2] = clEnqueueNDRangeKernel(_queue, _kernels["define_color"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
+	if (!_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__))
+	{
+		exit(0);
+	}
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, _screen_tex);
 	int id = glGetUniformLocation(_id, "iChannel0");
@@ -467,22 +380,6 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	id = glGetUniformLocation(_id, "iResolution");
 	glUniform2f(id, winSize.x, winSize.y);
 }
-
-/*
-//////////////////	From ShaderProgram	\\\\\\\\\\\\\\\\\\
-
-void	ShaderProgram::UpdateFramebufferSize(const vec2 fbSize)
-{
-	for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
-		if (_channels[i].getType() == ShaderChannelType::CHANNEL_PROGRAM)
-		{
-			auto program = _channels[i].getProgram();
-			glTexImage2D(program->GetRenderId(), 0, GL_RGB, framebuffer_size.x, framebuffer_size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-			if (program != this)
-				program->UpdateFramebufferSize(fbSize);
-		}
-}
-*/
 
 // <---
 void		KernelProgram::UpdateFramebufferSize(const vec2 fbSize)
@@ -521,13 +418,13 @@ void		KernelProgram::Draw(void)
 	{
 		clEnqueueNDRangeKernel(_queue, _kernels["clear"], 2, NULL, screen, NULL, 0, NULL, NULL);
 		global_work_size[0] = _idPtBuff[HARD_ITER - 1] - _idPtBuff[HARD_ITER - 2] - 1;
+//		printf("glob:");
 		err[2] = clEnqueueNDRangeKernel(_queue, _kernels["draw_line"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	}
+//	printf("worksize last_draw_line:%d\n", global_work_size[0]);
 	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	clFinish(_queue);
-
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
-
 //	#------		On affiche le buffer avec OpenGL	------#
 
 #ifdef DEBUG
@@ -586,37 +483,38 @@ void		KernelProgram::_setIdPtBuff(int nb_base, int nb_trans, int nb_iter, int *i
 	}
 }
 
-void	KernelProgram::setParam(t_ifs_param *spec)
+void	KernelProgram::setParam(t_ifs_param *param)
 {
-	static		int id_trans = 0;
-	int			i;
+	static	float	add = 0.5;
+	static	float	id_trans = 11;
+	int				lim = 9;
+	int				beg = 11;
+	int				i;
 
-
+//	id_trans = 32;
 	for (i = 0; i < 4; i++)
 	{
-		spec->pt_trans[i][0] = trans_raw[id_trans][i][0];
-		spec->pt_trans[i][1] = trans_raw[id_trans][i][1];
+		param->pt_trans[i][0] = trans_raw[(int)id_trans][i][0];
+		param->pt_trans[i][1] = trans_raw[(int)id_trans][i][1];
 	}
-	id_trans = (id_trans + 1) % TRANS_TEST;
-	spec->len_trans = 2;
+	if ((add > 0 && id_trans > beg + lim) || (add < 0 && id_trans < beg - lim))
+		add *= -1;
+	id_trans += add;
+	param->len_trans = 2;
+	param->len_base = 4;//get_polygone_len(e->base);
+	param->max_iter = 4;
+	_setIdPtBuff(param->len_base, param->len_trans, param->max_iter, _idPtBuff);
+	param->max_pt = _idPtBuff[HARD_ITER] - _idPtBuff[HARD_ITER - 1]; 
+	param->ecr_x = framebuffer_size.x;
+	param->ecr_y = framebuffer_size.y;
+	param->nb_iter = HARD_ITER;
 
+	_setRangeVal(&(param->hue), 0.3, 0.4);
+	_setRangeVal(&(param->sat), 0.5, 0.6);
+	_setRangeVal(&(param->val), 0.8, 0.99);
 
-	spec->len_base = 4;//get_polygone_len(e->base);
-
-	spec->max_iter = 4;
-	_setIdPtBuff(spec->len_base, spec->len_trans, spec->max_iter, _idPtBuff);
-
-	spec->max_pt = _idPtBuff[HARD_ITER] - _idPtBuff[HARD_ITER - 1]; 
-	spec->ecr_x = framebuffer_size.x;
-	spec->ecr_y = framebuffer_size.y;
-	spec->nb_iter = HARD_ITER;
-
-	_setRangeVal(&(spec->hue), 0, 1);
-	_setRangeVal(&(spec->sat), 0, 1);
-	_setRangeVal(&(spec->val), 0, 1);
-
-	memmove(&(spec->beg_id), _idPtBuff, sizeof(int) * MAX_ITER);
-//	printf("spec->ecrX:%d	spec->ecrY:%d\n", spec->dim_ecr[0], spec->dim_ecr[1]);
+	memmove(&(param->beg_id), _idPtBuff, sizeof(int) * MAX_ITER);
+//	printf("param->ecrX:%d	param->ecrY:%d\n", param->dim_ecr[0], param->dim_ecr[1]);
 }
 
 
@@ -658,4 +556,65 @@ bool		KernelProgram::CheckLink(GLuint program)
 		return false;
 	}
 	return true;
+}
+
+
+vec_2	add_rot(vec_2 beg, vec_2 ux, vec_2 uy, const float r, float val, float speed, float offset)
+{
+	vec_2 ret;
+	
+	val = (val * speed + offset) * 2 * M_PI;
+	ret.x = beg.x + ux.x * cos(val) * r + uy.x * sin(val) * r;
+	ret.y = beg.y + ux.y * cos(val) * r + uy.y * sin(val) * r;
+	return (ret);
+}
+
+void	KernelProgram::_set_base()
+{
+	float	r;
+	float	time = glfwGetTime() - __localParams["localStartTime"];
+//	std::cout << (glfwGetTime() - __localParams["localStartTime"]) << std::endl;
+	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
+//	vec_2	ret;
+	vec_2	ux = {0, 1};
+	vec_2	uy = {1, 0};
+	vec_2	base[MAX_NODE];
+	r = 200 + 20 * sin(time);
+	bzero(base, sizeof(base));
+
+	base[0] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 0);
+	base[1] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 1.0 / 3.0);
+	base[2] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 2.0 / 3.0);
+	base[3] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 0);
+
+	base[1] = add_rot(base[1], ux, uy, 100, time, -0.5, 0);
+	base[2] = add_rot(base[2], ux, uy, 70, time, 0.6, 0);
+	base[3] = add_rot(base[3], ux, uy, 30, time, -0.3, 0);
+
+	base[1] = add_rot(base[1], ux, uy, 30, time, -0.6, 0);
+	base[2] = add_rot(base[2], ux, uy, 20, time, -0.3, 0);
+	base[3] = add_rot(base[3], ux, uy, 40, time, 0.4, 0);
+
+	base[0] = base[3];
+//	std::cout << "" ;
+	for (int i = 0; i < MAX_NODE; i++)
+	{
+		this->_param.pt_base[i][0] = base[i].x;
+		this->_param.pt_base[i][1] = base[i].y;
+//		std::cout << "pt:{" << _param.pt_base[i][0] << ", " << _param.pt_base[i][1]<< "}"<< std::endl;
+	}
+}
+
+
+void	gl_test(const int line, const char * func, const char * file)
+{
+	GLenum gl_err = 0;
+
+//	std::cout << "err code:"<< gl_err << "	file:" << file << "	func:" << func << "	line:"<< line << std::endl;
+	while((gl_err = glGetError()) != GL_NO_ERROR)
+	{
+		  //Process/log the error.
+		std::cout << "err code:"<< gl_err << "	file:" << file << "	func:" << func << "	line:"<< line << std::endl;
+//		exit(0);
+	}
 }
