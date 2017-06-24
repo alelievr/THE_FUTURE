@@ -44,9 +44,9 @@ void mainImage(in vec2 f)
 		float		diffuse  = max(0., dot(vl, n));
 				float	 specular = pow(max(0., dot(vl, ref_ev)), 40. );
         #ifndef			SQUARE
-        base.xyz = texture(iChannel0, vec2( (v.zz)*.042)).xyz;
+        base.xyz = vec3(.75,.2,.75);//texture(iChannel0, vec2( (v.zz)*.042)).xyz;
         #else
-        base.xyz = 1.5*texture(iChannel0, vec2( (base.xy)*1.)).xyz;
+        base.xyz = vec3(.75,.2,.75);//1.5*texture(iChannel0, vec2( (base.xy)*1.)).xyz;
         #endif
         col.xyz = light_color * (specular) + diffuse * base;
         #ifdef	SQUARE

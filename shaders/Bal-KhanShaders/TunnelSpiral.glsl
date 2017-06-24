@@ -122,6 +122,7 @@ void mainImage( in vec2 f )
     }
     fragColor.xyz *= .5;
     fragColor.xyz += h*1.;
+    fragColor.w = 1.;
 }
 #undef ANIM
 #define ANIM .5

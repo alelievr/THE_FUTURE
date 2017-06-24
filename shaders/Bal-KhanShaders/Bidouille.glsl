@@ -39,11 +39,12 @@ vec3 blackbody(float Temp)
 
 
 void mainImage( in vec2 f )
-{t = iGlobalTime;
+{
+    t = iGlobalTime;
     vec2 R = iResolution.xy,
           uv  = vec2(f-R/2.) / R.y;
 	  vec3	dir = camera(uv);
-    vec4  col = vec4(0.0);
+    vec4  col = vec4(0.0,0.,0.,1.);
     vec3  pos = vec3(.0, .0, 15.0);
 
     vec2  inter = (march(pos, dir));

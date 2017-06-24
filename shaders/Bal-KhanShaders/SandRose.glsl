@@ -45,6 +45,7 @@ void mainImage( in vec2 fragCoord )
     col.y += (1. * ( + sin(sin(iGlobalTime)*.05+inter.w/float(I_MAX))));
     col.x += pow(sin(inter.x*(0.+sin(iGlobalTime+3.14+inter.w/float(I_MAX)))/5.), 20.);
     #endif
+    col.w = 1.;
     fragColor = col;
 }
 

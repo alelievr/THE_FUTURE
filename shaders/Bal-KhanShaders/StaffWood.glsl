@@ -69,6 +69,7 @@ void mainImage( in vec2 f )
     fragColor.xyz += .25*blackbody(( (inter.y) )*150.);
     //fragColor.xyz += (1.-sin(t))*vec3(abs(sin(t+1.04+g)), abs(sin(t+2.09+g)), abs(sin(t+3.14+g)))*inter.x*.005;
     //fragColor.xyz *= (1.1-length(uv)*1.);
+    fragColor.w = 1.;
 }
 
 float sdCappedCylinder( vec3 p, vec2 h )

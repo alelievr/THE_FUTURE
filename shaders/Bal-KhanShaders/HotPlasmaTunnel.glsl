@@ -1,4 +1,5 @@
 
+
 // Shape deformations
 //#define LESS_ARTIFACTS // 2 next defines Only works with this defined
  //#define NO_DOORS
@@ -174,6 +175,7 @@ void mainImage( in vec2 f )
 
     vec2  inter = (march(pos, dir));
 
+//    fragColor.w=1.;
     #ifdef	BLACKBODY
     fragColor.xyz = blackbody( ( 15.-inter.y+.051*inter.x ) * 75. );
     return ;

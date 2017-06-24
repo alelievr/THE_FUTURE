@@ -58,6 +58,7 @@ void mainImage( in vec2 f )
     fragColor.xyz += (1.-sin(t+1.57))*blackbody((15.-(2.*inter.y-.1*inter.x) )*50.);
     fragColor.xyz += (1.-sin(t))*vec3(abs(sin(t+1.04+g)), abs(sin(t+2.09+g)), abs(sin(t+3.14+g)))*inter.x*.005;
     fragColor.xyz *= (1.1-length(uv)*1.);
+    fragColor.w = 1.;
 }
 
 float	scene(vec3 p)
