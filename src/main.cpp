@@ -171,6 +171,10 @@ int		main(int ac, char **av)
 			app.loadingShaders = false;
 			app.OnLoadingShaderFinished();
 			app.FocusShader(0, -1);
+			app.LoadShader("shaders/test/texture-test.glsl");
+			app.AddShader(1);
+			app.LoadShader("shaders/noise/simplex.glsl");
+			app.AddShader(2);
 
 			app.RenderLoop();
 		}

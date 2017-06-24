@@ -6,7 +6,7 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 05:35:14 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/20 01:46:30 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/24 05:45:49 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,33 +16,20 @@ static const luaL_Reg Functions[] =
 {
 	{"get_prog", get_prog},
 	{"use_prog", use_prog},
-	{"create_element", create_element},
+	{"update_vao", update_vao},
+	{"get_time", get_time},
+/*	{"create_element", create_element},
 	{"draw_element", draw_element},
-	{"delete_element", delete_element},
+	{"delete_element", delete_element},*/
 	{NULL, NULL}
 };
 
-ShaderRender  *getSR(ShaderRender *shadren)
-{
-	static ShaderRender *sr;
 
-	if (shadren == NULL)
-		return (sr);
-	else if (shadren)
-		sr = shadren;
-	return (NULL);
-}
-
-lua_State	*getL(lua_State *l)
-{
-	static lua_State	*L;
-
-	if (l == NULL)
-		return (L);
-	else if (l)
-		L = l;
-	return (NULL);
-}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                   Init                                     */
+/*                                 ~20 lines                                  */
+/* ************************************************************************** */
 
 int	init_LuaGL(ShaderRender *sr)
 {
@@ -59,46 +46,54 @@ int	init_LuaGL(ShaderRender *sr)
 	load_run_script(L, "lua/init_loop.lua");
 	lua_getfield(L, LUA_GLOBALSINDEX, "init_oo");
 	lua_call(L, 0, 0);
+//	load_script(L, "lua/draw.lua");
 }
 
-int	load_run_script(lua_State *L, char *script)
-{
-	int	status, result;
-
-	status = luaL_loadfile(L, script);
-	if (status)
-	{
-		fprintf(stderr, "Couldn't load file: %s\n", lua_tostring(L, -1));
-		exit(1);
-	}
-	result = lua_pcall(L, 0, LUA_MULTRET, 0); // Lua run script
-	if (result)
-	{
-		fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
-		exit(1);
-	}
-	return (0);
-}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                 Functions                                  */
+/*                                 ~30 lines                                  */
+/* ************************************************************************** */
 
 int	get_prog(lua_State *L)
 {
-	/*ShaderProgram	*prog;
+	ShaderProgram	*prog;
 
-	prog = getSR(NULL)->getProgram(0);
-	lua_pushinteger(L, lua_Integer(prog));*/
+	int	ind = luaL_checkinteger(L, 1);
+	prog = getSR(NULL)->GetProgram(ind);
+	lua_pushinteger(L, lua_Integer(prog));
 	return (1);
 }
 
 int	use_prog(lua_State *L)
 {
-	/*ShaderProgram	*prog;
+	ShaderProgram	*prog;
 
 	prog = (ShaderProgram*)(luaL_checkinteger(L, 1));
-	prog->use();*/
+	prog->Use();
 	return (0);
 }
 
-int	create_element(lua_State *L)
+int	update_vao(lua_State *L)
+{
+	ShaderProgram *prog;
+
+	prog = (ShaderProgram*)(luaL_checkinteger(L, 1));
+    size_t count; // vertices
+    float* vert = pop_float(L, 2, &count);
+
+	prog->UpdateVAO(vert, count);
+	return (0);
+}
+
+int	get_time(lua_State *L)
+{
+	double	time = glfwGetTime();
+	lua_pushnumber(L, lua_Number(time));
+	return (1);
+}
+
+/*int	create_element(lua_State *L)
 {
     size_t ind_nb; // indices
     unsigned short* ind = pop_ushort( L, 1, &ind_nb );
@@ -131,4 +126,4 @@ int				delete_element(lua_State *L)
 	elem = (Element*)(luaL_checkinteger(L, 1));
 	delete elem;
 	return (0);
-}
+}*/

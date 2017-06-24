@@ -281,6 +281,13 @@ bool		ShaderProgram::CheckCompilation(GLuint shader)
 	return true;
 }
 
+void			ShaderProgram::UpdateVAO(float *vert, GLuint count)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+	//TODO: Vector3 management
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * count, vert, GL_STATIC_DRAW);
+}
+
 void			ShaderProgram::CreateVAO(void)
 {
 	glGenBuffers(1, &_vbo);

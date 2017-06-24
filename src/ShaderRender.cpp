@@ -48,7 +48,7 @@ ShaderRender::ShaderRender(void)
 		_transitionPrograms.push_back(prog);
 	}
 
-	//init_LuaGL(this);
+	init_LuaGL(this);
 }
 
 void		ShaderRender::Render(void)
@@ -108,7 +108,7 @@ void		ShaderRender::Render(void)
 
 	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 
-	glClearColor(.75, 0, 1, 1);
+	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glEnable(GL_MULTISAMPLE);
@@ -116,9 +116,9 @@ void		ShaderRender::Render(void)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-//	load_run_script(getL(NULL), "lua/draw.lua");
-
 	static int frames = 0;
+
+			load_run_script(getL(NULL), "lua/draw.lua");
 
 	for (const std::size_t pIndex : _currentRenderedPrograms)
 		if (pIndex < _programs.size())
@@ -218,9 +218,16 @@ void		ShaderRender::framebufferSizeCallback(int width, int height)
 		program->UpdateFramebufferSize(vec2{static_cast< float >(width), static_cast< float >(height)});
 }
 
+ShaderProgram	*ShaderRender::GetProgram(int id)
+{
+	ShaderProgram	*sp;
+	sp = (ShaderProgram*)(this->_programs[id]);
+	return sp;
+}
+
 ShaderRender::~ShaderRender()
 {
 	for (auto program : _programs)
 		delete program;
-//	lua_close(getL(NULL));		// Cya, Lua
+	lua_close(getL(NULL));		// Cya, Lua
 }

@@ -1,16 +1,10 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   lua_utils.cpp                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2017/06/04 03:13:28 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/08 08:39:18 by jpirsch          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "lua_utils.hpp"
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                      Getters of vector tables from lua                     */
+/*                                 ~80 lines                                  */
+/* ************************************************************************** */
 
 unsigned short* pop_ushort( lua_State* state, int narg,
 												size_t* outLength )
@@ -28,6 +22,23 @@ unsigned short* pop_ushort( lua_State* state, int narg,
 		++pt;
 	}
 	return indices;
+}
+
+float* pop_float( lua_State* state, int narg, size_t* outLength )
+{
+	int nb = (int)lua_objlen( state, narg );
+	*outLength = nb ;
+	float* vert = (float*)(malloc( nb * sizeof(float) ));
+	float* pt = vert;
+	for( int i = 1; i <= nb; ++i )
+	{
+		lua_pushinteger( state, i ); // key
+		lua_gettable( state, narg ); // Value at key (lua_gettable pops the key)
+		*pt = (float)luaL_checknumber( state, -1 );
+		lua_pop(state, 1);
+		++pt;
+	}
+	return vert;
 }
 
 #define READ_FIELD( dst, i )				\
@@ -92,4 +103,103 @@ vec3* pop_vec3(lua_State* state, int narg, size_t* outLength)
 		lua_pop(state, 1); // Remove the subtable
 	}
 	return vectors;
+}
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                               Push table util                              */
+/*                                 ~20 lines                                  */
+/* ************************************************************************** */
+
+/*void	push_table(std::vector< ICGProgram * >	progs)
+{
+		
+	lua_newtable(L);			// We will pass a table
+	for (i = 1; i <= 5; i++)
+	{
+		lua_pushnumber(L, i);	// Push the table index
+		lua_pushnumber(L, i*2);	// Push the cell value
+		lua_rawset(L, -3);		// Stores pair in table
+	}
+
+	lua_setglobal(L, "foo");	// Name the script has to reference our table?
+}*/
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                               Singleton utils                              */
+/*                                 ~20 lines                                  */
+/* ************************************************************************** */
+
+ShaderRender  *getSR(ShaderRender *shadren)
+{
+	static ShaderRender *sr;
+
+	if (shadren == NULL)
+		return (sr);
+	else if (shadren)
+		sr = shadren;
+	return (NULL);
+}
+
+lua_State	*getL(lua_State *l)
+{
+	static lua_State	*L;
+
+	if (l == NULL)
+		return (L);
+	else if (l)
+		L = l;
+	return (NULL);
+}
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                               Script utils                                 */
+/*                                 ~20 lines                                  */
+/* ************************************************************************** */
+
+int	load_script(lua_State *L, char *script)
+{
+	int	status;
+
+	status = luaL_loadfile(L, script);
+	if (status)
+	{
+		fprintf(stderr, "Couldn't load file: %s\n", lua_tostring(L, -1));
+		exit(1);
+	}
+	return (0);
+}
+
+int	run_script(lua_State *L)
+{
+	int	result;
+
+	result = lua_pcall(L, 0, LUA_MULTRET, 0); // Lua run script
+	if (result)
+	{
+		fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
+		exit(1);
+	}
+	return (0);
+}
+
+int	load_run_script(lua_State *L, char *script)
+{
+	int	status, result;
+
+	status = luaL_loadfile(L, script);
+	if (status)
+	{
+		fprintf(stderr, "Couldn't load file: %s\n", lua_tostring(L, -1));
+		exit(1);
+	}
+	result = lua_pcall(L, 0, LUA_MULTRET, 0); // Lua run script
+	if (result)
+	{
+		fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
+		exit(1);
+	}
+	return (0);
 }

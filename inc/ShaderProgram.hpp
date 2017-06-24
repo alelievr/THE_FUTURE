@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:23 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/21 00:30:35 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/24 02:36:19 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ class		ShaderProgram : public ICGProgram
 
 		bool    CompileAndLink(void);
 
+		void		UpdateVAO(float *vert, GLuint count);
 		void    Use(void);
 		void    UpdateUniforms(const vec2 winSize, bool pass = false);
 		void    UpdateFramebufferSize(const vec2 fbSize);

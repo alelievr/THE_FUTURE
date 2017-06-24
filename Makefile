@@ -20,7 +20,6 @@ SRC			=	ShaderRender.cpp		\
 				ShaderProgram.cpp		\
 				ShaderChannel.cpp		\
 				ShaderApplication.cpp	\
-				Element.cpp				\
 				lua_utils.cpp			\
 				LuaGL.cpp				\
 				wav.cpp					\

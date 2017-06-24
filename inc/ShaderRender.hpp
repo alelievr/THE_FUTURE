@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/20 15:36:32 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/24 02:25:30 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@
 #include "KernelProgram.hpp"
 #include "ShaderChannel.hpp"
 #include "NetworkManager.hpp"
-#include "LuaGL.hpp"
+//#include "LuaGL.hpp"
 
 //#define UNIFORM_DEBUG 1
 
@@ -63,4 +63,5 @@ class ShaderRender
 		void				UpdateLocalParam(const int programIndex, const std::string & uniformName, const UniformParameter & param);
 
 		void				framebufferSizeCallback(int width, int height);
+		ShaderProgram		*GetProgram(int id);
 };

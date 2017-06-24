@@ -6,7 +6,7 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 03:37:10 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/21 15:25:42 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/23 21:06:11 by jpirsch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ class ShaderApplication
 
 		bool	LoadShader(const std::string & shaderFile);
 		void	FocusShader(const int programIndex, const int transitionIndex);
+		void	AddShader(const int programIndex);
 		void	RenderLoop(void);
 		void	OnLoadingShaderFinished(void);
 		void    UpdateLocalParam(const int programIndex, const std::string & uniformName, const UniformParameter & param);
