@@ -238,6 +238,7 @@ void				NetworkManager::OnClientResourcesLoaded(Client & c)
 
 const std::string &	NetworkManager::_PacketTypeToString(const PacketType type) const
 {
+	static const std::string defaultValue = "";
 	static const std::string packetTypes[] = {
 		"Status",
 		"ShaderFocus",
@@ -259,7 +260,7 @@ const std::string &	NetworkManager::_PacketTypeToString(const PacketType type) c
 	};
 	int t = static_cast< int >(type);
 	if (t < 0 || t >= 17)
-		return "";
+		return defaultValue;
 	return packetTypes[t];
 }
 
