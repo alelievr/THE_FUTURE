@@ -31,7 +31,6 @@ typedef	struct	s_ifs_spec
 	int		beg_id[MAX_ITER];
 	int		len_base;
 	int		len_trans;
-	int		max_iter;
 	int		max_pt;
 	int		ecr_x;
 	int		ecr_y;
@@ -119,9 +118,9 @@ int	get_iter(int id, __const char max_iter, __const char len_trans, __const char
 
 	iter = 0;
 	id /= (len_base - 1);
-	while ((id % (len_trans + 1)) == 0 && iter < max_iter)
+	while ((id % (len_trans - 1)) == 0 && iter < max_iter)
 	{
-		id = id / (len_trans + 1);
+		id = id / (len_trans - 1);
 		iter++;
 	}
 	return (iter);
@@ -137,11 +136,11 @@ __kernel	void	define_color(__global char4 *col, __global t_ifs_spec *spec)
 
 	id = get_global_id(0);
 
-	iter = get_iter(id, spec[0].max_iter, spec[0].len_trans, spec[0].len_base);
+	iter = get_iter(id, spec[0].nb_iter, spec[0].len_trans, spec[0].len_base);
 
 	hue = ((float) id) / ((float) spec[0].max_pt);
-//	sat = (1 - (float)iter / ((float) spec[0].max_iter));
-	val = (float)(id % (spec->len_trans + 1)) / ((float) (spec->len_trans + 1));
+//	sat = (1 - (float)iter / ((float) spec[0].nb_iter));
+	val = (float)(id % (spec->len_trans - 1)) / ((float) (spec->len_trans - 1));
 	sat = val * val;
 
 	hue = (spec->hue.beg + (hue * spec->hue.delta)) * 360;
@@ -229,8 +228,8 @@ __kernel	void	calcul_ifs_point(__global float2 *pt_ifs
 	int		id_now;
 
 	glob_id = get_global_id(0);
-	id_trans = glob_id % (spec->len_trans + 1);
-	id_parent = (glob_id / (spec->len_trans + 1)) + spec->beg_id[num_iter - 1];
+	id_trans = glob_id % (spec->len_trans - 1);
+	id_parent = (glob_id / (spec->len_trans - 1)) + spec->beg_id[num_iter - 1];
 	id_now = glob_id + spec->beg_id[num_iter];
 
 	ux = pt_ifs[id_parent + 1] - pt_ifs[id_parent];

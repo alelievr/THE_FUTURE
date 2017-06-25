@@ -178,6 +178,9 @@ KernelProgram::KernelProgram(void)
 	_firstUse = true;
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 	bzero(&(_param), sizeof(t_ifs_param));
+	_param.nb_iter = HARD_ITER;
+	_param.len_trans = 4;
+	_param.len_base = 4;
 	CreateVAO();
 }
 
@@ -201,7 +204,6 @@ KernelProgram::~KernelProgram(void)
 
 std::string		KernelProgram::_LoadSourceFile(const std::string & filePath)
 {
-	int				mode;
 	std::string		fileSource = "";
 	std::string		line;
 	std::ifstream	file(filePath);
@@ -329,8 +331,6 @@ bool			KernelProgram::CompileAndLink(void)
 // <---
 void		KernelProgram::Use(void)
 {
-	GLenum gl_err;
-
 	if (_firstUse)
 		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
 	glUseProgram(_id);
@@ -357,20 +357,21 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	size_t	local_work_size[3] = {1, 0, 0};
 //	cl_int	err[10];
 	cl_int	err[4];
-	float	hard_base[4][2] =
-	{{657.534241, 341.694916},{250.684937, 919.322021},{1035.616455, 1004.745789},{657.534241, 341.694916}};
 
+	(void)pass;
 	bzero(err, sizeof(err));
 	_set_base();
 	err[0] = clEnqueueWriteBuffer(_queue, _buff["pt_ifs"], CL_TRUE, 0, 4 * 2 * sizeof(float), &_param.pt_base, 0, NULL, NULL);
-	_setIdPtBuff(4, 2, HARD_ITER, _idPtBuff);
+	_setIdPtBuff(_param.len_base, _param.len_trans, _param.nb_iter, _idPtBuff);
 	setParam(&_param);
 	err[1] = clEnqueueWriteBuffer(_queue, _buff["ifs_param"], CL_TRUE, 0, sizeof(t_ifs_param), &_param, 0, NULL, NULL);
-	global_work_size[0] = _idPtBuff[HARD_ITER - 1] - _idPtBuff[HARD_ITER - 2];
+	global_work_size[0] = _idPtBuff[_param.nb_iter - 1] - _idPtBuff[_param.nb_iter - 2];
 //	printf("worksize def_col:%d\n", global_work_size[0]);
 	err[2] = clEnqueueNDRangeKernel(_queue, _kernels["define_color"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	if (!_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__))
+	{
 		exit(0);
+	}
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, _screen_tex);
 	int id = glGetUniformLocation(_id, "iChannel0");
@@ -421,7 +422,7 @@ void		KernelProgram::Draw(void)
 	bzero(err, sizeof(err));
 	i = 1;
 	
-	while (i < HARD_ITER)
+	while (i < _param.nb_iter)
 	{
 		global_work_size[0] = _idPtBuff[i + 1] - _idPtBuff[i];
 
@@ -440,7 +441,7 @@ void		KernelProgram::Draw(void)
 	clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	{
 		clEnqueueNDRangeKernel(_queue, _kernels["clear"], 2, NULL, screen, NULL, 0, NULL, NULL);
-		global_work_size[0] = _idPtBuff[HARD_ITER - 1] - _idPtBuff[HARD_ITER - 2] - 1;
+		global_work_size[0] = _idPtBuff[_param.nb_iter - 1] - _idPtBuff[_param.nb_iter - 2] - 1;
 //		printf("glob:");
 		err[2] = clEnqueueNDRangeKernel(_queue, _kernels["draw_line"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	}
@@ -491,8 +492,8 @@ void		KernelProgram::_setRangeVal(t_range *value, float beg, float end)
 
 void		KernelProgram::_setIdPtBuff(int nb_base, int nb_trans, int nb_iter, int *indice_beg)
 {
+	(void)nb_iter;
 	int		sum;
-	int		iter_max;
 	int		i;
 
 	i = 1;
@@ -500,7 +501,7 @@ void		KernelProgram::_setIdPtBuff(int nb_base, int nb_trans, int nb_iter, int *i
 	sum = nb_base;
 	while (i < MAX_ITER)
 	{
-		sum += (sum - 1) * (nb_trans);// le truc presedent
+		sum += (sum - 1) * (nb_trans - 2);// le truc presedent
 		indice_beg[i] = indice_beg[i - 1] + sum;
 		i++;
 	}
@@ -523,14 +524,17 @@ void	KernelProgram::setParam(t_ifs_param *param)
 	if ((add > 0 && id_trans > beg + lim) || (add < 0 && id_trans < beg - lim))
 		add *= -1;
 	id_trans += add;
-	param->len_trans = 2;
-	param->len_base = 4;//get_polygone_len(e->base);
-	param->max_iter = 4;
-	_setIdPtBuff(param->len_base, param->len_trans, param->max_iter, _idPtBuff);
-	param->max_pt = _idPtBuff[HARD_ITER] - _idPtBuff[HARD_ITER - 1]; 
+
+//	std::cout << "len_trans:" << _param.len_trans << std::endl; 
+//	exit(0);
+
+//	param->len_trans = 4;			// ##<<
+//	param->len_base = 4;//get_polygone_len(e->base);
+	_setIdPtBuff(param->len_base, param->len_trans, param->nb_iter, _idPtBuff);
+	param->max_pt = _idPtBuff[_param.nb_iter] - _idPtBuff[_param.nb_iter - 1]; 
 	param->ecr_x = framebuffer_size.x;
 	param->ecr_y = framebuffer_size.y;
-	param->nb_iter = HARD_ITER;
+	
 
 	_setRangeVal(&(param->hue), 0.3, 0.4);
 	_setRangeVal(&(param->sat), 0.5, 0.6);
