@@ -95,6 +95,16 @@ static	float	trans_raw[TRANS_TEST][4][2] = {
 						{{0.000000, 0.000000},{0.334383, -0.152098},{0.645562, 0.066351},{1.000000, 0.000000}},
 																												};
 
+static	const	float	anime_trans[6][8] = {
+		{0.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000},
+		{0.495863, -0.229901, 0.059173, -0.065980, -0.072465, -0.063004, 1.993007, 0.000000},
+		{0.354023, -0.222185, -0.047905, 0.042355, -0.065980, -0.059173, 2.342657, 0.000000},
+		{0.642503, 0.119864, -0.042669, 0.023241, -0.065980, -0.059173, 1.958042, 0.000000},
+		{0.878478, 0.073556, 0.059173, -0.065980, -0.036211, -0.050332, 3.461539, 0.000000},
+		{1.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000}
+		};
+
+
 
 static	const char * FRAGMENT_SHADER_HEADER =
 "#version 330\n"
@@ -128,7 +138,6 @@ static	const char * FRAGMENT_SHADER_HEADER =
 "void main()\n"
 "{\n"
 "	vec2 uv = gl_FragCoord.xy / iResolution;\n"
-//"	uv.x *= iResolution.y / iResolution.x;\n"
 "	fragColor = vec4(texture(iChannel0, uv).xyz, 1);\n"
 "}\n"
 "#line 1\n";
@@ -168,8 +177,7 @@ KernelProgram::KernelProgram(void)
 
 	if (!contextLoaded)
 	{
-			//load OpenCL contex
-	//	printf("%s\n", src);
+		//load OpenCL contex
     	err[0] = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &_device_id, NULL);
 		_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 1);
 		_queue = clCreateCommandQueue(_context, _device_id, 0, err + 2);
@@ -227,12 +235,8 @@ bool			KernelProgram::LoadSourceFile(const std::string & fileName)
 
 bool			KernelProgram::CompileAndLink(void)
 {
-//	if (_fragmentFileSources.size() == 0)
-//		return false;
-
 	///////////////		OpenGL part	///////////////////
 	GLuint		fragmentShaderId;
-	//TODO: multi-shader file management for fragments and vertex
 	const char	*fragmentSources[] = {FRAGMENT_SHADER_HEADER};// fichirer en dure 
 	const char	*vertexSources[] = {VERTEX_SHADER_DEFAULT};
    
@@ -302,7 +306,6 @@ bool			KernelProgram::CompileAndLink(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-//	printf("==>%d\n", _screen_tex);
     _buff["screen"] = clCreateFromGLTexture(_context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, _screen_tex, 0);
 
 	_buff["pt_ifs"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF, NULL, err + 4);
@@ -324,11 +327,9 @@ bool			KernelProgram::CompileAndLink(void)
 	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	clFinish(_queue);
 	_loaded = true;
-	// ---- 
 	return (_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__));
 }
 
-// <---
 void		KernelProgram::Use(void)
 {
 	if (_firstUse)
@@ -337,12 +338,10 @@ void		KernelProgram::Use(void)
 }
 
 
-// <---
 void			KernelProgram::CreateVAO(void)
 {
 	glGenBuffers(1, &_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-	//TODO: Vector3 management
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderVertices, GL_STATIC_DRAW);
 	glGenVertexArrays(1, &_vao);
 	glBindVertexArray(_vao);
@@ -355,7 +354,6 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 {
 	size_t	global_work_size[3] = {1, 0, 0};
 	size_t	local_work_size[3] = {1, 0, 0};
-//	cl_int	err[10];
 	cl_int	err[4];
 
 	(void)pass;
@@ -366,7 +364,6 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	setParam(&_param);
 	err[1] = clEnqueueWriteBuffer(_queue, _buff["ifs_param"], CL_TRUE, 0, sizeof(t_ifs_param), &_param, 0, NULL, NULL);
 	global_work_size[0] = _idPtBuff[_param.nb_iter - 1] - _idPtBuff[_param.nb_iter - 2];
-//	printf("worksize def_col:%d\n", global_work_size[0]);
 	err[2] = clEnqueueNDRangeKernel(_queue, _kernels["define_color"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	if (!_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__))
 	{
@@ -380,7 +377,6 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	glUniform2f(id, winSize.x, winSize.y);
 }
 
-// <---
 void		KernelProgram::UpdateFramebufferSize(const vec2 fbSize)
 {
 	cl_int	err[5];
@@ -397,17 +393,13 @@ void		KernelProgram::UpdateFramebufferSize(const vec2 fbSize)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-//	printf("==>%d\n", _screen_tex);
 
 	_buff["screen"] = clCreateFromGLTexture(_context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, _screen_tex, 0);
 	
 	err[0]	= clSetKernelArg(_kernels["draw_line"], 0, sizeof(cl_mem), &_buff["screen"]);
 	err[1] = clSetKernelArg(_kernels["clear"], 0, sizeof(cl_mem), &_buff["screen"]);
 
-	if (!_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__))
-		exit(0);
-
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_size.x, framebuffer_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 }
 
 void		KernelProgram::Draw(void)
@@ -442,10 +434,8 @@ void		KernelProgram::Draw(void)
 	{
 		clEnqueueNDRangeKernel(_queue, _kernels["clear"], 2, NULL, screen, NULL, 0, NULL, NULL);
 		global_work_size[0] = _idPtBuff[_param.nb_iter - 1] - _idPtBuff[_param.nb_iter - 2] - 1;
-//		printf("glob:");
 		err[2] = clEnqueueNDRangeKernel(_queue, _kernels["draw_line"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	}
-//	printf("worksize last_draw_line:%d\n", global_work_size[0]);
 	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	clFinish(_queue);
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
@@ -455,7 +445,6 @@ void		KernelProgram::Draw(void)
 	std::cout << "drawing program: " << _id << " to " << _vao << "\n";
 #endif
 	glBindVertexArray(_vao);
-// $---
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, _renderCount);
 }
 
@@ -515,7 +504,6 @@ void	KernelProgram::setParam(t_ifs_param *param)
 	int				beg = 11;
 	int				i;
 
-//	id_trans = 32;
 	for (i = 0; i < 4; i++)
 	{
 		param->pt_trans[i][0] = trans_raw[(int)id_trans][i][0];
@@ -525,11 +513,6 @@ void	KernelProgram::setParam(t_ifs_param *param)
 		add *= -1;
 	id_trans += add;
 
-//	std::cout << "len_trans:" << _param.len_trans << std::endl; 
-//	exit(0);
-
-//	param->len_trans = 4;			// ##<<
-//	param->len_base = 4;//get_polygone_len(e->base);
 	_setIdPtBuff(param->len_base, param->len_trans, param->nb_iter, _idPtBuff);
 	param->max_pt = _idPtBuff[_param.nb_iter] - _idPtBuff[_param.nb_iter - 1]; 
 	param->ecr_x = framebuffer_size.x;
@@ -541,7 +524,6 @@ void	KernelProgram::setParam(t_ifs_param *param)
 	_setRangeVal(&(param->val), 0.8, 0.99);
 
 	memmove(&(param->beg_id), _idPtBuff, sizeof(int) * MAX_ITER);
-//	printf("param->ecrX:%d	param->ecrY:%d\n", param->dim_ecr[0], param->dim_ecr[1]);
 }
 
 
@@ -600,9 +582,7 @@ void	KernelProgram::_set_base()
 {
 	float	r;
 	float	time = glfwGetTime() - __localParams["localStartTime"];
-//	std::cout << (glfwGetTime() - __localParams["localStartTime"]) << std::endl;
 	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
-//	vec_2	ret;
 	vec_2	ux = {0, 1};
 	vec_2	uy = {1, 0};
 	vec_2	base[MAX_NODE];
@@ -623,12 +603,10 @@ void	KernelProgram::_set_base()
 	base[3] = add_rot(base[3], ux, uy, 40, time, 0.4, 0);
 
 	base[0] = base[3];
-//	std::cout << "" ;
 	for (int i = 0; i < MAX_NODE; i++)
 	{
-		this->_param.pt_base[i][0] = base[i].x;
-		this->_param.pt_base[i][1] = base[i].y;
-//		std::cout << "pt:{" << _param.pt_base[i][0] << ", " << _param.pt_base[i][1]<< "}"<< std::endl;
+		_param.pt_base[i][0] = base[i].x;
+		_param.pt_base[i][1] = base[i].y;
 	}
 }
 
@@ -637,10 +615,9 @@ void	gl_test(const int line, const char * func, const char * file)
 {
 	GLenum gl_err = 0;
 
-//	std::cout << "err code:"<< gl_err << "	file:" << file << "	func:" << func << "	line:"<< line << std::endl;
 	while((gl_err = glGetError()) != GL_NO_ERROR)
 	{
-		  //Process/log the error.
+		//Process/log the error.
 		std::cout << "err code:"<< gl_err << "	file:" << file << "	func:" << func << "	line:"<< line << std::endl;
 //		exit(0);
 	}
