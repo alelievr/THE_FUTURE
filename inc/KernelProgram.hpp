@@ -39,7 +39,6 @@ typedef	struct	s_ifs_param
 	int		beg_id[MAX_ITER];
 	int		len_base;
 	int		len_trans;
-	int		max_iter;
 	int		max_pt;
 	int		ecr_x;
 	int		ecr_y;
@@ -51,6 +50,7 @@ typedef	struct	s_ifs_param
 }				t_ifs_param;
 
 void	gl_test(const int line, const char * func, const char * file);
+vec_2	add_rot(vec_2 beg, vec_2 ux, vec_2 uy, const float r, float val, float speed, float offset);
 
 class		KernelProgram : public ICGProgram
 {
