@@ -1,3 +1,5 @@
+//pragma viewport list: normal cinema, square and perfplz
+#pragma viewport portrait
 /*
 * License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
 * Created by bal-khan

@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 20:35:23 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/24 02:36:19 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/06/25 23:00:31 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,15 @@
 # include "shaderpixel.h"
 # include "ShaderChannel.hpp"
 # include "ICGProgram.hpp"
+
+enum class	ProgramViewport
+{
+	Normal,
+	Cinema,
+	Portrait,
+	Square,
+	PerfPlz,
+};
 
 class		ShaderProgram : public ICGProgram
 {
@@ -49,6 +58,7 @@ class		ShaderProgram : public ICGProgram
 		std::map< std::string, float >	_localParams;
 		bool							_loaded;
 		bool							_firstUse;
+		ProgramViewport					_viewport;
 		GLuint							_id; //opengl program id
 
 		GLuint							_vao;
@@ -71,7 +81,7 @@ class		ShaderProgram : public ICGProgram
 
 		bool    CompileAndLink(void);
 
-		void		UpdateVAO(float *vert, GLuint count);
+		void	UpdateVAO(float *vert, GLuint count);
 		void    Use(void);
 		void    UpdateUniforms(const vec2 winSize, bool pass = false);
 		void    UpdateFramebufferSize(const vec2 fbSize);
@@ -81,6 +91,7 @@ class		ShaderProgram : public ICGProgram
 		GLuint	GetFramebufferId(void) const;
 		void	SetRenderId(const GLuint renderTexture);
 		GLuint	GetRenderId(void) const;
+		ProgramViewport	GetViewport(void) const;
 };
 
 std::ostream &	operator<<(std::ostream & o, ShaderProgram const & r);
