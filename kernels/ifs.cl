@@ -89,12 +89,12 @@ __kernel void test_image(__global int *time, __global int *data)
 	val = (id + *time) % 256;
 	data[id] = ((val * 7)% 256) << 16 | (256 - val) << 8 | abs(128 - val) * 2;
 }
-char4	hsv_to_rgb(__const float hue, __const float sat, __const float val);
+uchar4	hsv_to_rgb(__const float hue, __const float sat, __const float val);
 int		get_iter(int id, __const char max_iter, __const char len_trans, __const char len_base);
 float	get_line_length(float2 p1, float2 p2);
 void	print_spec(t_ifs_spec *spec);
 
-char4	hsv_to_rgb(__const float hue, __const float sat, __const float val)
+uchar4	hsv_to_rgb(__const float hue, __const float sat, __const float val)
 {
 	float	c, x, m, rgb[3];
 	char	id_x, id_c, id_0, i;
@@ -109,7 +109,7 @@ char4	hsv_to_rgb(__const float hue, __const float sat, __const float val)
 	rgb[id_x] = (x + m) * 255;
 	rgb[id_c] = (c + m) * 255;
 	rgb[id_0] = (0 + m) * 255;
-	return ((char4)(rgb[0], rgb[1], rgb[2], 0));
+	return ((uchar4)(rgb[0], rgb[1], rgb[2], 0));
 }
 
 int	get_iter(int id, __const char max_iter, __const char len_trans, __const char len_base)
@@ -127,7 +127,7 @@ int	get_iter(int id, __const char max_iter, __const char len_trans, __const char
 }
 
 
-__kernel	void	define_color(__global char4 *col, __global t_ifs_spec *spec)
+__kernel	void	define_color(__global uchar4 *col, __global t_ifs_spec *spec)
 {
 	// puis appeler gentiement la focnitn qui donne les couleurs
 	float	hue, sat, val;
@@ -194,21 +194,14 @@ __kernel	void	draw_line(write_only image2d_t img
 	i = 0;
 	p = pt[id];
 	c = (float4)(col[id_col].x, col[id_col].y, col[id_col].z, 0);
-	c /= (float)255;
-	unit_col /= (float)255;
-//	printf("col[%d]:{%d,	%d,	%d}\n", id_col, col[id_col].x, col[id_col].y, col[id_col].z);
+	c /= (float)128;
+	unit_col /= (float)128;
 
 	while(i <= nb_point)
 	{
-//		col_value = 0x0000FF;
-//		col_value = (((int)c.x & 0xFF) << 16) | (((int)c.y & 0xFF) << 8) | ((int)c.z & 0xFF);
 		is_inside = (p.x >= 0 && p.x < w) && (p.y >= 0 && p.y < h);	
 		if (is_inside)
 			write_imagef(img, (int2){p.x, p.y}, c);
-
-//	printf("id:%d	colval:%d\n", id_col, col_value);
-//	printf("col:{%f,	%f,	%f}\n", c.x, c.y, c.z);
-//	printf("col[%d]:{%d,	%d,	%d}\n", id_col, col[id_col].x, col[id_col].y, col[id_col].z);
 
 		p += unit_pos;
 		c += unit_col;
