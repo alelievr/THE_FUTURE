@@ -1,0 +1,17 @@
+1 shaders/test/DonutsFieldKlein.glsl
+
+e1r1p14	1
+e1r1p12	1
+e1r1p10	1
+e1r1p8	1
+
+LocalParam e1r1p8 0 xOffset -0.75
+LocalParam e1r1p10 0 xOffset -0.25
+LocalParam e1r1p12 0 xOffset 0.25
+LocalParam e1r1p14 0 xOffset 0.75
+
+RenderLoop 1
+{
+	Focus 0 -1 Sync None
+	Wait -1
+}
