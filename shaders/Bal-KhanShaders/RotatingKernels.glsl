@@ -3,8 +3,8 @@
 * Created by bal-khan
 */
 
-#define I_MAX	100
-#define E		0.001
+#define I_MAX	60
+#define E		0.01
 
 #define LPOS		vec3(0., 0., 0.)
 #define L2			 vec3(st*4.,0.,ct*4.)
@@ -70,7 +70,7 @@ vec3 evaluateLight(in vec3 pos)
     float distanceToL2 = length(L2-pos);
     return (
            lightCol * 1.0/(distanceToL*distanceToL)
-           +lightCol * 1.0/(distanceToL2*distanceToL2)
+           //+lightCol * 1.0/(distanceToL2*distanceToL2)
            )*.5;
 }
 
@@ -143,7 +143,7 @@ float	scene(vec3 p)
     mind = max(minf,-sdCy(vec3(p.z,p.y,p.x)*.65, vec2(.75,1.5) ) );
     sss = p;
     p-= L2;
-    vec3 tata = p;
+/*    vec3 tata = p;
         rotate(tata.xy, +t*6.28+6.28 );
     rotate(p.xy, +t*6.28 );
     mind =	 min(mind, max(sdTorus(vec3(tata.z,tata.y,tata.x), vec2(.521,.521) ), -sdCy(vec3(tata.z,tata.y,tata.x), vec2(.61,1.5) ))
@@ -161,7 +161,7 @@ float	scene(vec3 p)
     mind =	 min(mind, max(sdTorus(vec3(tata.z,tata.x,tata.y)*.5, vec2(.521,.521) ), -sdCy(vec3(tata.z,tata.x,tata.y)*.5, vec2(.61,1.5) ))
     	 	 	   					      + abs(tata.y*1.5*.5)*abs(tata.x*.5*.5)
 										);
-    mind = min(mind, length(p)-.1);
+    mind = min(mind, length(p)-.1);*/
     ss = p;
     mind = min(mine, mind);
 

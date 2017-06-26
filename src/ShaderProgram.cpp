@@ -61,13 +61,14 @@ const char * VERTEX_SHADER_DEFAULT =
 "}\n";
 
 
-static	float _renderVertices[] = {
-	-1.0f, -1.0f,
-	-1.0f,  1.0f,
-	1.0f,  1.0f,
-	1.0f,  1.0f,
-	1.0f, -1.0f,
-	-1.0f, -1.0f,
+#define VERTICES(x1, y1, x2, y2) (float[12]){x1, y1, x1, y2, x2, y2, x2, y2, x2, y1, x1, y1}
+
+static	std::map< ProgramViewport, float * > _renderverticeMap = {
+	{ProgramViewport::Normal, VERTICES(-1, -1, 1, 1)},
+	{ProgramViewport::Cinema, VERTICES(-1, -.7, 1, .7)},
+	{ProgramViewport::Portrait, VERTICES(-.42, -1, .42, 1)},
+	{ProgramViewport::Square, VERTICES(-.6, -1, .6, 1)},
+	{ProgramViewport::PerfPlz, VERTICES(-.5, -.5, .5, .5)},
 };
 
 static	GLuint _renderCount = 6;
@@ -81,10 +82,9 @@ ShaderProgram::ShaderProgram(void)
 	this->_vao = -1;
 	this->_loaded = false;
 	this->_firstUse = true;
+	this->_viewport = ProgramViewport::Normal;
 
 	this->_channels = new ShaderChannel[MAX_CHANNEL_COUNT];
-
-	CreateVAO();
 }
 
 ShaderProgram::~ShaderProgram(void) {
@@ -101,7 +101,16 @@ const std::string		ShaderProgram::_LoadSourceFile(const std::string & filePath)
 
 	std::ifstream	file(filePath);
 	std::regex		channelPragma("^\\s*#\\s*pragma\\s{1,}iChannel(\\d)\\s{1,}([^\\s]*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*)\\s*(\\w*).*");
-	std::regex		vertexPragma("^\\s*pragma\\s+vert\\s+(.*)");
+	std::regex		vertexPragma("^\\s*#\\s*pragma\\s+vert\\s+(.*)");
+	std::regex		viewportPragma("^\\s*#\\s*pragma\\s+viewport\\s+(normal|cinema|portrait|square|perfplz)$");
+
+	static std::map< std::string, ProgramViewport > viewports = {
+		{"normal", ProgramViewport::Normal},
+		{"cinema", ProgramViewport::Cinema},
+		{"portrait", ProgramViewport::Portrait},
+		{"square", ProgramViewport::Square},
+		{"perfplz", ProgramViewport::PerfPlz},
+	};
 
 	while (std::getline(file, line)) {
 		if (std::regex_match(line, match, channelPragma))
@@ -124,6 +133,13 @@ const std::string		ShaderProgram::_LoadSourceFile(const std::string & filePath)
 		else if (std::regex_match(line, match, vertexPragma))
 		{
 			//TODO
+		}
+		else if (std::regex_match(line, match, viewportPragma))
+		{
+			std::string viewportMode = match[1];
+
+			if (viewports.find(viewportMode) != viewports.end())
+				_viewport = viewports[viewportMode];
 		}
 		else
 			fileSource += line + "\n";
@@ -175,6 +191,8 @@ bool		ShaderProgram::CompileAndLink(void)
 	glLinkProgram(_id);
 	if (!CheckLink(_id))
 		return false;
+
+	CreateVAO();
 
 	LoadUniformLocations();
 
@@ -292,7 +310,7 @@ void			ShaderProgram::CreateVAO(void)
 	glGenBuffers(1, &_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 	//TODO: Vector3 management
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderverticeMap[_viewport], GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &_vao);
 	glBindVertexArray(_vao);
@@ -392,3 +410,4 @@ void	ShaderProgram::SetFramebufferId(const GLuint fbo) { _framebufferId = fbo; }
 GLuint	ShaderProgram::GetFramebufferId(void) const { return _framebufferId; }
 void	ShaderProgram::SetRenderId(const GLuint renderTexture) { _renderId = renderTexture; }
 GLuint	ShaderProgram::GetRenderId(void) const { return _renderId; }
+ProgramViewport ShaderProgram::GetViewport(void) const { return _viewport; }

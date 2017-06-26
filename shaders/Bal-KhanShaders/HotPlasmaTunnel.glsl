@@ -193,6 +193,7 @@ void mainImage( in vec2 f )
     #endif
     #ifdef	HEATWAVES
     fragColor.xyz = vec3(abs(sin(t+1.04+(15.-inter.y*.05) )), abs(sin(t+2.09+(15.-inter.y*.05) )), abs(sin(t+3.14+(15.-inter.y*.05) )));
+    fragColor.a = 1;
     return ;
     #endif
 }
