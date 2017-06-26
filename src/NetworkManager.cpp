@@ -1016,29 +1016,20 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	int												oldGroup = 0;
 
 	LOCK;
-	if ((group = _clients.find(groupId)) != _clients.end())
+	for (auto & clientKP : _clients)
 	{
-		for (auto & clientKP : _clients)
+		for (auto it = clientKP.second.begin(); it != clientKP.second.end(); ++it)
 		{
-			for (auto it = clientKP.second.begin(); it != clientKP.second.end(); ++it)
+			auto & c = it->second;
+			if (c.row == row && c.seat == seat)
 			{
-				auto & c = it->second;
-				if (c.row == row && c.seat == seat)
-				{
-					moved = c;
-					nRemoved++;
-					oldGroup = c.groupId;
-					clientKP.second.erase(it);
-					goto found;
-				}
+				moved = c;
+				nRemoved++;
+				oldGroup = c.groupId;
+				clientKP.second.erase(it);
+				goto found;
 			}
 		}
-	}
-	else
-	{
-		std::cout << "out of bounds of groupId in MoveImacToGroup !" << std::endl;
-		UNLOCK;
-		return NetworkStatus::OutOfBound;
 	}
 
 	found:

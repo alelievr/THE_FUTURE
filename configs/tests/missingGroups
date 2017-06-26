@@ -11,11 +11,13 @@ e1r1p14 1
 #e1r11p7 1
 e1r2p17 1
 
-10 shaders/Bal-KhanShaders/2Dcircular.glsl # motion stops
-20 shaders/Bal-KhanShaders/AnotherTurning.glsl
-10 shaders/Bal-KhanShaders/TunnelHot.glsl
-20 shaders/Bal-KhanShaders/TunnelRonces.glsl
-1 kernels/ifs.cl
+10 shaders/Bal-KhanShaders/2Dcircular.glsl		#0
+10 shaders/Bal-KhanShaders/TunnelHot.glsl		#1
+
+20 shaders/Bal-KhanShaders/AnotherTurning.glsl	#0
+20 shaders/Bal-KhanShaders/TunnelRonces.glsl	#1
+
+1 kernels/ifs.cl								#0
 
 RenderLoop 1
 {
@@ -23,7 +25,7 @@ RenderLoop 1
 	Wait 4
 }
 
-RenderLoop 2
+RenderLoop 20
 {
 	Focus 0 0 Sync None
 	Wait 4
@@ -31,7 +33,7 @@ RenderLoop 2
 	Wait 4
 }
 
-RenderLoop 3
+RenderLoop 10
 {
 	Focus 0 1 Sync Linear 200
 	Wait 4

@@ -1,5 +1,7 @@
 // raymarching defines
 
+uniform float InvertColor = 0.;
+
 #define I_MAX  150
 #define EPSIL  0.00001
 
@@ -45,6 +47,8 @@ void mainImage( in vec2 fragCoord )
     col.y += (1. * ( + sin(sin(iGlobalTime)*.05+inter.w/float(I_MAX))));
     col.x += pow(sin(inter.x*(0.+sin(iGlobalTime+3.14+inter.w/float(I_MAX)))/5.), 20.);
     #endif
+    if (InvertColor > 0.0)
+    	col = cos(col * 10);
     col.w = 1.;
     fragColor = col;
 }
