@@ -12,12 +12,12 @@
 # include "ICGProgram.hpp"
 
 
-# define MAX_GPU_BUFF ((size_t)(1048577 * 10)) 
+# define MAX_GPU_BUFF ((size_t)(1048577 * 5)) 
 # define MAX_ITER 20
 # define MAX_NODE 16
 # define NB_ANIME 5
 
-# define HARD_ITER 5
+# define HARD_ITER 8
 
 typedef	struct	s_vec_2
 {
@@ -87,9 +87,9 @@ class		KernelProgram : public ICGProgram
 		GLuint								_vao;
 		GLuint								_vbo;
 
+		void								_Ajust_iter();
 		void								_InitAnime();
 		void								SetParamAnime(int id);
-		void								_Ajust_iter();
 		void								_Set_base();
 		std::string							_LoadSourceFile(std::string & filePath);
 		void								_print_err(cl_int err, std::string msg, int line, std::string func, std::string file);

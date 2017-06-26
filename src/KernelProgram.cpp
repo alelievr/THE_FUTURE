@@ -219,10 +219,12 @@ KernelProgram::KernelProgram(void)
 	_firstUse = true;
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 	bzero(&(_param), sizeof(t_ifs_param));
-	_param.nb_iter = HARD_ITER;
+	_size_buff = MAX_GPU_BUFF;
+//	_param.nb_iter = HARD_ITER;
 //	_param.len_trans = 4;
 	_param.len_trans = 6;//sizeof(anime_trans) / (sizeof(float) * 8);
 	_param.len_base = 2;
+	_Ajust_iter();
 	_need_update = true;
 	CreateVAO();
 }
@@ -370,12 +372,6 @@ void		KernelProgram::Use(void)
 	if (_firstUse)
 		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
 	glUseProgram(_id);
-
-//	float time = glfwGetTime() - __localParams["localStartTime"];
-//	_SetIdPtBuff();
-//	SetParamAnime(4);
-//	setParam(&_param);
-//	_Set_base();
 }
 
 
@@ -402,7 +398,7 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	bzero(err, sizeof(err));
 
 	float time = glfwGetTime() - __localParams["localStartTime"];
-	id_anime = ((int)(time / 2)) % 4;
+	id_anime = ((int)(time / 8)) % 4;
 
 	_SetIdPtBuff();
 	SetParamAnime(id_anime);
@@ -587,7 +583,7 @@ void	set_trans_ovaloid(t_ifs_param *param, float time)
 		ux.y = anime_trans[i][3];
 		uy.x = anime_trans[i][4];
 		uy.y = anime_trans[i][5];
-		speed = anime_trans[i][6] / 5;
+		speed = anime_trans[i][6] / 8;
 		offset = anime_trans[i][7];
 		ret =  add_rot(beg, ux, uy, 1, time, speed, offset);
 		param->pt_trans[i][0] = ret.x;
@@ -789,32 +785,23 @@ void	KernelProgram::SetParamAnime(int id)
 			memmove(anime_trans, tr1, sizeof(tr1));
 			break;
 	}
-////	if (!(id >= 0 && id < _nbAnime)
-////		return ;
-//	int				i;
-//	vec_2	beg, ux, uy, ret;
-//	float	speed, offset;
-//	float	time = glfwGetTime() - __localParams["localStartTime"];
-//	time /= 4;
-//
-//	_param.len_trans = _anime[id].len_trans;
-//	_param.len_base = _anime[id].len_base;
-////	std::cout << "len_trans:" << param->len_trans << std::endl;
-////	param->len_trans = sizeof(anime_trans) / (sizeof(float) * 8);
-//	for (i = 0; i < _param.len_trans; i++)
-//	{
-////		std::cout << "i:" << i << std::endl;
-//		beg.x = _anime[id].val[i][0];
-//		beg.y = _anime[id].val[i][1];
-//		ux.x = _anime[id].val[i][2];
-//		ux.y = _anime[id].val[i][3];
-//		uy.x = _anime[id].val[i][4];
-//		uy.y = _anime[id].val[i][5];
-//		speed = _anime[id].val[i][6] / 5;
-//		offset = _anime[id].val[i][7];
-//		ret =  add_rot(beg, ux, uy, 1, time, speed, offset);
-//		_param.pt_trans[i][0] = ret.x;
-//		_param.pt_trans[i][1] = ret.y;
-//	}
+	_Ajust_iter();
+}
+
+
+void								KernelProgram::_Ajust_iter()
+{
+	int	i;
+	bool	again = true;
+
+	_SetIdPtBuff();
+	for (i = 2; i <  MAX_ITER && again; i++)
+	{
+		if (((_idPtBuff[i]) * (4 * sizeof(float))) > _size_buff)
+		{
+			_param.nb_iter = i - 1;
+			again = false;
+		}
+	}
 }
 
