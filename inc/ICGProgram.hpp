@@ -20,7 +20,9 @@ class		ICGProgram
 			if (name == "localStartTime" && reset)
 				__localParams->at(name) = glfwGetTime();
 			else
-				__localParams->at(name) = value;
+			{
+				__localParams->insert(name, value);
+			}
 		}
 
 		virtual void	Use(void) = 0;
