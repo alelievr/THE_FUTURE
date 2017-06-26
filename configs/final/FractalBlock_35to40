@@ -1,0 +1,84 @@
+36 kernels/ifs.cl
+37 shaders/Bal-KhanShaders/Newton0.glsl
+38 shaders/Bal-KhanShaders/Newton1.glsl
+39 shaders/Bal-KhanShaders/ParticlesFractals.glsl
+
+#FRONT IMACS
+
+# IFS
+e1r13p1		36
+e1r13p3		36
+e1r13p5		36
+e1r13p7		36
+e1r12p1		36
+e1r12p3		36
+e1r12p5		36
+e1r12p7		36
+
+# Newton 0
+e1r11p1		37
+e1r11p3		37
+e1r11p5		37
+e1r11p7		37
+
+# Newton 1
+e1r10p1		38
+e1r10p3		38
+e1r10p5		38
+e1r10p7		38
+
+#BACK IMACS
+# IFS
+e1r13p2		36
+e1r13p4		36
+e1r13p6		36
+e1r12p2		36
+e1r12p4		36
+e1r12p6		36
+e1r11p2		36
+e1r11p4		36
+e1r11p6		36
+
+# Newton 0
+e1r10p2		37
+e1r10p4		37
+e1r10p6		37
+
+# Newton 1
+e1r9p2		38
+e1r9p4		38
+e1r9p6		38
+
+
+#Particle fractal
+e1r9p3		39
+e1r9p5		39
+e1r8p2		39
+e1r8p4		39
+e1r8p6		39
+
+# TODO: localparams for IFS and newton
+
+RenderLoop 36
+{
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 37
+{
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 38
+{
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 39
+{
+	Focus 0 -1 Sync None
+	Wait 600
+}

@@ -387,16 +387,12 @@ void			ShaderProgram::UpdateUniforms(const vec2 winSize, bool pass)
 		}
 	}
 
-	std::cout << "localparam count: " << __localParams->size() << std::endl;
 	for (const auto & param : *__localParams)
 	{
-		std::cout << "searched param: " << std::endl;
-		std::cout << param.first << std::endl;
 		if (_uniforms.find(param.first) != _uniforms.end())
 			glUniform1f(_uniforms[param.first], param.second);
 		else
 			glUniform1f(glGetUniformLocation(_id, param.first.c_str()), param.second);
-		std::cout << "uniform changed !\n";
 	}
 }
 

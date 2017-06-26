@@ -928,7 +928,7 @@ void	gl_test(const int line, const char * func, const char * file)
 void	KernelProgram::SetParamAnime(int id)
 {
 	_SetBaseFix();
-	std::cout << "anime:" << id << std::endl;
+//	std::cout << "anime:" << id << std::endl;
 	switch (id)
 	{
 		case 0:

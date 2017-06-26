@@ -4,12 +4,12 @@
 class		ICGProgram
 {
 	protected:
-		std::map< std::string, float >	*__localParams;
+		std::map< const std::string, float >	*__localParams;
 
 	public:
 		ICGProgram() {
-			__localParams = new std::map< std::string, float >();
-			__localParams->insert(std::pair< std::string, float >("localStartTime", glfwGetTime()));
+			__localParams = new std::map< const std::string, float >();
+			__localParams->insert(std::pair< const std::string, float >("localStartTime", glfwGetTime()));
 		}
 		virtual bool	LoadSourceFile(const std::string & fileName) = 0;
 
@@ -21,7 +21,7 @@ class		ICGProgram
 				__localParams->at(name) = glfwGetTime();
 			else
 			{
-				__localParams->insert(name, value);
+				__localParams->insert(std::pair< const std::string, float >(name, value));
 			}
 		}
 
