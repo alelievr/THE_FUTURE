@@ -42,7 +42,7 @@ OBJDIR		=	obj
 LIBFT		=	2	#1 or 0 to include the libft / 2 for autodetct
 DEBUGLEVEL	=	0	#can be 0 for no debug 1 for or 2 for harder debug
 					#Warrning: non null debuglevel will disable optlevel
-OPTLEVEL	=	2	#same than debuglevel
+OPTLEVEL	=	0	#same than debuglevel
 					#Warrning: non null optlevel will disable debuglevel
 CPPVERSION	=	c++14
 #For simpler and faster use, use commnd line variables DEBUG and OPTI:
@@ -65,7 +65,7 @@ NAME		=	visualishader
 
 #	Compiler
 WERROR		=	#-Werror
-CFLAGS		=	-Wall -Wextra -ferror-limit=999
+CFLAGS		=	-Wall -Wextra -ferror-limit=999 -O0
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb

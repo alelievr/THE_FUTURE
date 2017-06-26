@@ -236,9 +236,11 @@ void				NetworkManager::OnClientResourcesLoaded(Client & c)
 	}
 
 	const int currentFocusIndex = ClusterConfig::GetFocusInGroup(c.groupId);
-	std::cout << "sendiing focus index: " << currentFocusIndex << std::endl;
 	if (currentFocusIndex != -1)
+	{
+		std::cout << "sending focus index: " << currentFocusIndex << " to client " << c << std::endl;
 		FocusShaderOnGroup(Timer::Now(), c.groupId, currentFocusIndex, -1, SyncOffset::CreateNoneSyncOffset());
+	}
 }
 
 const std::string &	NetworkManager::_PacketTypeToString(const PacketType type) const
