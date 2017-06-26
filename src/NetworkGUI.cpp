@@ -170,19 +170,14 @@ void		NetworkGUI::DrawPlace(const int x, const int y, const bool clicked)
 			&& mx > posX && mx <= posX + PLACE_WIDTH
 			&& my > posY && my <= posY + PLACE_HEIGHT)
 	{
-		std::string ip = std::string("10.11.") + clusterIPMap[y][x];
-		std::cout << "clicked on IP " << ip << std::endl;
-		if (_selectedGroup != -1)
-		{
-			std::stringstream ss;
-			ss.str(clusterIPMap[y][x]);
-			std::string n;
-			std::getline(ss, n, '.');
-			int row = std::stoi(n);
-			std::getline(ss, n, '.');
-			int seat = std::stoi(n);
-			_netManager->MoveIMacToGroup(_selectedGroup, row, seat);
-		}
+		std::stringstream ss;
+		ss.str(clusterIPMap[y][x]);
+		std::string n;
+		std::getline(ss, n, '.');
+		int row = std::stoi(n);
+		std::getline(ss, n, '.');
+		int seat = std::stoi(n);
+		std::cout << "clicked on imac e1r" << row << "p" << seat << std::endl;
 	}
 
 	_win->draw(rectangle);

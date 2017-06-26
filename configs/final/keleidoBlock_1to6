@@ -1,0 +1,97 @@
+1 shaders/Bal-KhanShaders/KaleidoComplex0.glsl	#0
+2 shaders/Bal-KhanShaders/KaleidoComplex1.glsl	#0
+3 shaders/Bal-KhanShaders/KaleidoComplex2.glsl	#0
+
+4 shaders/Bal-KhanShaders/KaleidoComplex0.glsl	#0
+4 shaders/Bal-KhanShaders/KaleidoComplex1.glsl	#1
+4 shaders/Bal-KhanShaders/KaleidoComplex2.glsl	#2
+5 shaders/Bal-KhanShaders/KaleidoComplex0.glsl	#0
+5 shaders/Bal-KhanShaders/KaleidoComplex1.glsl	#1
+5 shaders/Bal-KhanShaders/KaleidoComplex2.glsl	#2
+6 shaders/Bal-KhanShaders/KaleidoComplex0.glsl	#0
+6 shaders/Bal-KhanShaders/KaleidoComplex1.glsl	#1
+6 shaders/Bal-KhanShaders/KaleidoComplex2.glsl	#2
+
+
+#FRONT block of kaleido shaders
+e1r13p8		1
+e1r13p10	3
+e1r13p12	3
+e1r13p14	3
+e1r12p17	2
+e1r12p19	1
+e1r12p21	3
+e1r12p23	3
+e1r11p17	2
+e1r11p19	2
+e1r11p21	1
+e1r11p23	3
+e1r10p17	2
+e1r10p19	2
+e1r10p21	2
+e1r10p23	1
+
+#BACK block
+e1r13p9		4
+e1r13p11	5
+e1r13p13	6
+e1r12p18	6
+e1r12p20	4
+e1r12p22	5
+e1r11p18	5
+e1r11p20	6
+e1r11p22	4
+e1r10p18	4
+e1r10p20	5
+e1r10p22	6
+e1r9p15		6
+e1r9p17		4
+e1r9p19		5
+
+#10 minutes: 600 secs
+RenderLoop 1
+{
+	Focus 0 -1 Sync None
+	Wait -1
+}
+
+RenderLoop 2
+{
+	Focus 0 -1 Sync None
+	Wait -1
+}
+
+RenderLoop 3
+{
+	Focus 0 -1 Sync None
+	Wait -1
+}
+
+RenderLoop 4
+{
+	Focus 0 0 Sync None
+	Wait 30
+	Focus 1 0 Sync None
+	Wait 30
+	Focus 2 0 Sync None
+}
+
+RenderLoop 5
+{
+	Focus 1 0 Sync None
+	Wait 30
+	Focus 2 0 Sync None
+	Wait 30
+	Focus 0 0 Sync None
+}
+
+RenderLoop 6
+{
+	Focus 2 0 Sync None
+	Wait 30
+	Focus 0 0 Sync None
+	Wait 30
+	Focus 1 0 Sync None
+}
+
+RenderLoop 
