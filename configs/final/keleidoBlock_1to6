@@ -93,5 +93,3 @@ RenderLoop 6
 	Wait 30
 	Focus 1 0 Sync None
 }
-
-RenderLoop 

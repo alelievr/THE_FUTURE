@@ -1,0 +1,149 @@
+11 shaders/Bal-KhanShaders/PulsingTunnelGrid.glsl
+12 shaders/Bal-KhanShaders/HotTunnelDNA.glsl
+13 shaders/Bal-KhanShaders/HotPlasmaTunnel1RIGIDGOODCOLOR.glsl
+14 shaders/Bal-KhanShaders/HotPlasmaTunnel.glsl
+
+5 shaders/Bal-KhanShaders/
+
+#FRONT imacs
+e1r7p16		11
+e1r7p18		12
+e1r7p20		13
+e1r7p22		14
+e1r6p15		11
+e1r6p17		12
+e1r6p19		13
+e1r6p21		14
+e1r5p17		11
+e1r5p19		12
+e1r5p21		13
+e1r5p23		14
+e1r4p17		11
+e1r4p19		12
+e1r4p21		13
+e1r4p23		14
+e1r3p15		11
+e1r3p17		12
+e1r3p19		13
+e1r3p21		14
+e1r2p17		11
+e1r2p19		12
+e1r2p21		13
+e1r2p23		14
+e1r1p8		11
+e1r1p10		12
+e1r1p12		13
+e1r1p14		14
+
+RenderLoop	11
+{
+	Focus 0 -1 Sync None
+	Wait -1
+}
+
+RenderLoop	12
+{
+	Focus 0 -1 Sync None
+	Wait -1
+}
+
+RenderLoop	13
+{
+	Focus 0 -1 Sync None
+	Wait -1
+}
+
+RenderLoop	14
+{
+	Focus 0 -1 Sync None
+	Wait -1
+}
+
+#Back Imacs
+
+15 shaders/Bal-KhanShaders/RotatingKernels.glsl		#0
+15 shaders/Bal-KhanShaders/Fire.glsl				#1
+15 shaders/Bal-KhanShaders/DonutsFieldKlein.glsl	#2
+15 shaders/Bal-KhanShaders/KissingDonuts.glsl		#3
+
+16 shaders/Bal-KhanShaders/RotatingKernels.glsl		#0
+16 shaders/Bal-KhanShaders/Fire.glsl				#1
+16 shaders/Bal-KhanShaders/DonutsFieldKlein.glsl	#2
+16 shaders/Bal-KhanShaders/KissingDonuts.glsl		#3
+
+17 shaders/Bal-KhanShaders/RotatingKernels.glsl		#0
+17 shaders/Bal-KhanShaders/Fire.glsl				#1
+17 shaders/Bal-KhanShaders/DonutsFieldKlein.glsl	#2
+17 shaders/Bal-KhanShaders/KissingDonuts.glsl		#3
+
+18 shaders/Bal-KhanShaders/RotatingKernels.glsl		#0
+18 shaders/Bal-KhanShaders/Fire.glsl				#1
+18 shaders/Bal-KhanShaders/DonutsFieldKlein.glsl	#2
+18 shaders/Bal-KhanShaders/KissingDonuts.glsl		#3
+
+e1r6p16		15
+e1r6p18		16
+e1r6p20		17
+e1r5p18		18
+e1r5p20		15
+e1r5p22		16
+e1r4p18		17
+e1r4p20		18
+e1r4p22		15
+e1r3p16		16
+e1r3p18		17
+e1r3p20		18
+e1r2p18		15
+e1r2p20		16
+e1r2p22		17
+e1r1p9		18
+e1r1p11		15
+e1r1p13		16
+
+RenderLoop	15
+{
+	Focus 15 1 Sync None
+	Wait 30
+	Focus 16 1 Sync None
+	Wait 30
+	Focus 17 1 Sync None
+	Wait 30
+	Focus 18 1 Sync None
+	Wait 30
+}
+
+RenderLoop	16
+{
+	Focus 16 1 Sync None
+	Wait 30
+	Focus 17 1 Sync None
+	Wait 30
+	Focus 18 1 Sync None
+	Wait 30
+	Focus 15 1 Sync None
+	Wait 30
+}
+
+RenderLoop	17
+{
+	Focus 17 1 Sync None
+	Wait 30
+	Focus 18 1 Sync None
+	Wait 30
+	Focus 15 1 Sync None
+	Wait 30
+	Focus 16 1 Sync None
+	Wait 30
+}
+
+RenderLoop	18
+{
+	Focus 18 1 Sync None
+	Wait 30
+	Focus 17 1 Sync None
+	Wait 30
+	Focus 16 1 Sync None
+	Wait 30
+	Focus 15 1 Sync None
+	Wait 30
+}

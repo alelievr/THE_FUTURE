@@ -169,11 +169,6 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 
 		nm->ConnectCluster(nm->GetLocalCluster());
 
-		int		nGroups = ClusterConfig::GetGroupNumber();
-
-		for (int i = 0; i < nGroups; i++)
-			nm->CreateNewGroup();
-
 		while (!networkMustQuit)
 		{
 			if (nm->Update() == NetworkStatus::Error)
@@ -200,6 +195,7 @@ int		main(int ac, char **av)
 			while (*av)
 				ClusterConfig::LoadConfigFile(*av++);
 
+		nm.OnConfigLoaded();
 		NetworkGUI			gui(&nm);
 		serverGUINotInitialized = false;
 

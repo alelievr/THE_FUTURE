@@ -40,8 +40,6 @@ static std::mutex		_mutex;
 # define UNLOCK	_mutex.unlock();
 #endif
 
-int	NetworkManager::_localGroupId = 1;
-
 NetworkManager::NetworkManager(bool server, bool co)
 {
 	struct sockaddr_in		connection;
@@ -767,7 +765,7 @@ int							NetworkManager::GetLocalCluster(void) const
 
 int							NetworkManager::GetGroupCount(void) const
 {
-	return _localGroupId;
+	return _clients.size();
 }
 
 void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connection, const Packet & packet)
@@ -1004,10 +1002,9 @@ NetworkStatus		NetworkManager::Update(void)
 
 // Public server fuctions
 
-int		NetworkManager::CreateNewGroup(void)
+void				NetworkManager::CreateNewGroup(const int groupId)
 {
-	_clients[_localGroupId] = std::map< int, Client >();
-	return _localGroupId++;
+	_clients[groupId] = std::map< int, Client >();
 }
 #include <iterator>
 
@@ -1113,6 +1110,14 @@ NetworkStatus		NetworkManager::LoadAudioFileOnGroup(const int groupId, const std
 NetworkStatus		NetworkManager::UpdateAudioOnGroup(const Timeval *timeout, const int groupId, const AudioUpdateType type, const int audioIndex, const float audioVolume, const SyncOffset & syncOffset) const
 {
 	return _SendPacketToGroup(groupId, _CreateAudioUpdatePacket(groupId, timeout, type, audioIndex, audioVolume), syncOffset);
+}
+
+void				NetworkManager::OnConfigLoaded(void)
+{
+	const auto & groupIndexes = ClusterConfig::GetGroupIndexes();
+
+	for (const int gIndex : groupIndexes)
+		CreateNewGroup(gIndex);
 }
 
 //public client functions:
