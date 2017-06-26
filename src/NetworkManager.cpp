@@ -108,8 +108,8 @@ NetworkManager::~NetworkManager(void)
 void		NetworkManager::_SendHelloPacket()
 {
 	Packet packet = _CreateHelloPacket();
-	for (int r = 1; r < CLUSTER_MAX_ROWS; r++)
-		for (int p = 1; p < CLUSTER_MAX_ROW_SEATS; p++)
+	for (int r = 1; r <= CLUSTER_MAX_ROWS; r++)
+		for (int p = 1; p <= CLUSTER_MAX_ROW_SEATS; p++)
 		{
 			std::string ip = "10.1" + std::to_string(_me->cluster) + "." + std::to_string(r) + "." + std::to_string(p);
 			struct sockaddr_in		connection;
@@ -236,6 +236,7 @@ void				NetworkManager::OnClientResourcesLoaded(Client & c)
 	}
 
 	const int currentFocusIndex = ClusterConfig::GetFocusInGroup(c.groupId);
+	std::cout << "sendiing focus index: " << currentFocusIndex << std::endl;
 	if (currentFocusIndex != -1)
 		FocusShaderOnGroup(Timer::Now(), c.groupId, currentFocusIndex, -1, SyncOffset::CreateNoneSyncOffset());
 }

@@ -69,7 +69,7 @@ NetworkGUI::NetworkGUI(NetworkManager *nm)
 
 	_win->resetGLStates();
 
-	for (int x = 0; x < CLUSTER_MAX_ROW_SEATS + 2; x++) // +2 for cluster lanes
+	for (int x = 0; x <= CLUSTER_MAX_ROW_SEATS + 1; x++) // +2 for cluster lanes
 		for (int y = 0; y < CLUSTER_MAX_ROWS; y++)
 			_GUIClients[y][x] = GUIClient{0, ClientStatus::Unknown};
 
@@ -185,7 +185,7 @@ void		NetworkGUI::DrawPlace(const int x, const int y, const bool clicked)
 
 void		NetworkGUI::DrawCluster(const bool clicked)
 {
-	for (int x = 0; x < CLUSTER_MAX_ROW_SEATS + 2; x++) // +2 for cluster lanes
+	for (int x = 0; x <= CLUSTER_MAX_ROW_SEATS + 1; x++) // +2 for cluster lanes
 		for (int y = 0; y < CLUSTER_MAX_ROWS; y++)
 			if (clusterMap[y][x])
 				DrawPlace(x, y, clicked);
@@ -399,7 +399,7 @@ NetworkGUI::GUIClient &	NetworkGUI::FindGUIClient(const int row, const int seat)
 {
 	static GUIClient		defaultRet;
 
-	for (int x = 0; x < CLUSTER_MAX_ROW_SEATS + 2; x++)
+	for (int x = 0; x <= CLUSTER_MAX_ROW_SEATS + 1; x++)
 		for (int y = 0; y < CLUSTER_MAX_ROWS; y++)
 		{
 			std::string ip = std::string(((row < 10) ? "0" : "") + std::to_string(row) + "." + ((seat < 10) ? "0" : "") + std::to_string(seat));
