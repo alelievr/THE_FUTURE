@@ -1,0 +1,188 @@
+41 shaders/alelievr/cccccc.glsl							#0
+42 shaders/Bal-KhanShaders/OldSinsDerivative.glsl		#0
+43 shaders/Bal-KhanShaders/NotAKnot0.glsl				#0
+44 shaders/Bal-KhanShaders/NotAKnot1.glsl				#0
+45 shaders/alelievr/mandelbox-color.glsl				#0
+46 														#0
+47 shaders/Bal-KhanShaders/TrianglesMotionDesign.glsl	#0
+48 shaders/Bal-KhanShaders/HexagonThingy0.glsl			#0
+49 shaders/Bal-KhanShaders/AnotherTurning.glsl			#0
+50 shaders/Bal-KhanShaders/BarsTurning.glsl				#0
+51														#0
+52														#0
+53 shaders/alelievr/epileptik-ribon.glsl				#0
+
+#R8 front (CCCCCCCCCC)
+e1r8p1		41
+e1r8p3		41
+e1r8p5		41
+
+#R8 back (OldSinDerivates)
+e1r7p2		42
+e1r7p4		42
+e1r7p6		42
+
+#R7 front (NotAKnot0)
+e1r7p1		43
+e1r7p3		43
+e1r7p5		43
+
+#R7 back (NotAKnot1)
+e1r6p2		44
+e1r6p4		44
+e1r6p6		44
+
+#R6 front (mandelbox color)
+e1r6p1		45
+e1r6p3		45
+e1r6p5		45
+e1r6p7		45
+
+#R6 back (nothing)
+e1r5p2		46
+e1r5p4		46
+e1r5p6		46
+
+#R5 front (TriangleMotionDesign)
+e1r5p1		47
+e1r5p3		47
+e1r5p5		47
+e1r5p7		47
+
+#R5 back (Hexagon Thingy0)
+e1r4p2		48
+e1r4p4		48
+e1r4p6		48
+
+#R4 front (AnotherTuring)
+e1r4p1		49
+e1r4p3		49
+e1r4p5		49
+e1r4p7		49
+
+#R4 back (BarsTuring)
+e1r3p2		50
+e1r3p4		50
+e1r3p6		50
+
+#R3 front (nothing)
+e1r3p1		51
+e1r3p3		51
+e1r3p5		51
+e1r3p7		51
+
+#R3 back (nothing)
+e1r2p2		52
+e1r2p4		52
+e1r2p6		52
+
+#R2 front (epileptikRibon)
+e1r2p1		53
+e1r2p3		53
+e1r2p5		53
+e1r2p7		53
+
+#R2 back (epileptikRibon)
+e1r1p2		53
+e1r1p4		53
+e1r1p6		53
+
+#R1 front (epileptikRibon)
+e1r1p1		53
+e1r1p3		53
+e1r1p5		53
+e1r1p7		53
+
+#TODO: LocalParams
+
+RenderLoop 41		#R8 front
+{
+#add some timing before send focus to discharge the server
+	Wait 1
+	Focus 0 1 Sync None
+	Wait 600
+}
+
+RenderLoop 42		#R8 back
+{
+	Wait 2
+	Focus 0 -1 Sync Linear 50
+	Wait 600
+}
+
+RenderLoop 43		#R7 front
+{
+	Wait 3
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 44		#R7 back
+{
+	Wait 4
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 45		#R6 front
+{
+	Wait 5
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 46		#R6 back
+{
+	Wait 6
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 47		#R5 front
+{
+	Wait 7
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 48		#R5 back
+{
+	Wait 8
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 49		#R4 front
+{
+	Wait 9
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 50		#R4 back
+{
+	Wait 10
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 51		#R3 front
+{
+	Wait 11
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 52		#R3 back
+{
+	Wait 12
+	Focus 0 -1 Sync None
+	Wait 600
+}
+
+RenderLoop 53		#R1-R2 front
+{
+	Wait 13
+	Focus 0 -1 Sync None
+	Wait 600
+}
