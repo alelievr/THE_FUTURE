@@ -104,7 +104,7 @@ static	float	anime_trans[20][8] = {
 		{1.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000}
 		};
 
-static	const	float	tr1[6][8] = {
+static	const	float	tr1[][8] = {
 		{0.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000},
 		{0.495863, -0.229901, 0.059173, -0.065980, -0.072465, -0.063004, 1.993007, 0.000000},
 		{0.354023, -0.222185, -0.047905, 0.042355, -0.065980, -0.059173, 2.342657, 0.000000},
@@ -113,7 +113,7 @@ static	const	float	tr1[6][8] = {
 		{1.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000}
 		};
 
-static	const	float	tr2[6][8] = {
+static	const	float	tr2[][8] = {
  {0.000000, 0.000000, -0.000966, -0.028188, -0.084421, 0.024106, 1.608392, 0.000000},
  {0.393019, -0.407196, -0.085639, 0.073778, -0.027376, -0.032149, 1.258741, 0.000000},
  {0.536538, 0.009842, 0.058538, -0.103601, -0.085826, -0.107804, 2.657343, 0.000000},
@@ -122,7 +122,7 @@ static	const	float	tr2[6][8] = {
  {1.000000, -0.000000, 0.061555, -0.078014, -0.078014, -0.061555, 0.000000, 0.000000}
 		};
 
-static	const	float	tr3[6][8] = {
+static	const	float	tr3[][8] = {
 {0.000000, 0.000000, -0.000966, -0.028188, -0.084421, 0.024106, 1.608392, 0.000000},
  {0.581053, 0.167329, -0.085639, 0.073778, -0.027376, -0.032149, 1.258741, 0.000000},
  {0.286840, 0.112401, 0.015427, -0.129178, -0.209364, -0.015405, 2.657343, 0.000000},
@@ -131,12 +131,20 @@ static	const	float	tr3[6][8] = {
  {1.000000, -0.000000, 0.061555, -0.078014, -0.078014, -0.061555, 0.000000, 0.000000}
 };
 
-static	const	float	tr4[5][8] = {
+static	const	float	tr4[][8] = {
  {0.000000, 0.000000, -0.000249, -0.028346, -0.085436, 0.022062, 1.608392, 0.000000},
  {0.737955, 0.080898, -0.087930, 0.071937, -0.026683, -0.033001, 1.258741, 0.000000},
  {0.527880, -0.197606, 0.018803, -0.129393, -0.209958, -0.020831, 2.657343, 0.000000},
  {0.684655, 0.066899, 0.073516, -0.176991, 0.059983, -0.093001, 1.818182, 0.000000},
  {1.000000, 0.000000, 0.142361, -0.173882, -0.011754, -0.024921, 2.727273, 0.000000}
+};
+
+static	const	float	tr5[][8]{
+{0.000000, 0.000000, -0.076981, 0.070566, 0.003019, -0.069434, 2.482517, 0.000000},
+ {0.552830, 0.184906, -0.069151, 0.090472, -0.062264, -0.067925, 0.909091, 0.000000},
+ {0.413774, -0.066792, 0.141415, -0.152547, 0.011226, -0.158208, 2.867133, 0.000000},
+ {0.629811, -0.135660, -0.054434, 0.051981, 0.112170, -0.179906, 0.734266, 0.000000},
+ {1.000000, 0.000000, 0.075660, 0.059811, -0.025660, 0.040189, 4.405594, 0.000000}
 };
 
 static	const char * FRAGMENT_SHADER_HEADER =
@@ -168,10 +176,45 @@ static	const char * FRAGMENT_SHADER_HEADER =
 "       return texture(s, coord);\n"
 "}\n"
 "\n"
+"const float blurSize = 1.0/512.0;\n"
+"const float intensity = 1.55;\n"
 "void main()\n"
 "{\n"
-"	vec2 uv = gl_FragCoord.xy / iResolution;\n"
-"	fragColor = vec4(texture(iChannel0, uv).xyz, 1);\n"
+"	vec2 fragCoord = gl_FragCoord.xy;\n"
+"   vec4 sum = vec4(0);\n"
+"   vec2 texcoord = fragCoord.xy/iResolution.xy;\n"
+"   int j;\n"
+"   int i;\n"
+"\n"
+"   //thank you! http://www.gamerendering.com/2008/10/11/gaussian-blur-filter-shader/ for the \n"
+"   //blur tutorial\n"
+"   // blur in y (vertical)\n"
+"   // take nine samples, with the distance blurSize between them\n"
+"   sum += texture(iChannel0, vec2(texcoord.x - 4.0*blurSize, texcoord.y)) * 0.05;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x - 3.0*blurSize, texcoord.y)) * 0.09;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x - 2.0*blurSize, texcoord.y)) * 0.12;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x - blurSize, texcoord.y)) * 0.15;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y)) * 0.16;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x + blurSize, texcoord.y)) * 0.15;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x + 2.0*blurSize, texcoord.y)) * 0.12;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x + 3.0*blurSize, texcoord.y)) * 0.09;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x + 4.0*blurSize, texcoord.y)) * 0.05;\n"
+"	\n"
+"	// blur in y (vertical)\n"
+"   // take nine samples, with the distance blurSize between them\n"
+"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y - 4.0*blurSize)) * 0.05;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y - 3.0*blurSize)) * 0.09;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y - 2.0*blurSize)) * 0.12;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y - blurSize)) * 0.15;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y)) * 0.16;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + blurSize)) * 0.15;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + 2.0*blurSize)) * 0.12;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + 3.0*blurSize)) * 0.09;\n"
+"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + 4.0*blurSize)) * 0.05;\n"
+"\n"
+"   //increase blur with intensity!\n"
+"   fragColor = sum * intensity + texture(iChannel0, texcoord); \n"
+"	fragColor.a = 1;\n"
 "}\n"
 "#line 1\n";
 
@@ -219,10 +262,12 @@ KernelProgram::KernelProgram(void)
 	_firstUse = true;
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 	bzero(&(_param), sizeof(t_ifs_param));
-	_param.nb_iter = HARD_ITER;
+	_size_buff = MAX_GPU_BUFF;
+//	_param.nb_iter = HARD_ITER;
 //	_param.len_trans = 4;
 	_param.len_trans = 6;//sizeof(anime_trans) / (sizeof(float) * 8);
 	_param.len_base = 2;
+	_Ajust_iter();
 	_need_update = true;
 	CreateVAO();
 }
@@ -370,12 +415,6 @@ void		KernelProgram::Use(void)
 	if (_firstUse)
 		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
 	glUseProgram(_id);
-
-//	float time = glfwGetTime() - __localParams["localStartTime"];
-//	_SetIdPtBuff();
-//	SetParamAnime(4);
-//	setParam(&_param);
-//	_Set_base();
 }
 
 
@@ -402,7 +441,7 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	bzero(err, sizeof(err));
 
 	float time = glfwGetTime() - __localParams["localStartTime"];
-	id_anime = ((int)(time / 2)) % 4;
+	id_anime = ((int)(time / 2)) % 5;
 
 	_SetIdPtBuff();
 	SetParamAnime(id_anime);
@@ -429,6 +468,7 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	int id = glGetUniformLocation(_id, "iChannel0");
 	glUniform1i(id, _screen_tex);
 	id = glGetUniformLocation(_id, "iResolution");
+	glUniform1f(glGetUniformLocation(_id, "iGlobalTime"), glfwGetTime() - __localParams["localStartTime"]);
 	glUniform2f(id, winSize.x, winSize.y);
 }
 
@@ -587,7 +627,7 @@ void	set_trans_ovaloid(t_ifs_param *param, float time)
 		ux.y = anime_trans[i][3];
 		uy.x = anime_trans[i][4];
 		uy.y = anime_trans[i][5];
-		speed = anime_trans[i][6] / 5;
+		speed = anime_trans[i][6] / 8;
 		offset = anime_trans[i][7];
 		ret =  add_rot(beg, ux, uy, 1, time, speed, offset);
 		param->pt_trans[i][0] = ret.x;
@@ -783,38 +823,33 @@ void	KernelProgram::SetParamAnime(int id)
 			_param.len_trans = sizeof(tr4) / (sizeof(float) * 8);
 			memmove(anime_trans, tr4, sizeof(tr4));
 			break;
+		case 4:
+			_param.len_trans = sizeof(tr5) / (sizeof(float) * 8);
+			memmove(anime_trans, tr5, sizeof(tr5));
+			break;
 
 		default:
 			_param.len_trans = sizeof(tr1) / (sizeof(float) * 8);
 			memmove(anime_trans, tr1, sizeof(tr1));
 			break;
 	}
-////	if (!(id >= 0 && id < _nbAnime)
-////		return ;
-//	int				i;
-//	vec_2	beg, ux, uy, ret;
-//	float	speed, offset;
-//	float	time = glfwGetTime() - __localParams["localStartTime"];
-//	time /= 4;
-//
-//	_param.len_trans = _anime[id].len_trans;
-//	_param.len_base = _anime[id].len_base;
-////	std::cout << "len_trans:" << param->len_trans << std::endl;
-////	param->len_trans = sizeof(anime_trans) / (sizeof(float) * 8);
-//	for (i = 0; i < _param.len_trans; i++)
-//	{
-////		std::cout << "i:" << i << std::endl;
-//		beg.x = _anime[id].val[i][0];
-//		beg.y = _anime[id].val[i][1];
-//		ux.x = _anime[id].val[i][2];
-//		ux.y = _anime[id].val[i][3];
-//		uy.x = _anime[id].val[i][4];
-//		uy.y = _anime[id].val[i][5];
-//		speed = _anime[id].val[i][6] / 5;
-//		offset = _anime[id].val[i][7];
-//		ret =  add_rot(beg, ux, uy, 1, time, speed, offset);
-//		_param.pt_trans[i][0] = ret.x;
-//		_param.pt_trans[i][1] = ret.y;
-//	}
+	_Ajust_iter();
+}
+
+
+void								KernelProgram::_Ajust_iter()
+{
+	int	i;
+	bool	again = true;
+
+	_SetIdPtBuff();
+	for (i = 2; i <  MAX_ITER && again; i++)
+	{
+		if (((_idPtBuff[i]) * (2 * sizeof(float) * _param.len_base)) > _size_buff)
+		{
+			_param.nb_iter = i - 1;
+			again = false;
+		}
+	}
 }
 
