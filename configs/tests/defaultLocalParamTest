@@ -2,6 +2,7 @@
 2 shaders/future/appolonian-packing.glsl						#1
 
 e1r2p21 2
+e1r2p23 2
 
 #syntax: LocalParam imac programIndex localParamName value
 LocalParam e1r2p21 0 iValue1 0

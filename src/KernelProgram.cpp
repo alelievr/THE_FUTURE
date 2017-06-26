@@ -430,7 +430,7 @@ bool			KernelProgram::CompileAndLink(void)
 void		KernelProgram::Use(void)
 {
 	if (_firstUse)
-		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
+		__localParams->at("localStartTime") = glfwGetTime(), _firstUse = false;
 	glUseProgram(_id);
 }
 
@@ -457,7 +457,7 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	(void)pass;
 	bzero(err, sizeof(err));
 
-	float time = glfwGetTime() - __localParams["localStartTime"];
+	float time = glfwGetTime() - __localParams->at("localStartTime");
 	id_anime = ((int)(time / 1)) % 9;
 
 	id_anime = 8;
@@ -491,7 +491,7 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	int id = glGetUniformLocation(_id, "iChannel0");
 	glUniform1i(id, _screen_tex);
 	id = glGetUniformLocation(_id, "iResolution");
-	glUniform1f(glGetUniformLocation(_id, "iGlobalTime"), glfwGetTime() - __localParams["localStartTime"]);
+	glUniform1f(glGetUniformLocation(_id, "iGlobalTime"), glfwGetTime() - __localParams->at("localStartTime"));
 	glUniform2f(id, winSize.x, winSize.y);
 }
 
@@ -670,7 +670,7 @@ void	set_trans_ovaloid2(t_ifs_param *param, float time, float trans[][8], int si
 void	KernelProgram::setParam(t_ifs_param *param)
 {
 	(void)param;
-	float time = glfwGetTime() - __localParams["localStartTime"];
+	float time = glfwGetTime() - __localParams->at("localStartTime");
 
 //	set_trans_raw(param);
 	set_trans_ovaloid(param, time);
@@ -739,7 +739,7 @@ vec_2	add_rot(vec_2 beg, vec_2 ux, vec_2 uy, const float r, float val, float spe
 void	KernelProgram::_Set_base()
 {
 	float	r;
-	float	time = glfwGetTime() - __localParams["localStartTime"];
+	float	time = glfwGetTime() - __localParams->at("localStartTime");
 	time /= 4;
 	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
 	vec_2	ux = {0, 1};
@@ -795,7 +795,7 @@ void	KernelProgram::_SetBaseFix()
 void								KernelProgram::_SetBasefeuille()
 {
 	float	r;
-	float	time = glfwGetTime() - __localParams["localStartTime"];
+	float	time = glfwGetTime() - __localParams->at("localStartTime");
 	time /= 4;
 	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
 	vec_2	ux = {0, 1};
