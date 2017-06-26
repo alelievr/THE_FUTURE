@@ -1,10 +1,14 @@
-1 shaders/test/DonutsFieldKlein.glsl
+1 shaders/Bal-KhanShaders/TunnelRoncesCorrupted.glsl
 
 e1r2p23	1
-#e1r1p14	1
-#e1r1p12	1
-#e1r1p10	1
-#e1r1p8	1
+e1r2p21	1
+e1r1p14	1
+e1r1p13	1
+e1r1p12	1
+e1r1p11	1
+e1r1p10	1
+e1r1p9	1
+e1r1p8	1
 
 LocalParam e1r1p8 0 xOffset -0.75
 LocalParam e1r1p10 0 xOffset -0.25

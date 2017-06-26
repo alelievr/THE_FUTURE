@@ -1,0 +1,43 @@
+#imac groups: post group
+
+e1r1p8 10
+e1r1p9 20
+e1r1p10 10
+e1r1p11 20
+e1r1p12 1
+e1r1p13 1
+e1r1p14 1
+e1r2p23 1
+
+#e1r11p7 1
+e1r2p17 1
+
+10 shaders/Bal-KhanShaders/2Dcircular.glsl		#0
+10 shaders/Bal-KhanShaders/TunnelHot.glsl		#1
+
+20 shaders/Bal-KhanShaders/AnotherTurning.glsl	#0
+20 shaders/Bal-KhanShaders/TunnelRonces.glsl	#1
+
+1 kernels/ifs.cl								#0
+
+RenderLoop 1
+{
+	Focus 0 0 Sync None
+	Wait 4
+}
+
+RenderLoop 20
+{
+	Focus 0 0 Sync None
+	Wait 4
+	Focus 1 1 Sync Linear 200
+	Wait 4
+}
+
+RenderLoop 10
+{
+	Focus 0 1 Sync Linear 200
+	Wait 4
+	Focus 1 1 Sync None
+	Wait 4
+}

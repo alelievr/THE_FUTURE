@@ -1,0 +1,40 @@
+
+#R8
+21 shaders/Bal-KhanShaders/Mandelbulb.glsl		#0
+22 shaders/Bal-KhanShaders/SandRose.glsl		#0
+
+#R9
+23 shaders/Bal-KhanShaders/Bidouille.glsl		#0
+
+#FRONT IMACS
+e1r9p14		23
+e1r9p16		23
+e1r9p18		23
+e1r9p20		23
+
+#BACK IMACS
+e1r8p16		23
+e1r8p18		23
+e1r8p20		23
+
+LocalParam e1r8p16 0 InvertColor 1
+LocalParam e1r8p18 0 InvertColor 1
+LocalParam e1r8p20 0 InvertColor 1
+
+RenderLoop	21
+{
+	Focus 0 1 Sync None
+	Wait -1
+}
+
+RenderLoop	22
+{
+	Focus 0 1 Sync None
+	Wait -1
+}
+
+RenderLoop	23
+{
+	Focus 0 1 Sync None
+	Wait -1
+}

@@ -81,6 +81,7 @@ class		KernelProgram : public ICGProgram
 		size_t								_size_buff;
 		tr_param							_anime[NB_ANIME];
 		int									_prev_anime;
+		float								_time;
 //		int									_nbAnime;
 
 		GLuint								_id; //opengl program id

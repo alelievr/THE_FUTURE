@@ -362,8 +362,8 @@ KernelProgram::KernelProgram(void)
 	_size_buff = MAX_GPU_BUFF;
 //	_param.nb_iter = HARD_ITER;
 //	_param.len_trans = 4;
-	_param.len_trans = 6;//sizeof(anime_trans) / (sizeof(float) * 8);
-	_param.len_base = 2;
+//	_param.len_trans = 6;//sizeof(anime_trans) / (sizeof(float) * 8);
+//	_param.len_base = 2;
 	_Ajust_iter();
 	_prev_anime = -1;
 	_need_update = true;
@@ -373,6 +373,7 @@ KernelProgram::KernelProgram(void)
 	_SetRangeVal(&(_param.val), 0.3, 0.8);
 
 
+	__localParams->insert(std::pair< std::string, float >("idAnime", 0));
 
 	CreateVAO();
 }
@@ -519,7 +520,7 @@ bool			KernelProgram::CompileAndLink(void)
 void		KernelProgram::Use(void)
 {
 	if (_firstUse)
-		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
+		__localParams->at("localStartTime") = glfwGetTime(), _firstUse = false;
 	glUseProgram(_id);
 }
 
@@ -546,10 +547,12 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	(void)pass;
 	bzero(err, sizeof(err));
 
-	float time = glfwGetTime() - __localParams["localStartTime"];
-	id_anime = ((int)(time / 5)) % 15;
+	
 
-	id_anime = 14;
+	_time = (glfwGetTime() - __localParams->at("localStartTime")) / 4;
+	id_anime = ((int)(_time / 2.5) + 14) % 18;
+
+//	id_anime = 14;
 //	id_anime = __localParams["idAnime"];
 	if (id_anime != _prev_anime)
 	{
@@ -580,7 +583,7 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	int id = glGetUniformLocation(_id, "iChannel0");
 	glUniform1i(id, _screen_tex);
 	id = glGetUniformLocation(_id, "iResolution");
-	glUniform1f(glGetUniformLocation(_id, "iGlobalTime"), glfwGetTime() - __localParams["localStartTime"]);
+	glUniform1f(glGetUniformLocation(_id, "iGlobalTime"), glfwGetTime() - __localParams->at("localStartTime"));
 	glUniform2f(id, winSize.x, winSize.y);
 }
 
@@ -759,7 +762,7 @@ void	set_trans_ovaloid2(t_ifs_param *param, float time, float trans[][8], int si
 void	KernelProgram::setParam(t_ifs_param *param)
 {
 	(void)param;
-	float time = glfwGetTime() - __localParams["localStartTime"];
+	float time = glfwGetTime() - __localParams->at("localStartTime");
 
 //	set_trans_raw(param);
 	set_trans_ovaloid(param, time);
@@ -828,28 +831,26 @@ vec_2	add_rot(vec_2 beg, vec_2 ux, vec_2 uy, const float r, float val, float spe
 void	KernelProgram::_Set_base()
 {
 	float	r;
-	float	time = glfwGetTime() - __localParams["localStartTime"];
-	time /= 4;
 	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
 	vec_2	ux = {0, 1};
 	vec_2	uy = {1, 0};
 	vec_2	base[MAX_NODE];
-	r = 400 + 20 * sin(time);
+	r = 400 + 20 * sin(_time);
 	bzero(base, sizeof(base));
 
 	_param.len_base = 3;
-	base[0] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 0);
-	base[1] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 1.0 / 3.0);
-	base[2] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 2.0 / 3.0);
-	base[3] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 0);
+	base[0] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 0);
+	base[1] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 1.0 / 3.0);
+	base[2] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 2.0 / 3.0);
+	base[3] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 0);
 
-	base[1] = add_rot(base[1], ux, uy, 100, time, -0.5, 0);
-	base[2] = add_rot(base[2], ux, uy, 70, time, 0.6, 0);
-	base[3] = add_rot(base[3], ux, uy, 30, time, -0.3, 0);
+	base[1] = add_rot(base[1], ux, uy, 100, _time, -0.5, 0);
+	base[2] = add_rot(base[2], ux, uy, 70, _time, 0.6, 0);
+	base[3] = add_rot(base[3], ux, uy, 30, _time, -0.3, 0);
 
-	base[1] = add_rot(base[1], ux, uy, 30, time, -0.6, 0);
-	base[2] = add_rot(base[2], ux, uy, 20, time, -0.3, 0);
-	base[3] = add_rot(base[3], ux, uy, 40, time, 0.4, 0);
+	base[1] = add_rot(base[1], ux, uy, 30, _time, -0.6, 0);
+	base[2] = add_rot(base[2], ux, uy, 20, _time, -0.3, 0);
+	base[3] = add_rot(base[3], ux, uy, 40, _time, 0.4, 0);
 
 	base[0] = base[3];
 	for (int i = 0; i < MAX_NODE; i++)
@@ -872,8 +873,8 @@ void	KernelProgram::_SetBaseFix()
 	base[0].y = beg.y * 3.0 / 5.0;
 	base[1].x = beg.x;
 	base[1].y = beg.y * 7.0 / 5.0;
-	base[2] = base[1];
-	base[3] = base[0];
+	base[2] = base[0];
+	base[3] = base[1];
 	for (int i = 0; i < MAX_NODE; i++)
 	{
 		_param.pt_base[i][0] = base[i].x;
@@ -884,28 +885,26 @@ void	KernelProgram::_SetBaseFix()
 void								KernelProgram::_SetBasefeuille()
 {
 	float	r;
-	float	time = glfwGetTime() - __localParams["localStartTime"];
-	time /= 4;
 	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
 	vec_2	ux = {0, 1};
 	vec_2	uy = {1, 0};
 	vec_2	base[MAX_NODE];
-	r = 250 + 20 * sin(time) * cos(time);
+	r = 250 + 20 * sin(_time) * cos(_time);
 	bzero(base, sizeof(base));
 
 	_param.len_base = 4;
-	base[0] = add_rot(beg, ux, uy, r, time, -0.02 * cos(time) - 0.05, 0);
-	base[0] = add_rot(base[0], ux, uy, 100, time, 0.02, 0);
+	base[0] = add_rot(beg, ux, uy, r, _time, -0.02 * cos(_time) - 0.05, 0);
+	base[0] = add_rot(base[0], ux, uy, 100, _time, 0.02, 0);
 
-	base[1] = add_rot(beg, ux, uy, r, time, 0.02 * cos(time) + 0.1, 0.2);
-	base[1] = add_rot(base[1], ux, uy, 130, time, -0.02, 0);
+	base[1] = add_rot(beg, ux, uy, r, _time, 0.02 * cos(_time) + 0.1, 0.2);
+	base[1] = add_rot(base[1], ux, uy, 130, _time, -0.02, 0);
 
-	base[2] = add_rot(beg, ux, uy, r, time, -0.03 * cos(time) - 0.05, 0.4);
-	base[2] = add_rot(base[2], ux, uy, 70, time, -0.02, 0);
+	base[2] = add_rot(beg, ux, uy, r, _time, -0.03 * cos(_time) - 0.05, 0.4);
+	base[2] = add_rot(base[2], ux, uy, 70, _time, -0.02, 0);
 
 
-	base[3] = add_rot(beg, ux, uy, r, time, -0.02 * cos(time) - 0.05, 0.6);
-	base[3] = add_rot(base[3], ux, uy, 70, time, -0.02, 0);
+	base[3] = add_rot(beg, ux, uy, r, _time, -0.02 * cos(_time) - 0.05, 0.6);
+	base[3] = add_rot(base[3], ux, uy, 70, _time, -0.02, 0);
 
 	for (int i = 0; i < MAX_NODE; i++)
 	{
@@ -929,7 +928,7 @@ void	gl_test(const int line, const char * func, const char * file)
 void	KernelProgram::SetParamAnime(int id)
 {
 	_SetBaseFix();
-//	std::cout << "anime:" << id << std::endl;
+	std::cout << "anime:" << id << std::endl;
 	switch (id)
 	{
 		case 0:
@@ -941,7 +940,7 @@ void	KernelProgram::SetParamAnime(int id)
 			break;
 		case 1:
 			_SetBaseFix();
-			_SetRangeVal(&(_param.hue), 0.1, 0.4);
+			_SetRangeVal(&(_param.hue), 0.1, 0.3);
 			_param.color = 0.45;
 			_param.len_trans = sizeof(tr2) / (sizeof(float) * 8);
 			memmove(anime_trans, tr2, sizeof(tr2));
@@ -955,7 +954,7 @@ void	KernelProgram::SetParamAnime(int id)
 			break;
 		case 3:
 			_SetBaseFix();
-			_SetRangeVal(&(_param.hue), 0.6, 0.8);
+			_SetRangeVal(&(_param.hue), 0.52, 0.7);
 			_param.color = 0.9;
 			_param.len_trans = sizeof(tr3) / (sizeof(float) * 8);
 			_param.len_trans = sizeof(tr4) / (sizeof(float) * 8);
@@ -980,8 +979,8 @@ void	KernelProgram::SetParamAnime(int id)
 			memmove(anime_trans, tr7, sizeof(tr7));
 			break;
 		case 7:
-			_param.color = 3.1;
-			_SetRangeVal(&(_param.hue), 0.6, 0.99);
+			_param.color = 3.3;
+			_SetRangeVal(&(_param.hue), 0.6, 0.8);
 			_param.len_trans = sizeof(tr8) / (sizeof(float) * 8);
 			memmove(anime_trans, tr8, sizeof(tr8));
 			break;
@@ -1001,14 +1000,14 @@ void	KernelProgram::SetParamAnime(int id)
 			break;
 		case 10:
 			_param.color = 0.7;
-			_SetRangeVal(&(_param.hue), 0.2, 0.7);
+			_SetRangeVal(&(_param.hue), 0.2, 0.4);
 			_SetBaseFix();
 			_param.len_trans = sizeof(tr11) / (sizeof(float) * 8);
 			memmove(anime_trans, tr11, sizeof(tr11));
 			break;
 		case 11:
 			_param.color = 1.3;
-			_SetRangeVal(&(_param.hue), 0.3, 0.8);
+			_SetRangeVal(&(_param.hue), 0.3, 0.49);
 			_SetBaseFix();
 			_param.len_trans = sizeof(tr12) / (sizeof(float) * 8);
 			memmove(anime_trans, tr12, sizeof(tr12));
@@ -1029,7 +1028,7 @@ void	KernelProgram::SetParamAnime(int id)
 			break;
 		case 14:
 			_param.color = 1.1;
-			_SetRangeVal(&(_param.hue), 0.6, 0.9);
+			_SetRangeVal(&(_param.hue), 0.75, 0.9);
 			_SetBaseFix();
 			_param.len_trans = sizeof(tr15) / (sizeof(float) * 8);
 			memmove(anime_trans, tr15, sizeof(tr15));

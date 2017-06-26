@@ -17,6 +17,7 @@ std::map< int, RenderLoop >			ClusterConfig::_renderLoops;
 std::map< int, std::map< int, std::vector< LocalParam > > >	ClusterConfig::_localParams;
 bool								ClusterConfig::_renderLoopStarted = false;
 std::map< int, std::atomic< int > >	ClusterConfig::_currentFocusedIndex;
+std::list< int >					ClusterConfig::_groupIndexes;
 
 UniformType	ClusterConfig::_UniformTypeStringToType(const std::string & uniType)
 {
@@ -46,7 +47,7 @@ SyncOffset	ClusterConfig::_ParseSyncOffset(const std::smatch & matches, const in
 	else if (soType.find("None") != std::string::npos)
 		sOffset = SyncOffset::CreateNoneSyncOffset();
 	else
-		std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
+		std::cout << "parse error (SyncOffset) at line: " << nLines << ": " << line << std::endl, exit(-1);
 
 	return sOffset;
 }
@@ -91,7 +92,7 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 		else if (std::regex_match(line, matches, uniformLine))
 		{
 			if (currentProgramIndex == -1)
-				std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
+				std::cout << "parse error (UniformLine) at line: " << nLines << ": " << line << std::endl, exit(-1);
 			std::string			uniformType = matches[1];
 			std::string			uniformName = matches[2];
 			UniformParameter	param;
@@ -175,17 +176,19 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 		else if (std::regex_match(line, matches, openingBraceLine))
 		{
 			if (openbrace)
-				std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
+				std::cout << "parse error (braces) at line: " << nLines << ": " << line << std::endl, exit(-1);
 			openbrace = true;
 		}
 		else if (std::regex_match(line, matches, closingBraceLine))
 		{
 			if (!openbrace)
-				std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
+				std::cout << "parse error (braces) at line: " << nLines << ": " << line << std::endl, exit(-1);
 			openbrace = false;
+			_groupIndexes.push_back(groupId);
+			break ;
 		}
 		else
-			std::cout << "parse error at line: " << nLines << ": " << line << std::endl, exit(-1);
+			std::cout << "parse error (invalidLine) at line: " << nLines << ": " << line << std::endl, exit(-1);
 		nLines++;
 	}
 	if (openbrace)
@@ -318,10 +321,16 @@ const std::vector< LocalParam > &  ClusterConfig::GetLocalParamsForClient(const 
 	return mapSeat->second;
 }
 
+const std::list< int > &     ClusterConfig::GetGroupIndexes(void)
+{
+	return _groupIndexes;
+}
+
 int			ClusterConfig::GetFocusInGroup(const int groupId)
 {
 	if (_currentFocusedIndex.find(groupId) != _currentFocusedIndex.end())
 		return _currentFocusedIndex[groupId];
+	std::cout << "groupId " << groupId << " not found in current focus list !\n";
 	return -1;
 }
 

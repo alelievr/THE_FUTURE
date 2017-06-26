@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/24 18:17:42 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/26 17:35:57 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -284,7 +284,6 @@ class		NetworkManager
 		Client *				_me;
 		char					_serverIp[IP_LENGHT];
 		fd_set					_serverFdSet;
-		static int				_localGroupId;
 		int						_localClientIndex;
 
 		ShaderFocusCallback		_shaderFocusCallback = NULL;
@@ -378,8 +377,9 @@ class		NetworkManager
 		NetworkStatus	LoadShaderOnGroup(const int groupId, const std::string & shaderName, bool last = false) const;
 		NetworkStatus	LoadAudioFileOnGroup(const int groupId, const std::string & fileName, const bool last) const;
 		NetworkStatus	UpdateAudioOnGroup(const Timeval *timeout, const int groupId, const AudioUpdateType type, const int audioIndex, const float audioVolume, const SyncOffset & syncOffset) const;
-		int				CreateNewGroup(void);
+		void			CreateNewGroup(const int groupId);
 		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat);
+		void			OnConfigLoaded(void);
 
 		//client control functions:
 		void			SendShaderLoadError(void);

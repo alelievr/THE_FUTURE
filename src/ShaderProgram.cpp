@@ -237,7 +237,7 @@ void		ShaderProgram::Use(void)
 #endif
 
 	if (_firstUse)
-		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
+		__localParams->at("localStartTime") = glfwGetTime(), _firstUse = false;
 
 	glUseProgram(_id);
 }
@@ -326,7 +326,7 @@ void			ShaderProgram::UpdateUniforms(const vec2 winSize, bool pass)
 		return ;
 
 	glUniform2f(_uniforms["iResolution"], winSize.x, winSize.y);
-	glUniform1f(_uniforms["iGlobalTime"], glfwGetTime() - __localParams["localStartTime"]);
+	glUniform1f(_uniforms["iGlobalTime"], glfwGetTime() - __localParams->at("localStartTime"));
 
 	int j = 0;
 	for (int i = 0; i < MAX_CHANNEL_COUNT; i++)
@@ -387,11 +387,17 @@ void			ShaderProgram::UpdateUniforms(const vec2 winSize, bool pass)
 		}
 	}
 
-	for (auto & param : __localParams)
+	std::cout << "localparam count: " << __localParams->size() << std::endl;
+	for (const auto & param : *__localParams)
+	{
+		std::cout << "searched param: " << std::endl;
+		std::cout << param.first << std::endl;
 		if (_uniforms.find(param.first) != _uniforms.end())
 			glUniform1f(_uniforms[param.first], param.second);
 		else
 			glUniform1f(glGetUniformLocation(_id, param.first.c_str()), param.second);
+		std::cout << "uniform changed !\n";
+	}
 }
 
 void	ShaderProgram::UpdateFramebufferSize(const vec2 fbSize)
