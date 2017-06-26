@@ -67,34 +67,6 @@ static	std::string	cl_err[65] =	{"CL_SUCCESS",
 							"CL_INVALID_MIP_LEVEL",
 							"CL_INVALID_GLOBAL_WORK_SIZE"};
 
-
-#define TRANS_TEST 23
-static	float	trans_raw[TRANS_TEST][4][2] = {
-						{{0.000000, 0.000000},{0.402057, 0.109247},{0.518605, 0.114001},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.414170, 0.139253},{0.514511, 0.124288},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.418727, 0.170628},{0.505835, 0.138252},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.418727, 0.170628},{0.505835, 0.138252},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.414170, 0.139253},{0.514511, 0.124288},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.402057, 0.109247},{0.518605, 0.114001},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.375419, 0.053154},{0.509721, 0.084999},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.380994, -0.049551},{0.520627, 0.019576},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.373821, -0.057227},{0.531389, 0.032720},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.369698, -0.062491},{0.538664, 0.039776},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.366295, -0.067355},{0.545302, 0.045265},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.363016, -0.072527},{0.552267, 0.050222},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.359793, -0.078120},{0.559686, 0.054727},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.356243, -0.084934},{0.568560, 0.059203},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.353300, -0.091167},{0.576517, 0.062463},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.350563, -0.097503},{0.584444, 0.065066},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.348209, -0.103425},{0.591701, 0.066922},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.345658, -0.110413},{0.600075, 0.068471},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.343209, -0.117764},{0.608659, 0.069422},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.340918, -0.125326},{0.617243, 0.069746},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.338780, -0.133105},{0.625808, 0.069448},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.336539, -0.142190},{0.635465, 0.068361},{1.000000, 0.000000}},
-						{{0.000000, 0.000000},{0.334383, -0.152098},{0.645562, 0.066351},{1.000000, 0.000000}},
-																												};
-
 static	float	anime_trans[20][8] = {
 		{0.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000},
 		{0.495863, -0.229901, 0.059173, -0.065980, -0.072465, -0.063004, 1.993007, 0.000000},
@@ -145,6 +117,43 @@ static	const	float	tr5[][8]{
  {0.413774, -0.066792, 0.141415, -0.152547, 0.011226, -0.158208, 2.867133, 0.000000},
  {0.629811, -0.135660, -0.054434, 0.051981, 0.112170, -0.179906, 0.734266, 0.000000},
  {1.000000, 0.000000, 0.075660, 0.059811, -0.025660, 0.040189, 4.405594, 0.000000}
+};
+
+static	const	float	tr6[][8]{
+ {0.000000, 0.000000, 0.078872, -0.106331, -0.106331, -0.078872, 2.027972, 0.000000},
+ {0.053049, 0.017371, 0.078872, -0.106331, -0.106331, -0.078872, 0.000000, 0.000000},
+ {0.558726, 0.172681, 0.046184, -0.028929, 0.199829, -0.099028, 4.720280, 0.000000},
+ {0.565697, 0.155875, 0.136955, -0.055006, 0.061978, 0.120148, 1.538462, 0.000000},
+ {0.949814, 0.023214, 0.078872, -0.106331, -0.106331, -0.078872, 0.000000, 0.000000},
+ {1.000000, 0.000000, -0.097733, 0.128055, -0.106331, -0.078872, 2.937063, 0.000000}
+};
+
+static	const	float	tr7[][8]{
+ {0.000000, 0.000000, 0.018302, -0.007804, -0.001632, -0.142119, 4.755245, 0.000000},
+ {0.320940, 0.351753, 0.187205, -0.036263, -0.015873, 0.010027, 4.020979, 0.000000},
+ {0.688919, 0.081377, 0.132271, -0.171359, 0.032879, 0.005537, 2.097902, 0.000000},
+ {0.632292, -0.144554, -0.044202, 0.001958, -0.023291, -0.157477, 1.398601, 0.000000},
+ {0.432143, 0.020488, 0.005846, -0.025900, -0.144532, -0.105487, 1.328671, 0.000000},
+ {1.000000, 0.000000, 0.013856, -0.002945, 0.006068, -0.126143, 1.923077, 0.000000}
+};
+
+static	const	float	tr8[][8]{
+ {-1.000000, 0.000000, 0.074547, -0.064220, -0.064220, -0.074547, 0.139860, 0.000000},
+ {0.271347, -0.177481, 0.174878, -0.131172, 0.006594, 0.005142, 2.902098, 0.000000},
+ {0.476980, -0.315667, 0.074547, -0.064220, -0.064220, -0.074547, 0.629371, 0.027972},
+ {0.554495, -0.044782, -0.030776, 0.069803, -0.008746, -0.226232, 2.832168, 0.000000},
+ {0.507767, 0.333136, -0.072578, 0.069017, -0.064220, -0.074547, 0.384615, 0.000000},
+ {0.785805, 0.128246, 0.152611, -0.144457, -0.048396, -0.005927, 1.643357, 0.000000},
+ {1.000000, -0.000000, 0.074547, -0.064220, -0.064220, -0.074547, 0.000000, 0.000000}
+};
+
+// feuille
+static	const	float	tr9[][8]{
+ {0.000000, 0.000000, 0.115612, -0.065580, -0.026854, -0.058117, 0.000000, 0.000000},
+ {0.005518, -0.076480, -0.012618, -0.013625, -0.015366, -0.020624, 3.881119, 0.000000},
+ {0.534169, -0.211314, 0.027623, -0.018114, -0.074478, -0.012765, 1.888112, 0.010490},
+ {1.036747, -0.025734, 0.032123, -0.023111, 0.009136, -0.052860, 0.000000, 0.000000},
+ {1.000000, -0.000000, 0.067502, -0.074964, -0.074964, -0.067502, 0.000000, 0.300699}
 };
 
 static	const char * FRAGMENT_SHADER_HEADER =
@@ -268,7 +277,15 @@ KernelProgram::KernelProgram(void)
 	_param.len_trans = 6;//sizeof(anime_trans) / (sizeof(float) * 8);
 	_param.len_base = 2;
 	_Ajust_iter();
+	_prev_anime = -1;
 	_need_update = true;
+
+	_SetRangeVal(&(_param.hue), 0., 0.9);
+	_SetRangeVal(&(_param.sat), 0.3, 0.8);
+	_SetRangeVal(&(_param.val), 0.3, 0.8);
+
+
+
 	CreateVAO();
 }
 
@@ -441,12 +458,18 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	bzero(err, sizeof(err));
 
 	float time = glfwGetTime() - __localParams["localStartTime"];
-	id_anime = ((int)(time / 2)) % 5;
+	id_anime = ((int)(time / 1)) % 9;
 
-	_SetIdPtBuff();
+	id_anime = 8;
+//	id_anime = __localParams["idAnime"];
+	if (id_anime != _prev_anime)
+	{
+		_prev_anime = id_anime;
+		_need_update = true;
+	}
 	SetParamAnime(id_anime);
 	setParam(&_param);
-	_Set_base();
+//	_Set_base();
 
 
 
@@ -590,32 +613,12 @@ void		KernelProgram::_SetIdPtBuff()
 	}
 }
 
-void	set_trans_raw(t_ifs_param *param)
-{
-	static	float	add = 0.5;
-	static	float	id_trans = 11;
-	int				lim = 9;
-	int				beg = 11;
-	int				i;
-
-	param->len_trans = 4;
-	for (i = 0; i < 4; i++)
-	{
-		param->pt_trans[i][0] = trans_raw[(int)id_trans][i][0];
-		param->pt_trans[i][1] = trans_raw[(int)id_trans][i][1];
-	}
-	if ((add > 0 && id_trans > beg + lim) || (add < 0 && id_trans < beg - lim))
-		add *= -1;
-	id_trans += add;
-}
-
 void	set_trans_ovaloid(t_ifs_param *param, float time)
 {
 	int				i;
 	vec_2	beg, ux, uy, ret;
 	float	speed, offset;
 
-	
 //	std::cout << "len_trans:" << param->len_trans << std::endl;
 //	param->len_trans = sizeof(anime_trans) / (sizeof(float) * 8);
 	for (i = 0; i < param->len_trans; i++)
@@ -677,10 +680,6 @@ void	KernelProgram::setParam(t_ifs_param *param)
 	_param.ecr_x = framebuffer_size.x;
 	_param.ecr_y = framebuffer_size.y;
 	
-
-	_SetRangeVal(&(_param.hue), 0.3, 0.8);
-	_SetRangeVal(&(_param.sat), 0.3, 0.8);
-	_SetRangeVal(&(param->val), 0.3, 0.8);
 
 	memmove(&(param->beg_id), _idPtBuff, sizeof(int) * MAX_ITER);
 }
@@ -749,6 +748,7 @@ void	KernelProgram::_Set_base()
 	r = 400 + 20 * sin(time);
 	bzero(base, sizeof(base));
 
+	_param.len_base = 3;
 	base[0] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 0);
 	base[1] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 1.0 / 3.0);
 	base[2] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 2.0 / 3.0);
@@ -770,6 +770,57 @@ void	KernelProgram::_Set_base()
 	}
 }
 
+void	KernelProgram::_SetBaseFix()
+{
+	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
+//	vec_2	ux = {0, 1};
+//	vec_2	uy = {1, 0};
+	vec_2	base[MAX_NODE];
+
+	bzero(base, sizeof(base));
+	_param.len_base = 2;
+	base[0].x = beg.x;
+	base[0].y = beg.y * 3.0 / 5.0;
+	base[1].x = beg.x;
+	base[1].y = beg.y * 7.0 / 5.0;
+	base[2] = base[1];
+	base[3] = base[0];
+	for (int i = 0; i < MAX_NODE; i++)
+	{
+		_param.pt_base[i][0] = base[i].x;
+		_param.pt_base[i][1] = base[i].y;
+	}
+}
+
+void								KernelProgram::_SetBasefeuille()
+{
+	float	r;
+	float	time = glfwGetTime() - __localParams["localStartTime"];
+	time /= 4;
+	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
+	vec_2	ux = {0, 1};
+	vec_2	uy = {1, 0};
+	vec_2	base[MAX_NODE];
+	r = 250 + 20 * sin(time) * cos(time);
+	bzero(base, sizeof(base));
+
+	_param.len_base = 2;
+	base[0] = add_rot(beg, ux, uy, r, time, -0.05 * cos(time) - 0.1, 0);
+	base[0] = add_rot(base[0], ux, uy, 100, time, 0.1, 0);
+	base[0] = add_rot(base[0], ux, uy, 30, time, -0.2, 0);
+	base[0] = add_rot(base[0], ux, uy, 10, time, 0.3, 0);
+
+	base[1] = add_rot(beg, ux, uy, r, time, 0.05 * cos(time) + 0.2, 0.5);
+	base[1] = add_rot(base[1], ux, uy, 130, time, -0.1, 0);
+	base[1] = add_rot(base[1], ux, uy, 30, time, 0.2, 0);
+	base[1] = add_rot(base[1], ux, uy, 10, time, -0.5, 0);
+
+	for (int i = 0; i < MAX_NODE; i++)
+	{
+		_param.pt_base[i][0] = base[i].x;
+		_param.pt_base[i][1] = base[i].y;
+	}
+}
 
 void	gl_test(const int line, const char * func, const char * file)
 {
@@ -783,57 +834,80 @@ void	gl_test(const int line, const char * func, const char * file)
 	}
 }
 
-void	KernelProgram::_InitAnime()
-{
-	memmove(_anime[0].val, anime_trans, sizeof(anime_trans));
-	_anime[0].len_base = 2;
-	_anime[0].len_trans = sizeof(anime_trans) / (sizeof(float) * 8);
-
-	
-	memmove(_anime[1].val, tr2, sizeof(tr2));
-	_anime[1].len_base = 2;
-	_anime[1].len_trans = sizeof(tr2) / (sizeof(float) * 8);
-
-	memmove(_anime[2].val, tr3, sizeof(tr3));
-	_anime[2].len_base = 2;
-	_anime[2].len_trans = sizeof(tr3) / (sizeof(float) * 8);
-
-	memmove(_anime[3].val, tr4, sizeof(tr4));
-	_anime[3].len_base = 2;
-	_anime[3].len_trans = sizeof(tr4) / (sizeof(float) * 8);
-}
-
 void	KernelProgram::SetParamAnime(int id)
 {
+	std::cout << "anime:" << id << std::endl;
 	switch (id)
 	{
 		case 0:
+			_Set_base();
+			_SetRangeVal(&(_param.hue), 0, 0.4);
+			_param.color = 0.45;
 			_param.len_trans = sizeof(tr1) / (sizeof(float) * 8);
 			memmove(anime_trans, tr1, sizeof(tr1));
 			break;
 		case 1:
+			_SetBaseFix();
+			_SetRangeVal(&(_param.hue), 0.1, 0.4);
+			_param.color = 0.45;
 			_param.len_trans = sizeof(tr2) / (sizeof(float) * 8);
 			memmove(anime_trans, tr2, sizeof(tr2));
 			break;
 		case 2:
+			_Set_base();
+			_SetRangeVal(&(_param.hue), 0.3, 0.49);
+			_param.color = 0.9;
 			_param.len_trans = sizeof(tr3) / (sizeof(float) * 8);
 			memmove(anime_trans, tr3, sizeof(tr3));
 			break;
 		case 3:
+			_SetBaseFix();
+			_SetRangeVal(&(_param.hue), 0.6, 0.8);
+			_param.color = 0.9;
+			_param.len_trans = sizeof(tr3) / (sizeof(float) * 8);
 			_param.len_trans = sizeof(tr4) / (sizeof(float) * 8);
 			memmove(anime_trans, tr4, sizeof(tr4));
 			break;
 		case 4:
+			_Set_base();
+			_SetRangeVal(&(_param.hue), 0.6, 0.99);
 			_param.len_trans = sizeof(tr5) / (sizeof(float) * 8);
 			memmove(anime_trans, tr5, sizeof(tr5));
 			break;
-
+		case 5:
+//			_param.color = 0.9;
+			_param.len_trans = sizeof(tr3) / (sizeof(float) * 8);
+			_param.len_trans = sizeof(tr6) / (sizeof(float) * 8);
+			memmove(anime_trans, tr6, sizeof(tr6));
+			break;
+		case 6:
+//			_param.color = 0.9;
+			_param.len_trans = sizeof(tr3) / (sizeof(float) * 8);
+			_param.len_trans = sizeof(tr7) / (sizeof(float) * 8);
+			memmove(anime_trans, tr7, sizeof(tr7));
+			break;
+		case 7:
+//			_param.color = 0.9;
+			_param.len_trans = sizeof(tr3) / (sizeof(float) * 8);
+			_param.len_trans = sizeof(tr8) / (sizeof(float) * 8);
+			memmove(anime_trans, tr8, sizeof(tr8));
+			break;
+		case 8:
+			_param.color = 0.7;
+			_SetRangeVal(&(_param.hue), 0.6, 0.99);
+			_param.len_trans = sizeof(tr3) / (sizeof(float) * 8);
+			_SetBasefeuille();
+//			_SetBaseFix();
+			_param.len_trans = sizeof(tr9) / (sizeof(float) * 8);
+			memmove(anime_trans, tr9, sizeof(tr9));
+			break;
 		default:
 			_param.len_trans = sizeof(tr1) / (sizeof(float) * 8);
 			memmove(anime_trans, tr1, sizeof(tr1));
 			break;
 	}
 	_Ajust_iter();
+	_SetIdPtBuff();
 }
 
 

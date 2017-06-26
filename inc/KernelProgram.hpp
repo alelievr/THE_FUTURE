@@ -52,6 +52,7 @@ typedef	struct	s_ifs_param
 	int		ecr_y;
 	int		nb_iter;
 	int		nb_part;
+	float	color;
 	t_range	hue;
 	t_range	sat;
 	t_range	val;
@@ -79,6 +80,7 @@ class		KernelProgram : public ICGProgram
 		bool								_need_update;
 		size_t								_size_buff;
 		tr_param							_anime[NB_ANIME];
+		int									_prev_anime;
 //		int									_nbAnime;
 
 		GLuint								_id; //opengl program id
@@ -87,10 +89,12 @@ class		KernelProgram : public ICGProgram
 		GLuint								_vao;
 		GLuint								_vbo;
 
+		void								_SetBaseFix();
 		void								_Ajust_iter();
 		void								_InitAnime();
 		void								SetParamAnime(int id);
 		void								_Set_base();
+		void								_SetBasefeuille();
 		std::string							_LoadSourceFile(std::string & filePath);
 		void								_print_err(cl_int err, std::string msg, int line, std::string func, std::string file);
 		bool								_check_err_tab(cl_int * err, int nb_err, std::string func, std::string file);

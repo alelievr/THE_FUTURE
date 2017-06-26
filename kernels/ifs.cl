@@ -22,6 +22,7 @@ typedef	struct	s_range
 	float		beg;
 	float		end;
 	float		delta;
+	float		none;
 }				t_range;
 
 typedef	struct	s_ifs_spec
@@ -36,6 +37,7 @@ typedef	struct	s_ifs_spec
 	int		ecr_y;
 	int		nb_iter;
 	int		nb_part;
+	float	color;
 	t_range	hue;
 	t_range	sat;
 	t_range	val;
@@ -140,13 +142,13 @@ __kernel	void	define_color(__global uchar4 *col, __global t_ifs_spec *spec)
 
 	hue = ((float) id) / ((float) spec[0].max_pt);
 //	sat = (1 - (float)iter / ((float) spec[0].nb_iter));
-	val = (float)(id % (spec->len_trans - 1)) / ((float) (spec->len_trans - 1));
+//	val = (float)(id % (spec->len_trans - 1)) / ((float) (spec->len_trans - 1));
 	sat = val * val;
-
+//printf("val_color:%f\n",  spec->color);
 	hue = (spec->hue.beg + (hue * spec->hue.delta)) * 360;
-	sat = spec->sat.beg + (sat * spec->sat.delta);
-	val = spec->val.beg + (val * spec->val.delta);
-	col[id] = hsv_to_rgb(hue, 0.7, 0.3);
+//	sat = spec->sat.beg + (sat * spec->sat.delta);
+//	val = spec->val.beg + (val * spec->val.delta);
+	col[id] = hsv_to_rgb(hue, 0.8, spec->color);
 //printf("id:%d\n", id);
 }
 

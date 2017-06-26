@@ -61,14 +61,14 @@ const char * VERTEX_SHADER_DEFAULT =
 "}\n";
 
 
-#define VERTICES(x1, y1, x2, y2) (float[12]){x1, y1, x1, y2, x2, y2, x2, y2, x2, y1, x1, y1}
+#define VERTICES(x1, y1, x2, y2) {x1, y1, x1, y2, x2, y2, x2, y2, x2, y1, x1, y1}
 
-static	std::map< ProgramViewport, float * > _renderverticeMap = {
-	{ProgramViewport::Normal, VERTICES(-1, -1, 1, 1)},
-	{ProgramViewport::Cinema, VERTICES(-1, -.7, 1, .7)},
-	{ProgramViewport::Portrait, VERTICES(-.42, -1, .42, 1)},
-	{ProgramViewport::Square, VERTICES(-.6, -1, .6, 1)},
-	{ProgramViewport::PerfPlz, VERTICES(-.5, -.5, .5, .5)},
+static float _renderverticeMap[5][12] = {
+	VERTICES(-1, -1, 1, 1),
+	VERTICES(-1, -.7, 1, .7),
+	VERTICES(-.42, -1, .42, 1),
+	VERTICES(-.6, -1, .6, 1),
+	VERTICES(-.5, -.5, .5, .5),
 };
 
 static	GLuint _renderCount = 6;
@@ -310,7 +310,7 @@ void			ShaderProgram::CreateVAO(void)
 	glGenBuffers(1, &_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 	//TODO: Vector3 management
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderverticeMap[_viewport], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderverticeMap[static_cast< int >(_viewport)], GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &_vao);
 	glBindVertexArray(_vao);
