@@ -131,6 +131,7 @@ class		ClusterConfig
 		static std::map< int, RenderLoop >					_renderLoops;
 		static std::map< int, std::map< int, std::vector< LocalParam > > >	_localParams;
 		static bool											_renderLoopStarted;
+		static std::map< int, std::atomic< int > >			_currentFocusedIndex;
 
 		static void			LoadRenderLoop(std::ifstream & condigFile, const int groupId, int & nLines);
 		static UniformType	_UniformTypeStringToType(const std::string & uniType);
@@ -152,6 +153,7 @@ class		ClusterConfig
 		static void							StartAllRenderLoops(NetworkManager *netManager);
 		static int							GetGroupNumber(void);
 		static size_t						GetImacIndexInGroup(const int groupId, const int row, const int seat);
+		static int							GetFocusInGroup(const int groupId);
 		static const std::vector< LocalParam > &	GetLocalParamsForClient(const int row, const int seat);
 };
 

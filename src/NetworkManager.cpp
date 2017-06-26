@@ -234,6 +234,10 @@ void				NetworkManager::OnClientResourcesLoaded(Client & c)
 		std::cout << "updated local param on client: " << c << " | " << lp.programIndex << ": " << lp.localParamName << " -> " << lp.value.f1 << std::endl;
 		UpdateLocalParamOnClient(Timer::Now(), c.row, c.seat, lp.programIndex, lp.localParamName, lp.value);
 	}
+
+	const int currentFocusIndex = ClusterConfig::GetFocusInGroup(c.groupId);
+	if (currentFocusIndex != -1)
+		FocusShaderOnGroup(Timer::Now(), c.groupId, currentFocusIndex, -1, SyncOffset::CreateNoneSyncOffset());
 }
 
 const std::string &	NetworkManager::_PacketTypeToString(const PacketType type) const

@@ -16,6 +16,7 @@ std::map< int, GroupConfig >		ClusterConfig::_groupConfigs;
 std::map< int, RenderLoop >			ClusterConfig::_renderLoops;
 std::map< int, std::map< int, std::vector< LocalParam > > >	ClusterConfig::_localParams;
 bool								ClusterConfig::_renderLoopStarted = false;
+std::map< int, std::atomic< int > >	ClusterConfig::_currentFocusedIndex;
 
 UniformType	ClusterConfig::_UniformTypeStringToType(const std::string & uniType)
 {
@@ -317,6 +318,13 @@ const std::vector< LocalParam > &  ClusterConfig::GetLocalParamsForClient(const 
 	return mapSeat->second;
 }
 
+int			ClusterConfig::GetFocusInGroup(const int groupId)
+{
+	if (_currentFocusedIndex.find(groupId) != _currentFocusedIndex.end())
+		return _currentFocusedIndex[groupId];
+	return -1;
+}
+
 void		ClusterConfig::StartAllRenderLoops(NetworkManager *netManager)
 {
 	if (_renderLoopStarted)
@@ -339,6 +347,7 @@ void		ClusterConfig::StartAllRenderLoops(NetworkManager *netManager)
 					switch (command.type)
 					{
 						case RenderLoopCommandType::Focus:
+							_currentFocusedIndex[groupId] = command.programIndex;
 							netManager->FocusShaderOnGroup(Timer::TimeoutInSeconds(networkActionDelay), groupId, command.programIndex, command.transitionIndex, command.syncOffset);
 							break ;
 						case RenderLoopCommandType::Wait:
