@@ -146,7 +146,7 @@ __kernel	void	define_color(__global uchar4 *col, __global t_ifs_spec *spec)
 	hue = (spec->hue.beg + (hue * spec->hue.delta)) * 360;
 	sat = spec->sat.beg + (sat * spec->sat.delta);
 	val = spec->val.beg + (val * spec->val.delta);
-	col[id] = hsv_to_rgb(hue, sat, val);
+	col[id] = hsv_to_rgb(hue, 0.7, 0.3);
 //printf("id:%d\n", id);
 }
 

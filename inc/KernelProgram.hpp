@@ -12,11 +12,12 @@
 # include "ICGProgram.hpp"
 
 
-# define MAX_GPU_BUFF ((size_t)(1048577)) 
+# define MAX_GPU_BUFF ((size_t)(1048577 * 10)) 
 # define MAX_ITER 20
 # define MAX_NODE 16
+# define NB_ANIME 5
 
-# define HARD_ITER 7
+# define HARD_ITER 5
 
 typedef	struct	s_vec_2
 {
@@ -31,6 +32,13 @@ typedef	struct	s_range
 	float		delta;
 	float		none;
 }				t_range;
+
+typedef	struct	t_trans_param
+{
+	int		len_base;
+	int		len_trans;
+	float	val[20][8];
+}				tr_param;
 
 typedef	struct	s_ifs_param
 {
@@ -49,6 +57,7 @@ typedef	struct	s_ifs_param
 	t_range	val;
 }				t_ifs_param;
 
+void	set_trans_ovaloid2(t_ifs_param *param, float time, float trans[][8], int size);
 void	gl_test(const int line, const char * func, const char * file);
 vec_2	add_rot(vec_2 beg, vec_2 ux, vec_2 uy, const float r, float val, float speed, float offset);
 
@@ -67,6 +76,10 @@ class		KernelProgram : public ICGProgram
 		bool								_loaded;
     	cl_device_id						_device_id;
 		bool								_firstUse;
+		bool								_need_update;
+		size_t								_size_buff;
+		tr_param							_anime[NB_ANIME];
+//		int									_nbAnime;
 
 		GLuint								_id; //opengl program id
 		int									_renderId;
@@ -74,13 +87,16 @@ class		KernelProgram : public ICGProgram
 		GLuint								_vao;
 		GLuint								_vbo;
 
-		void								_set_base();
+		void								_InitAnime();
+		void								SetParamAnime(int id);
+		void								_Ajust_iter();
+		void								_Set_base();
 		std::string							_LoadSourceFile(std::string & filePath);
 		void								_print_err(cl_int err, std::string msg, int line, std::string func, std::string file);
 		bool								_check_err_tab(cl_int * err, int nb_err, std::string func, std::string file);
 		std::string							_LoadSourceFile(const std::string & filePath);
-		void								_setIdPtBuff(int nb_base, int nb_trans, int nb_iter, int *indice_beg);
-		void								_setRangeVal(t_range *value, float beg, float end);
+		void								_SetIdPtBuff();
+		void								_SetRangeVal(t_range *value, float beg, float end);
 		void								CreateVAO(void);
 		bool								CheckCompilation(GLuint shader);
 		bool								CheckLink(GLuint program);
