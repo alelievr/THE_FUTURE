@@ -1,4 +1,5 @@
-uniform float cameraDirection = -1;
+
+uniform float cameraDirection = 1;
 float	t;
 
 #define	NUMBALLS	2

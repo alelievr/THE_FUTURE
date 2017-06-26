@@ -77,8 +77,8 @@ void mainImage(in vec2 f)
     #ifdef	VIGNETTE_RENDER
     col.xyz = blackbody( ( (1.1-length(uv)*1.1)*inter.x) *70. );
     #endif
-    	float transitionSpeed = 0.1;
-        fragColor = mix(vec4(1.-col, 1.), vec4(col,1.0), clamp((sin(t * transitionSpeed)+0.2)*10, 0, 1));
+    	float transitionSpeed = 0.2;
+        fragColor = mix(vec4(1.-col, 1.), vec4(col,1.0), clamp((sin(t * transitionSpeed)+0.2)*5, 0, 1));
 }    
 
 float	de_0(vec3 p)
