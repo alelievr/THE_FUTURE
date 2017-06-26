@@ -95,7 +95,7 @@ static	float	trans_raw[TRANS_TEST][4][2] = {
 						{{0.000000, 0.000000},{0.334383, -0.152098},{0.645562, 0.066351},{1.000000, 0.000000}},
 																												};
 
-static	const	float	anime_trans[6][8] = {
+static	float	anime_trans[20][8] = {
 		{0.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000},
 		{0.495863, -0.229901, 0.059173, -0.065980, -0.072465, -0.063004, 1.993007, 0.000000},
 		{0.354023, -0.222185, -0.047905, 0.042355, -0.065980, -0.059173, 2.342657, 0.000000},
@@ -104,7 +104,40 @@ static	const	float	anime_trans[6][8] = {
 		{1.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000}
 		};
 
+static	const	float	tr1[6][8] = {
+		{0.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000},
+		{0.495863, -0.229901, 0.059173, -0.065980, -0.072465, -0.063004, 1.993007, 0.000000},
+		{0.354023, -0.222185, -0.047905, 0.042355, -0.065980, -0.059173, 2.342657, 0.000000},
+		{0.642503, 0.119864, -0.042669, 0.023241, -0.065980, -0.059173, 1.958042, 0.000000},
+		{0.878478, 0.073556, 0.059173, -0.065980, -0.036211, -0.050332, 3.461539, 0.000000},
+		{1.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000}
+		};
 
+static	const	float	tr2[6][8] = {
+ {0.000000, 0.000000, -0.000966, -0.028188, -0.084421, 0.024106, 1.608392, 0.000000},
+ {0.393019, -0.407196, -0.085639, 0.073778, -0.027376, -0.032149, 1.258741, 0.000000},
+ {0.536538, 0.009842, 0.058538, -0.103601, -0.085826, -0.107804, 2.657343, 0.000000},
+ {0.773706, 0.121025, 0.068643, -0.177906, 0.057309, -0.094022, 1.818182, 0.000000},
+ {0.579890, -0.082534, 0.036253, -0.032577, -0.012322, -0.024490, 2.727273, 0.000000},
+ {1.000000, -0.000000, 0.061555, -0.078014, -0.078014, -0.061555, 0.000000, 0.000000}
+		};
+
+static	const	float	tr3[6][8] = {
+{0.000000, 0.000000, -0.000966, -0.028188, -0.084421, 0.024106, 1.608392, 0.000000},
+ {0.581053, 0.167329, -0.085639, 0.073778, -0.027376, -0.032149, 1.258741, 0.000000},
+ {0.286840, 0.112401, 0.015427, -0.129178, -0.209364, -0.015405, 2.657343, 0.000000},
+ {0.633589, 0.132831, 0.068643, -0.177906, 0.057309, -0.094022, 1.818182, 0.000000},
+ {0.660954, 0.124888, 0.137199, -0.176556, -0.012322, -0.024490, 2.727273, 0.000000},
+ {1.000000, -0.000000, 0.061555, -0.078014, -0.078014, -0.061555, 0.000000, 0.000000}
+};
+
+static	const	float	tr4[5][8] = {
+ {0.000000, 0.000000, -0.000249, -0.028346, -0.085436, 0.022062, 1.608392, 0.000000},
+ {0.737955, 0.080898, -0.087930, 0.071937, -0.026683, -0.033001, 1.258741, 0.000000},
+ {0.527880, -0.197606, 0.018803, -0.129393, -0.209958, -0.020831, 2.657343, 0.000000},
+ {0.684655, 0.066899, 0.073516, -0.176991, 0.059983, -0.093001, 1.818182, 0.000000},
+ {1.000000, 0.000000, 0.142361, -0.173882, -0.011754, -0.024921, 2.727273, 0.000000}
+};
 
 static	const char * FRAGMENT_SHADER_HEADER =
 "#version 330\n"
@@ -187,8 +220,10 @@ KernelProgram::KernelProgram(void)
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 	bzero(&(_param), sizeof(t_ifs_param));
 	_param.nb_iter = HARD_ITER;
-	_param.len_trans = 4;
-	_param.len_base = 4;
+//	_param.len_trans = 4;
+	_param.len_trans = 6;//sizeof(anime_trans) / (sizeof(float) * 8);
+	_param.len_base = 2;
+	_need_update = true;
 	CreateVAO();
 }
 
@@ -335,6 +370,12 @@ void		KernelProgram::Use(void)
 	if (_firstUse)
 		__localParams["localStartTime"] = glfwGetTime(), _firstUse = false;
 	glUseProgram(_id);
+
+//	float time = glfwGetTime() - __localParams["localStartTime"];
+//	_SetIdPtBuff();
+//	SetParamAnime(4);
+//	setParam(&_param);
+//	_Set_base();
 }
 
 
@@ -354,17 +395,31 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 {
 	size_t	global_work_size[3] = {1, 0, 0};
 	size_t	local_work_size[3] = {1, 0, 0};
+	int		id_anime;
 	cl_int	err[4];
 
 	(void)pass;
 	bzero(err, sizeof(err));
-	_set_base();
-	err[0] = clEnqueueWriteBuffer(_queue, _buff["pt_ifs"], CL_TRUE, 0, 4 * 2 * sizeof(float), &_param.pt_base, 0, NULL, NULL);
-	_setIdPtBuff(_param.len_base, _param.len_trans, _param.nb_iter, _idPtBuff);
+
+	float time = glfwGetTime() - __localParams["localStartTime"];
+	id_anime = ((int)(time / 2)) % 4;
+
+	_SetIdPtBuff();
+	SetParamAnime(id_anime);
 	setParam(&_param);
+	_Set_base();
+
+
+
+	err[0] = clEnqueueWriteBuffer(_queue, _buff["pt_ifs"], CL_TRUE, 0, 4 * 2 * sizeof(float), &_param.pt_base, 0, NULL, NULL);
 	err[1] = clEnqueueWriteBuffer(_queue, _buff["ifs_param"], CL_TRUE, 0, sizeof(t_ifs_param), &_param, 0, NULL, NULL);
 	global_work_size[0] = _idPtBuff[_param.nb_iter - 1] - _idPtBuff[_param.nb_iter - 2];
-	err[2] = clEnqueueNDRangeKernel(_queue, _kernels["define_color"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
+//	std::cout << "work_size:" << global_work_size[0] << std::endl;
+	if (_need_update)
+	{
+		err[2] = clEnqueueNDRangeKernel(_queue, _kernels["define_color"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
+		_need_update = false;
+	}
 	if (!_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__))
 	{
 		exit(0);
@@ -411,13 +466,12 @@ void		KernelProgram::Draw(void)
 	size_t		local_work_size[3] = {1, 0, 0};
 	int	i;
 
+	_SetIdPtBuff();
 	bzero(err, sizeof(err));
-	i = 1;
-	
+	i = 1;	
 	while (i < _param.nb_iter)
 	{
 		global_work_size[0] = _idPtBuff[i + 1] - _idPtBuff[i];
-
 		err[0] = clSetKernelArg(_kernels["calcul_ifs_point"], 2, sizeof(int), &i);
 		err[1] = clEnqueueNDRangeKernel(_queue, _kernels["calcul_ifs_point"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 		i++;
@@ -472,31 +526,31 @@ bool		KernelProgram::_check_err_tab(cl_int * err, int nb_err, std::string func, 
 	return (!err_found);
 }
 
-void		KernelProgram::_setRangeVal(t_range *value, float beg, float end)
+void		KernelProgram::_SetRangeVal(t_range *value, float beg, float end)
 {
 	value->beg = beg;
 	value->end = end;
 	value->delta = end - beg;
 }
 
-void		KernelProgram::_setIdPtBuff(int nb_base, int nb_trans, int nb_iter, int *indice_beg)
+void		KernelProgram::_SetIdPtBuff()
 {
-	(void)nb_iter;
+//	(void)nb_iter;
 	int		sum;
 	int		i;
 
 	i = 1;
-	indice_beg[0] = 0;
-	sum = nb_base;
+	_idPtBuff[0] = 0;
+	sum = _param.len_base;
 	while (i < MAX_ITER)
 	{
-		sum += (sum - 1) * (nb_trans - 2);// le truc presedent
-		indice_beg[i] = indice_beg[i - 1] + sum;
+		sum += (sum - 1) * (_param.len_trans - 2);// le truc presedent
+		_idPtBuff[i] = _idPtBuff[i - 1] + sum;
 		i++;
 	}
 }
 
-void	KernelProgram::setParam(t_ifs_param *param)
+void	set_trans_raw(t_ifs_param *param)
 {
 	static	float	add = 0.5;
 	static	float	id_trans = 11;
@@ -504,6 +558,7 @@ void	KernelProgram::setParam(t_ifs_param *param)
 	int				beg = 11;
 	int				i;
 
+	param->len_trans = 4;
 	for (i = 0; i < 4; i++)
 	{
 		param->pt_trans[i][0] = trans_raw[(int)id_trans][i][0];
@@ -512,16 +567,80 @@ void	KernelProgram::setParam(t_ifs_param *param)
 	if ((add > 0 && id_trans > beg + lim) || (add < 0 && id_trans < beg - lim))
 		add *= -1;
 	id_trans += add;
+}
 
-	_setIdPtBuff(param->len_base, param->len_trans, param->nb_iter, _idPtBuff);
-	param->max_pt = _idPtBuff[_param.nb_iter] - _idPtBuff[_param.nb_iter - 1]; 
-	param->ecr_x = framebuffer_size.x;
-	param->ecr_y = framebuffer_size.y;
+void	set_trans_ovaloid(t_ifs_param *param, float time)
+{
+	int				i;
+	vec_2	beg, ux, uy, ret;
+	float	speed, offset;
+
+	
+//	std::cout << "len_trans:" << param->len_trans << std::endl;
+//	param->len_trans = sizeof(anime_trans) / (sizeof(float) * 8);
+	for (i = 0; i < param->len_trans; i++)
+	{
+//		std::cout << "i:" << i << std::endl;
+		beg.x = anime_trans[i][0];
+		beg.y = anime_trans[i][1];
+		ux.x = anime_trans[i][2];
+		ux.y = anime_trans[i][3];
+		uy.x = anime_trans[i][4];
+		uy.y = anime_trans[i][5];
+		speed = anime_trans[i][6] / 5;
+		offset = anime_trans[i][7];
+		ret =  add_rot(beg, ux, uy, 1, time, speed, offset);
+		param->pt_trans[i][0] = ret.x;
+		param->pt_trans[i][1] = ret.y;
+	}
+}
+
+void	set_trans_ovaloid2(t_ifs_param *param, float time, float trans[][8], int size)
+{
+	int				i;
+	vec_2	beg, ux, uy, ret;
+	float	speed, offset;
+
+	param->len_trans = size;
+//	std::cout << "len_trans:" << param->len_trans << std::endl;
+//	param->len_trans = sizeof(anime_trans) / (sizeof(float) * 8);
+	for (i = 0; i < param->len_trans; i++)
+	{
+//		std::cout << "i:" << i << std::endl;
+		beg.x = trans[i][0];
+		beg.y = trans[i][1];
+		ux.x = trans[i][2];
+		ux.y = trans[i][3];
+		uy.x = trans[i][4];
+		uy.y = trans[i][5];
+		speed = trans[i][6] / 5;
+		offset = trans[i][7];
+		ret =  add_rot(beg, ux, uy, 1, time, speed, offset);
+		param->pt_trans[i][0] = ret.x;
+		param->pt_trans[i][1] = ret.y;
+	}
+}
+
+
+
+
+void	KernelProgram::setParam(t_ifs_param *param)
+{
+	(void)param;
+	float time = glfwGetTime() - __localParams["localStartTime"];
+
+//	set_trans_raw(param);
+	set_trans_ovaloid(param, time);
+//	set_trans_ovaloid2(&_param, time, anime_trans, 6)
+
+	_param.max_pt = _idPtBuff[_param.nb_iter] - _idPtBuff[_param.nb_iter - 1]; 
+	_param.ecr_x = framebuffer_size.x;
+	_param.ecr_y = framebuffer_size.y;
 	
 
-	_setRangeVal(&(param->hue), 0.3, 0.4);
-	_setRangeVal(&(param->sat), 0.5, 0.6);
-	_setRangeVal(&(param->val), 0.8, 0.99);
+	_SetRangeVal(&(_param.hue), 0.3, 0.8);
+	_SetRangeVal(&(_param.sat), 0.3, 0.8);
+	_SetRangeVal(&(param->val), 0.3, 0.8);
 
 	memmove(&(param->beg_id), _idPtBuff, sizeof(int) * MAX_ITER);
 }
@@ -578,15 +697,16 @@ vec_2	add_rot(vec_2 beg, vec_2 ux, vec_2 uy, const float r, float val, float spe
 	return (ret);
 }
 
-void	KernelProgram::_set_base()
+void	KernelProgram::_Set_base()
 {
 	float	r;
 	float	time = glfwGetTime() - __localParams["localStartTime"];
+	time /= 4;
 	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
 	vec_2	ux = {0, 1};
 	vec_2	uy = {1, 0};
 	vec_2	base[MAX_NODE];
-	r = 200 + 20 * sin(time);
+	r = 400 + 20 * sin(time);
 	bzero(base, sizeof(base));
 
 	base[0] = add_rot(beg, ux, uy, r, time, 0.005 * cos(time) + 0.2, 0);
@@ -622,3 +742,79 @@ void	gl_test(const int line, const char * func, const char * file)
 //		exit(0);
 	}
 }
+
+void	KernelProgram::_InitAnime()
+{
+	memmove(_anime[0].val, anime_trans, sizeof(anime_trans));
+	_anime[0].len_base = 2;
+	_anime[0].len_trans = sizeof(anime_trans) / (sizeof(float) * 8);
+
+	
+	memmove(_anime[1].val, tr2, sizeof(tr2));
+	_anime[1].len_base = 2;
+	_anime[1].len_trans = sizeof(tr2) / (sizeof(float) * 8);
+
+	memmove(_anime[2].val, tr3, sizeof(tr3));
+	_anime[2].len_base = 2;
+	_anime[2].len_trans = sizeof(tr3) / (sizeof(float) * 8);
+
+	memmove(_anime[3].val, tr4, sizeof(tr4));
+	_anime[3].len_base = 2;
+	_anime[3].len_trans = sizeof(tr4) / (sizeof(float) * 8);
+}
+
+void	KernelProgram::SetParamAnime(int id)
+{
+	switch (id)
+	{
+		case 0:
+			_param.len_trans = sizeof(tr1) / (sizeof(float) * 8);
+			memmove(anime_trans, tr1, sizeof(tr1));
+			break;
+		case 1:
+			_param.len_trans = sizeof(tr2) / (sizeof(float) * 8);
+			memmove(anime_trans, tr2, sizeof(tr2));
+			break;
+		case 2:
+			_param.len_trans = sizeof(tr3) / (sizeof(float) * 8);
+			memmove(anime_trans, tr3, sizeof(tr3));
+			break;
+		case 3:
+			_param.len_trans = sizeof(tr4) / (sizeof(float) * 8);
+			memmove(anime_trans, tr4, sizeof(tr4));
+			break;
+
+		default:
+			_param.len_trans = sizeof(tr1) / (sizeof(float) * 8);
+			memmove(anime_trans, tr1, sizeof(tr1));
+			break;
+	}
+////	if (!(id >= 0 && id < _nbAnime)
+////		return ;
+//	int				i;
+//	vec_2	beg, ux, uy, ret;
+//	float	speed, offset;
+//	float	time = glfwGetTime() - __localParams["localStartTime"];
+//	time /= 4;
+//
+//	_param.len_trans = _anime[id].len_trans;
+//	_param.len_base = _anime[id].len_base;
+////	std::cout << "len_trans:" << param->len_trans << std::endl;
+////	param->len_trans = sizeof(anime_trans) / (sizeof(float) * 8);
+//	for (i = 0; i < _param.len_trans; i++)
+//	{
+////		std::cout << "i:" << i << std::endl;
+//		beg.x = _anime[id].val[i][0];
+//		beg.y = _anime[id].val[i][1];
+//		ux.x = _anime[id].val[i][2];
+//		ux.y = _anime[id].val[i][3];
+//		uy.x = _anime[id].val[i][4];
+//		uy.y = _anime[id].val[i][5];
+//		speed = _anime[id].val[i][6] / 5;
+//		offset = _anime[id].val[i][7];
+//		ret =  add_rot(beg, ux, uy, 1, time, speed, offset);
+//		_param.pt_trans[i][0] = ret.x;
+//		_param.pt_trans[i][1] = ret.y;
+//	}
+}
+
