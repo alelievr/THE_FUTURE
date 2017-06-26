@@ -322,6 +322,7 @@ int			ClusterConfig::GetFocusInGroup(const int groupId)
 {
 	if (_currentFocusedIndex.find(groupId) != _currentFocusedIndex.end())
 		return _currentFocusedIndex[groupId];
+	std::cout << "groupId " << groupId << " not found in current focus list !\n";
 	return -1;
 }
 
