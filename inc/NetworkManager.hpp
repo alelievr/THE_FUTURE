@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/26 17:35:57 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/06/27 02:31:55 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,6 +191,7 @@ class		NetworkManager
 	private:
 		enum class		PacketType
 		{
+			StressTest,
 			Status,
 			ShaderFocus,
 			ShaderLoad,
@@ -272,6 +273,10 @@ class		NetworkManager
 				{
 					char			audioFile[MAX_FILE_LENGTH];
 				};
+				struct //stress test infos
+				{
+					int				stressTestIndex;
+				};
 			};
 		};
 
@@ -285,6 +290,7 @@ class		NetworkManager
 		char					_serverIp[IP_LENGHT];
 		fd_set					_serverFdSet;
 		int						_localClientIndex;
+		int						_receivedStressTestPackets;
 
 		ShaderFocusCallback		_shaderFocusCallback = NULL;
 		ShaderLocalParamCallback _shaderLocalParamCallback = NULL;
@@ -380,6 +386,7 @@ class		NetworkManager
 		void			CreateNewGroup(const int groupId);
 		NetworkStatus	MoveIMacToGroup(const int groupId, const int row, const int seat);
 		void			OnConfigLoaded(void);
+		void			RunStressTest(void);
 
 		//client control functions:
 		void			SendShaderLoadError(void);

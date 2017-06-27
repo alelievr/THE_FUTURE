@@ -28,14 +28,20 @@ ShaderApplication::ShaderApplication(bool fullScreen)
 	GLFWmonitor *	monit = (fullScreen) ? glfwGetPrimaryMonitor() : NULL;
 	int				win_w = WIN_W;
 	int				win_h = WIN_H;
+	const GLFWvidmode * mode = (fullScreen) ? glfwGetVideoMode(monit) : NULL;
 	if (fullScreen)
 	{
-		const GLFWvidmode * mode = glfwGetVideoMode(monit);
 		win_w = mode->width;
 		win_h = mode->height;
+		glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+		glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+		glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 	}
 	if (!(window = glfwCreateWindow(win_w, win_h, "ShaderApp", monit, NULL)))
 		printf("failed to create window !\n"), exit(-1);
+	if (fullScreen)
+		glfwSetWindowMonitor(window, monit, 0, 0, mode->width, mode->height, mode->refreshRate);
 
 	glfwMakeContextCurrent (window);
 	glfwSwapInterval(1);

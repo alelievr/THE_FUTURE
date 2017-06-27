@@ -1,4 +1,4 @@
-#pragma viewport square
+#pragma viewport portrait
 
 vec3 sunDir  = normalize( vec3(  0.35, 0.1,  0.3 ) );
 const vec3 sunColour = vec3(1.0, .95, .8);
@@ -36,7 +36,16 @@ float Map(vec3 pos)
 	vec4 p = vec4(pos,1);
 	vec4 p0 = vec4(p.xyz, 1);  // p.w is the distance estimate
 
-	for (int i = 0; i < 8; i++)
+	float theta = iGlobalTime;
+	float c = cos(theta);
+	float s = sin(theta);
+	mat3 rotx = mat3(
+	        vec3(1, 0, 0),
+	        vec3(0, c, -s),
+	        vec3(0, s, c)
+	        );
+
+	for (int i = 0; i < 7; i++)
 	{
 		//box folding
 		p.xyz = clamp(p.xyz, -1, 1) * 2.0 - p.xyz;
@@ -50,6 +59,8 @@ float Map(vec3 pos)
 		p *= clamp(max(minRad2 / r2, minRad2), 0.0, 1.0);
 
 		// scale, translate
+		float a = iGlobalTime;
+		p.xyz *= rotx;
 		p = p * scale + p0;
 	}
 	return ((length(p.xyz) - absScalem1) / p.w - AbsScaleRaisedTo1mIters);

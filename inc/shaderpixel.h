@@ -33,6 +33,7 @@
 
 # define unused __attribute__((unused))
 
+# define STRESS_TEST_PACKET_COUNT	8192
 # define MAX_CHANNEL_COUNT	8
 # define WIN_W				1920
 # define WIN_H				1080
