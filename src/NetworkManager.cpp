@@ -124,7 +124,7 @@ void		NetworkManager::_SendHelloPacket()
 		}
 }
 
-struct ipReader: std::ctype< char >
+struct ipReader : std::ctype< char >
 {
 	ipReader(): std::ctype< char >(get_table()) {}
 	static std::ctype_base::mask const* get_table() {
@@ -245,6 +245,7 @@ const std::string &	NetworkManager::_PacketTypeToString(const PacketType type) c
 {
 	static const std::string defaultValue = "";
 	static const std::string packetTypes[] = {
+		"StressTest",
 		"Status",
 		"ShaderFocus",
 		"ShaderLoad",

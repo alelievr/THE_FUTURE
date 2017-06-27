@@ -69,6 +69,7 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 	bool			openbrace = false;
 	int				currentProgramIndex = -1;
 
+	std::cout << "loading render loop for groupId: " << groupId << std::endl;
 	while (std::getline(configFile, line))
 	{
 		line = std::regex_replace(line, commentLine, "");

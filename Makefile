@@ -66,6 +66,7 @@ NAME		=	visualishader
 #	Compiler
 WERROR		=	#-Werror
 CFLAGS		=	-Wall -Wextra -ferror-limit=999
+LINKFLAGS	=	-headerpad_max_install_names
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb
@@ -246,7 +247,7 @@ $(NAME): $(OBJ)
 	@$(if $(findstring lft,$(LDLIBS)),$(call color_exec_t,$(CCLEAR),$(CCLEAR),\
 		make -j 4 -C libft))
 	@$(call color_exec,$(CLINK_T),$(CLINK),"Link of $(NAME):",\
-		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKDEBUG) $(FRAMEPATH) $(VFRAME) -o $@ $^ $(LDLIBS)  $(SOILLIB))
+		$(LINKER) $(WERROR) $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(LINKFLAGS) $(LINKDEBUG) $(FRAMEPATH) $(VFRAME) -o $@ $^ $(LDLIBS)  $(SOILLIB))
 	@$(OSX_DYLIB_PATH_CORRECTION)
 
 $(OBJDIR)/%.o: %.cpp $(INCFILES)

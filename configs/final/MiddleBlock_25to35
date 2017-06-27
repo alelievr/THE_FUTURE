@@ -1,7 +1,7 @@
 26 shaders/Bal-KhanShaders/StaffWood.glsl
 27 shaders/Bal-KhanShaders/TrippySpin0.glsl
 28 shaders/Bal-KhanShaders/TunnelRoncesCorrupted.glsl
-29 shaders/Bal-KhanShaders/TunnelHot.glsl
+29 shaders/Bal-KhanShaders/TunnelHotFastTransition.glsl
 
 #FRONT IMACS
 # border-StaffWood:
@@ -80,24 +80,24 @@ e1r12p12	29
 
 RenderLoop 26
 {
-	Focus 0 -1 Sync Linear 300
+	Focus 0 -1 Sync Linear 500
 	Wait 600
 }
 
 RenderLoop 27
 {
-	Focus 0 -1 Sync Linear 300
+	Focus 0 -1 Sync Linear 500
 	Wait 600
 }
 
 RenderLoop 28
 {
-	Focus 0 -1 Sync Linear 200
+	Focus 0 -1 Sync Linear 400
 	Wait 600
 }
 
 RenderLoop 29
 {
-	Focus 0 -1 Sync Linear 200
+	Focus 0 -1 Sync Linear 400
 	Wait 600
 }

@@ -95,6 +95,16 @@ e1r1p7		53
 
 #TODO: LocalParams
 
+
+LocalParam e1r1p7 0 nIter	30
+LocalParam e1r1p5 0 nIter	20
+LocalParam e1r1p3 0 nIter	10
+LocalParam e1r1p1 0 nIter	5
+
+LocalParam e1r1p2 0 Rotation	0.0
+LocalParam e1r1p4 0 Rotation	0.4
+LocalParam e1r1p6 0 Rotation	0.8
+
 RenderLoop 41		#R8 front
 {
 #add some timing before send focus to discharge the server
