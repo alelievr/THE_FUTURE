@@ -553,7 +553,8 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 //	id_anime = (0 + (int)(_time / 2)) % 18;
 
 //	id_anime = 12;
-	id_anime = __localParams["idAnime"];
+//	float toto =  __localParams["idAnime"];
+	id_anime = __localParams->at("id Anime");
 	if (id_anime != _prev_anime)
 	{
 //		std::cout << id_anime << std::endl;	 // <---
