@@ -7,15 +7,29 @@
 23 shaders/Bal-KhanShaders/Bidouille.glsl		#0
 
 #FRONT IMACS
+# R9
 e1r9p14		23
 e1r9p16		23
 e1r9p18		23
 e1r9p20		23
 
+# R8
+e1r8p15		22
+e1r8p17		22
+e1r8p19		22
+e1r8p21		22
+
 #BACK IMACS
+#R
 e1r8p16		23
 e1r8p18		23
 e1r8p20		23
+
+#BACK IMACS
+#R7
+e1r7p17		21
+e1r7p19		21
+e1r7p21		21
 
 LocalParam e1r8p16 0 InvertColor 1
 LocalParam e1r8p18 0 InvertColor 1

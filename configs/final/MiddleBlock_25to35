@@ -75,7 +75,62 @@ e1r10p12	29
 e1r11p12	29
 e1r12p12	29
 
+
+30 shaders/Palliaci/sun.glsl
+31 shaders/Palliaci/2DNoisedSun.glsl
+
 #BACK IMACS
+# left column
+e1r12p9		30
+e1r11p9         30
+e1r10p9         30
+e1r9p7          30
+e1r8p7          30
+e1r7p8          30
+e1r6p8          30
+e1r5p9          30
+e1r4p9          30
+e1r3p8          30
+e1r2p9          30
+
+# right column
+e1r12p15        31
+e1r11p15        31
+e1r10p15        31
+e1r9p13         31
+e1r8p13         31
+e1r7p14         31
+e1r6p14         31
+e1r5p15         31
+e1r4p15         31
+e1r3p14         31
+e1r2p15         31
+
+# left middle column
+e1r12p11
+e1r11p11
+e1r10p11
+e1r9p9
+e1r8p9
+e1r7p10
+e1r6p10
+e1r5p11
+e1r4p11
+e1r3p10
+e1r2p12
+
+# right middle column
+e1r12p14
+e1r11p14
+e1r10p14
+e1r9p12
+e1r8p12
+e1r7p13
+e1r6p13
+e1r5p14
+e1r4p14
+e1r3p13
+e1r2p14
 
 
 RenderLoop 26
@@ -101,3 +156,16 @@ RenderLoop 29
 	Focus 0 -1 Sync Linear 400
 	Wait 600
 }
+
+RenderLoop 30
+{
+	Focus 0 -1 Sync Linear 400
+	Wait 600
+}
+
+RenderLoop 31
+{
+        Focus 0 -1 Sync Linear 400
+        Wait 600
+}
+

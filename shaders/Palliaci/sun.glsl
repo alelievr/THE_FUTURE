@@ -198,12 +198,12 @@ void mainImage( in vec2 fragCoord ) {
     float	ct = cos(t);
 	vec3	dir = camera( uv );
     vec4	col = vec4(1.);
-    vec3	pos = vec3( 0., 0., -.5);
+    vec3	pos = vec3( 0., 0., -4.0);
 
     //pos.z += 1.8*(.5*-st);
-    pos.x -= 2.5*st;
-    pos.y -= 2.5*-ct;
-    dir *= Rot3X( ct*1. ) * Rot3Y( st*1. );
+    pos.x -= 1.2*st;
+    pos.y -= 1.2*-ct;
+    dir *= Rot3X( ct*.5 ) * Rot3Y( st*.5 );
     vec4 inter = ( march( pos, dir ) );
 
 	col.xyz = blackbody(inter.x*200./inter.w);

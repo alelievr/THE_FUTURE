@@ -29,7 +29,6 @@ e1r10p7		38
 
 #BACK IMACS
 # IFS
-e1r13p2		36
 e1r13p4		36
 e1r13p6		36
 e1r12p2		36
@@ -56,6 +55,28 @@ e1r9p5		39
 e1r8p2		39
 e1r8p4		39
 e1r8p6		39
+
+
+LocalParam e1r13p4 0 idAnime 10
+LocalParam e1r13p6 0 idAnime 14
+
+LocalParam e1r13p1 0 idAnime 0
+LocalParam e1r13p3 0 idAnime 1
+LocalParam e1r13p5 0 idAnime 2
+LocalParam e1r13p7 0 idAnime 4
+
+LocalParam e1r12p2 0 idAnime 5
+LocalParam e1r12p4 0 idAnime 7
+LocalParam e1r12p6 0 idAnime 8
+
+LocalParam e1r12p1 0 idAnime 9
+LocalParam e1r12p3 0 idAnime 11
+LocalParam e1r12p5 0 idAnime 12
+LocalParam e1r12p7 0 idAnime 13
+
+LocalParam e1r11p2 0 idAnime 15
+LocalParam e1r11p4 0 idAnime 16
+LocalParam e1r11p6 0 idAnime 17
 
 # TODO: localparams for IFS and newton
 

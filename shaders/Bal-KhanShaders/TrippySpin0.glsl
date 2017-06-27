@@ -1,3 +1,5 @@
+#pragma viewport square
+
 #define I_MAX	150
 #define E		0.001
 
