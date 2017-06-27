@@ -11,7 +11,7 @@
 #include <list>
 #include <getopt.h>
 
-#define NETWORK_UPDATE_TIMEOUT	50 //ms
+#define NETWORK_UPDATE_TIMEOUT	10 //ms
 
 static bool		networkMustQuit = false;
 static bool		server = false;
@@ -20,6 +20,7 @@ static bool		connection = false;
 static bool		threadHasExited = false;
 static bool		fullScreen = false;
 static bool		serverGUINotInitialized = true;
+static bool		stressTest = false;
 static char *	shaderToLoad = NULL;
 static bool		serverSentAllShadersToLoad;
 static std::list< const std::string >	shadersToLoad;
@@ -43,7 +44,7 @@ static void options(int *ac, char ***av)
 	int bflag, ch;
 
     bflag = 0;
-    while ((ch = getopt_long(*ac, *av, "fcn:", longopts, NULL)) != -1)
+    while ((ch = getopt_long(*ac, *av, "fscn:", longopts, NULL)) != -1)
         switch (ch) {
             case 1:
                 server = true;
@@ -58,6 +59,9 @@ static void options(int *ac, char ***av)
 				noNetwork = true;
 				shaderToLoad = optarg;
 				break ;
+			case 's':
+				stressTest = true;
+				break;
             default:
                 usage(*av[0]);
      	}
@@ -187,6 +191,13 @@ int		main(int ac, char **av)
 	if (server)
 	{
 		NetworkManager		nm(server, connection);
+
+		if (stressTest)
+		{
+			nm.RunStressTest();
+			return 0;
+		}
+
 		std::thread			serverThread(NetworkThread, &nm, (ShaderApplication *)NULL);
 
 		if (ac == 0)
@@ -207,10 +218,10 @@ int		main(int ac, char **av)
 	}
 	else
 	{
-		ShaderApplication		app(fullScreen);
-
 		if (noNetwork)
 		{
+			ShaderApplication		app(fullScreen);
+
 			app.LoadShader(shaderToLoad);
 			app.loadingShaders = false;
 			app.OnLoadingShaderFinished();
@@ -222,8 +233,15 @@ int		main(int ac, char **av)
 
 			app.RenderLoop();
 		}
+		else if (stressTest)
+		{
+			NetworkManager		nm(server, connection);
+			
+			nm.RunStressTest();
+		}
 		else
 		{
+			ShaderApplication	app(fullScreen);
 			NetworkManager		nm(server, connection);
 			std::thread			clientThread(NetworkThread, &nm, &app);
 

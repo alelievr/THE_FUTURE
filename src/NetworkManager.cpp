@@ -817,6 +817,10 @@ void						NetworkManager::_ClientSocketEvent(const struct sockaddr_in & connecti
 			if (_audioUpdateCallback != NULL)
 				success = _audioUpdateCallback(&packetTiming, packet.audioUpdateType, packet.audioIndex, packet.audioVolume);
 			//_SendPacketToServer(_CreateAudioUpdateResponsePacket(packet.audioUpdateType, success));
+		case PacketType::StressTest:
+			_receivedStressTestPackets++;
+			std::cout << "received stress test packet n " << packet.stressTestIndex << ", totalPakets: " << _receivedStressTestPackets << std::endl;
+			break ;
 		default:
 			break ;
 	}
@@ -1109,6 +1113,31 @@ void				NetworkManager::OnConfigLoaded(void)
 
 	for (const int gIndex : groupIndexes)
 		CreateNewGroup(gIndex);
+}
+
+void				NetworkManager::RunStressTest(void)
+{
+	Packet	p;
+
+	p.type = PacketType::StressTest;
+	if (_isServer)
+	{
+	 	for (int i = 0; i < STRESS_TEST_PACKET_COUNT; i++)
+		{
+			p.stressTestIndex = i;
+			_SendPacketToAllClients(p);
+		}
+	}
+	else
+	{
+		_receivedStressTestPackets = 0;
+		while (42)
+		{
+			if (Update() == NetworkStatus::Error)
+				break ;
+			usleep(10 * 1000);
+		}
+	}
 }
 
 //public client functions:
