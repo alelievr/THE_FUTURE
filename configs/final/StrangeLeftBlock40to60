@@ -105,6 +105,15 @@ LocalParam e1r1p2 0 Rotation	0.0
 LocalParam e1r1p4 0 Rotation	0.4
 LocalParam e1r1p6 0 Rotation	0.8
 
+LocalParam e1r2p1 0 demoniColor	0.0
+LocalParam e1r2p1 0 Rotation	-0.5
+LocalParam e1r2p3 0 demoniColor 0.2
+LocalParam e1r2p3 0 Rotation    -0.8
+LocalParam e1r2p5 0 demoniColor 0.4
+LocalParam e1r2p5 0 Rotation    -1.2
+LocalParam e1r2p7 0 demoniColor 0.8
+LocalParam e1r2p7 0 Rotation    -1.6
+
 RenderLoop 41		#R8 front
 {
 #add some timing before send focus to discharge the server

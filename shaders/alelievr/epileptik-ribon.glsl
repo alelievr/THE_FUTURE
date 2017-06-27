@@ -1,6 +1,6 @@
 uniform float nIter = 30;
-uniform float Rotation = 0.8;
-uniform float demoniColor = 0.0;
+uniform float Rotation = 0.0;
+uniform float demoniColor = 0.5;
 
 #define MAGIC(x,y) fract(dot(x*2., y*2.)*1.)
 
@@ -10,7 +10,7 @@ void mainImage( in vec2 fragCoord )
 	float f = 0., g = 0., h = 0.;
 	vec2 res = iResolution.xy;
 	vec2 mou;
-	mou.x = sin(gTime * .28)/2.-.5;
+	mou.x = sin(gTime * .08)/2.-.5;
 	mou.y = sin(Rotation);
 	mou = (mou+1.0) * res;
 	vec2 z = ((-res+2.0 * fragCoord.xy) / res.y);

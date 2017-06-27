@@ -10,7 +10,7 @@
 #include <locale>
 #include <sys/time.h>
 
-#define DEBUG		1
+#define DEBUG		0
 
 #ifdef DEBUG
 # if DEBUG == 1
