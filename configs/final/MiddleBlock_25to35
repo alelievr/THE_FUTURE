@@ -118,20 +118,20 @@ e1r6p10         32
 e1r5p11         32
 e1r4p11         32
 e1r3p10         32
-e1r2p12         32
+e1r2p11         32
 
 # right middle column
-e1r12p14	32
-e1r11p14	32
-e1r10p14	32
-e1r9p12		32
-e1r8p12		32
-e1r7p13		32
-e1r6p13		32
-e1r5p14		32
-e1r4p14		32
-e1r3p13		32
-e1r2p14		32
+e1r12p13	32
+e1r11p13	32
+e1r10p13	32
+e1r9p11		32
+e1r8p11         32
+e1r7p12         32
+e1r6p12         32
+e1r5p13         32
+e1r4p13         32
+e1r3p12         32
+e1r2p13         32
 
 LocalParam e1r12p14 0 b_side -1
 LocalParam e1r11p14 0 b_side -1
@@ -144,7 +144,6 @@ LocalParam e1r5p14 0 b_side -1
 LocalParam e1r4p14 0 b_side -1
 LocalParam e1r3p13 0 b_side -1
 LocalParam e1r2p14 0 b_side -1
-
 
 RenderLoop 26
 {
@@ -182,3 +181,8 @@ RenderLoop 31
         Wait 600
 }
 
+RenderLoop 32
+{
+	Focus 0 -1 Sync Linear 400
+	Wait 600
+}

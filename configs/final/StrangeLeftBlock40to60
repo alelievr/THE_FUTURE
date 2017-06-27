@@ -8,8 +8,8 @@
 48 shaders/Bal-KhanShaders/HexagonThingy0.glsl			#0
 49 shaders/Bal-KhanShaders/AnotherTurning.glsl			#0
 50 shaders/Bal-KhanShaders/BarsTurning.glsl				#0
-51								#0
-52								#0
+51 shaders/Palliaci/SimplexTunnel.glsl				#0
+52 shaders/Bal-KhanShaders/./PulsingTunnelGridV2.glsl		#0
 53 shaders/alelievr/epileptik-ribon.glsl				#0
 
 #R8 front (CCCCCCCCCC)
@@ -94,7 +94,6 @@ e1r1p5		53
 e1r1p7		53
 
 #TODO: LocalParams
-
 
 LocalParam e1r1p7 0 nIter	30
 LocalParam e1r1p5 0 nIter	20
