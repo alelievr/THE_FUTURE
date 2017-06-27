@@ -12,7 +12,7 @@
 # include "ICGProgram.hpp"
 
 
-# define MAX_GPU_BUFF ((size_t)(1048577 * 5)) 
+# define MAX_GPU_BUFF ((size_t)(1048577 * 7)) 
 # define MAX_ITER 20
 # define MAX_NODE 16
 # define NB_ANIME 5
@@ -90,7 +90,8 @@ class		KernelProgram : public ICGProgram
 		GLuint								_vao;
 		GLuint								_vbo;
 
-		void								_SetBaseFix();
+	//	void								_SetBaseFix();
+		void								_SetBaseFix(float prct);
 		void								_Ajust_iter();
 		void								_InitAnime();
 		void								SetParamAnime(int id);

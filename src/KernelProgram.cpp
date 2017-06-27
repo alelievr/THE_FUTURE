@@ -550,12 +550,13 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	
 
 	_time = (glfwGetTime() - __localParams->at("localStartTime")) / 4;
-	id_anime = ((int)(_time / 2.5) + 14) % 18;
+//	id_anime = (0 + (int)(_time / 2)) % 18;
 
-//	id_anime = 14;
-//	id_anime = __localParams["idAnime"];
+//	id_anime = 12;
+	id_anime = __localParams["idAnime"];
 	if (id_anime != _prev_anime)
 	{
+//		std::cout << id_anime << std::endl;	 // <---
 		_prev_anime = id_anime;
 		_need_update = true;
 	}
@@ -827,92 +828,6 @@ vec_2	add_rot(vec_2 beg, vec_2 ux, vec_2 uy, const float r, float val, float spe
 	ret.y = beg.y + ux.y * cos(val) * r + uy.y * sin(val) * r;
 	return (ret);
 }
-
-void	KernelProgram::_Set_base()
-{
-	float	r;
-	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
-	vec_2	ux = {0, 1};
-	vec_2	uy = {1, 0};
-	vec_2	base[MAX_NODE];
-	r = 400 + 20 * sin(_time);
-	bzero(base, sizeof(base));
-
-	_param.len_base = 3;
-	base[0] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 0);
-	base[1] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 1.0 / 3.0);
-	base[2] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 2.0 / 3.0);
-	base[3] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 0);
-
-	base[1] = add_rot(base[1], ux, uy, 100, _time, -0.5, 0);
-	base[2] = add_rot(base[2], ux, uy, 70, _time, 0.6, 0);
-	base[3] = add_rot(base[3], ux, uy, 30, _time, -0.3, 0);
-
-	base[1] = add_rot(base[1], ux, uy, 30, _time, -0.6, 0);
-	base[2] = add_rot(base[2], ux, uy, 20, _time, -0.3, 0);
-	base[3] = add_rot(base[3], ux, uy, 40, _time, 0.4, 0);
-
-	base[0] = base[3];
-	for (int i = 0; i < MAX_NODE; i++)
-	{
-		_param.pt_base[i][0] = base[i].x;
-		_param.pt_base[i][1] = base[i].y;
-	}
-}
-
-void	KernelProgram::_SetBaseFix()
-{
-	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
-//	vec_2	ux = {0, 1};
-//	vec_2	uy = {1, 0};
-	vec_2	base[MAX_NODE];
-
-	bzero(base, sizeof(base));
-	_param.len_base = 2;
-	base[0].x = beg.x;
-	base[0].y = beg.y * 3.0 / 5.0;
-	base[1].x = beg.x;
-	base[1].y = beg.y * 7.0 / 5.0;
-	base[2] = base[0];
-	base[3] = base[1];
-	for (int i = 0; i < MAX_NODE; i++)
-	{
-		_param.pt_base[i][0] = base[i].x;
-		_param.pt_base[i][1] = base[i].y;
-	}
-}
-
-void								KernelProgram::_SetBasefeuille()
-{
-	float	r;
-	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
-	vec_2	ux = {0, 1};
-	vec_2	uy = {1, 0};
-	vec_2	base[MAX_NODE];
-	r = 250 + 20 * sin(_time) * cos(_time);
-	bzero(base, sizeof(base));
-
-	_param.len_base = 4;
-	base[0] = add_rot(beg, ux, uy, r, _time, -0.02 * cos(_time) - 0.05, 0);
-	base[0] = add_rot(base[0], ux, uy, 100, _time, 0.02, 0);
-
-	base[1] = add_rot(beg, ux, uy, r, _time, 0.02 * cos(_time) + 0.1, 0.2);
-	base[1] = add_rot(base[1], ux, uy, 130, _time, -0.02, 0);
-
-	base[2] = add_rot(beg, ux, uy, r, _time, -0.03 * cos(_time) - 0.05, 0.4);
-	base[2] = add_rot(base[2], ux, uy, 70, _time, -0.02, 0);
-
-
-	base[3] = add_rot(beg, ux, uy, r, _time, -0.02 * cos(_time) - 0.05, 0.6);
-	base[3] = add_rot(base[3], ux, uy, 70, _time, -0.02, 0);
-
-	for (int i = 0; i < MAX_NODE; i++)
-	{
-		_param.pt_base[i][0] = base[i].x;
-		_param.pt_base[i][1] = base[i].y;
-	}
-}
-
 void	gl_test(const int line, const char * func, const char * file)
 {
 	GLenum gl_err = 0;
@@ -927,7 +842,7 @@ void	gl_test(const int line, const char * func, const char * file)
 
 void	KernelProgram::SetParamAnime(int id)
 {
-	_SetBaseFix();
+	_SetBaseFix(0.4);
 //	std::cout << "anime:" << id << std::endl;
 	switch (id)
 	{
@@ -939,7 +854,7 @@ void	KernelProgram::SetParamAnime(int id)
 			memmove(anime_trans, tr1, sizeof(tr1));
 			break;
 		case 1:
-			_SetBaseFix();
+			_SetBaseFix(0.55);
 			_SetRangeVal(&(_param.hue), 0.1, 0.3);
 			_param.color = 0.45;
 			_param.len_trans = sizeof(tr2) / (sizeof(float) * 8);
@@ -953,38 +868,43 @@ void	KernelProgram::SetParamAnime(int id)
 			memmove(anime_trans, tr3, sizeof(tr3));
 			break;
 		case 3:
-			_SetBaseFix();
-			_SetRangeVal(&(_param.hue), 0.52, 0.7);
-			_param.color = 0.9;
+			_SetBaseFix(0.55);
+			_SetRangeVal(&(_param.hue), 0.4, 0.2);
+			_param.color = 0.6;
 			_param.len_trans = sizeof(tr3) / (sizeof(float) * 8);
 			_param.len_trans = sizeof(tr4) / (sizeof(float) * 8);
 			memmove(anime_trans, tr4, sizeof(tr4));
 			break;
 		case 4:
 			_Set_base();
+			_param.color = 2.3;
 			_SetRangeVal(&(_param.hue), 0.6, 0.99);
 			_param.len_trans = sizeof(tr5) / (sizeof(float) * 8);
 			memmove(anime_trans, tr5, sizeof(tr5));
 			break;
 		case 5:
+			_SetBaseFix(0.6);
 			_SetRangeVal(&(_param.hue), 0.6, 0.99);
 			_param.color = 0.9;
 			_param.len_trans = sizeof(tr6) / (sizeof(float) * 8);
 			memmove(anime_trans, tr6, sizeof(tr6));
 			break;
 		case 6:
-			_param.color = 3;
+			_SetBaseFix(0.6);
+			_param.color = 2.1;
 			_SetRangeVal(&(_param.hue), 0.1, 1.2);
 			_param.len_trans = sizeof(tr7) / (sizeof(float) * 8);
 			memmove(anime_trans, tr7, sizeof(tr7));
 			break;
 		case 7:
-			_param.color = 3.3;
-			_SetRangeVal(&(_param.hue), 0.6, 0.8);
+			_SetBaseFix(0.3);
+			_param.color = 3.2;
+			_SetRangeVal(&(_param.hue), 0.55, 1.7);
 			_param.len_trans = sizeof(tr8) / (sizeof(float) * 8);
 			memmove(anime_trans, tr8, sizeof(tr8));
 			break;
 		case 8:
+			_SetBaseFix(0.6);
 			_param.color = 0.7;
 			_SetRangeVal(&(_param.hue), 0.6, 0.99);
 			_SetBasefeuille();
@@ -994,68 +914,71 @@ void	KernelProgram::SetParamAnime(int id)
 		case 9:
 			_param.color = 0.7;
 			_SetRangeVal(&(_param.hue), 0.6, 0.99);
-			_SetBaseFix();
+			_SetBaseFix(0.7);
 			_param.len_trans = sizeof(tr10) / (sizeof(float) * 8);
 			memmove(anime_trans, tr10, sizeof(tr10));
 			break;
 		case 10:
-			_param.color = 0.7;
-			_SetRangeVal(&(_param.hue), 0.2, 0.4);
-			_SetBaseFix();
+			_SetBaseFix(0.7);
+			_param.color = 1.1;
+			_SetRangeVal(&(_param.hue), 0.1, 0.4);
 			_param.len_trans = sizeof(tr11) / (sizeof(float) * 8);
 			memmove(anime_trans, tr11, sizeof(tr11));
 			break;
 		case 11:
-			_param.color = 1.3;
-			_SetRangeVal(&(_param.hue), 0.3, 0.49);
-			_SetBaseFix();
+			_SetBaseFix(0.9);
+			_param.color = 1.25;
+			_SetRangeVal(&(_param.hue), 0.1, 0.4);
 			_param.len_trans = sizeof(tr12) / (sizeof(float) * 8);
 			memmove(anime_trans, tr12, sizeof(tr12));
 			break;
 		case 12:
+			_SetBaseFix(0.2);
 			_param.color = 1.2;
 			_SetRangeVal(&(_param.hue), 0.1, 0.6);
-			_SetBaseFix();
 			_param.len_trans = sizeof(tr13) / (sizeof(float) * 8);
 			memmove(anime_trans, tr13, sizeof(tr13));
 			break;
 		case 13:
+			_SetBaseFix(0.7);
 			_param.color = 0.7;
 			_SetRangeVal(&(_param.hue), 0.6, 0.99);
-			_SetBaseFix();
 			_param.len_trans = sizeof(tr14) / (sizeof(float) * 8);
 			memmove(anime_trans, tr14, sizeof(tr14));
 			break;
 		case 14:
+			_SetBaseFix(0.7);
 			_param.color = 1.1;
 			_SetRangeVal(&(_param.hue), 0.75, 0.9);
-			_SetBaseFix();
 			_param.len_trans = sizeof(tr15) / (sizeof(float) * 8);
 			memmove(anime_trans, tr15, sizeof(tr15));
 			break;
 		case 15:
-			_param.color = 3;
-			_SetRangeVal(&(_param.hue), 0, 1);
-			_SetBaseFix();
+			_SetBaseFix(0.8);
+			_param.color = 3.1;
+			_SetRangeVal(&(_param.hue), 0.1, 0.2);
 			_param.len_trans = sizeof(tr16) / (sizeof(float) * 8);
 			memmove(anime_trans, tr16, sizeof(tr16));
 			break;
 		case 16:
-			_param.color = 4.5;
-			_SetRangeVal(&(_param.hue), 0.6, 0.99);
 			_SetBasefeuille();
+			_param.color = 1.15;
+			_SetRangeVal(&(_param.hue), 0.6, 0.8);
 			_param.len_trans = sizeof(tr17) / (sizeof(float) * 8);
 			memmove(anime_trans, tr17, sizeof(tr17));
 			break;
 		case 17:
+			_SetBasefeuille();
 			_param.color = 1.3;
 			_SetRangeVal(&(_param.hue), 0.1, 0.9);
-			_SetBasefeuille();
 			_param.len_trans = sizeof(tr18) / (sizeof(float) * 8);
 			memmove(anime_trans, tr18, sizeof(tr18));
 			break;
 
 		default:
+			_SetBasefeuille();
+			_param.color = 1.3;
+			_SetRangeVal(&(_param.hue), 0.1, 0.9);
 			_param.len_trans = sizeof(tr1) / (sizeof(float) * 8);
 			memmove(anime_trans, tr1, sizeof(tr1));
 			break;
@@ -1080,4 +1003,89 @@ void								KernelProgram::_Ajust_iter()
 		}
 	}
 }
+
+
+void	KernelProgram::_Set_base()
+{
+	float	r;
+	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
+	vec_2	ux = {0, 1};
+	vec_2	uy = {1, 0};
+	vec_2	base[MAX_NODE];
+	r = 370 + 20 * sin(_time);
+	bzero(base, sizeof(base));
+
+	_param.len_base = 3;
+	base[0] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 0);
+	base[1] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 1.0 / 3.0);
+	base[2] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 2.0 / 3.0);
+	base[3] = add_rot(beg, ux, uy, r, _time, 0.005 * cos(_time) + 0.2, 0);
+
+	base[1] = add_rot(base[1], ux, uy, 100, _time, -0.5, 0);
+	base[2] = add_rot(base[2], ux, uy, 70, _time, 0.6, 0);
+	base[3] = add_rot(base[3], ux, uy, 30, _time, -0.3, 0);
+
+	base[1] = add_rot(base[1], ux, uy, 30, _time, -0.6, 0);
+	base[2] = add_rot(base[2], ux, uy, 20, _time, -0.3, 0);
+	base[3] = add_rot(base[3], ux, uy, 40, _time, 0.4, 0);
+
+	base[0] = base[3];
+	for (int i = 0; i < MAX_NODE; i++)
+	{
+		_param.pt_base[i][0] = base[i].x;
+		_param.pt_base[i][1] = base[i].y;
+	}
+}
+
+void	KernelProgram::_SetBaseFix(float prct)
+{
+	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
+	vec_2	base[MAX_NODE];
+
+	bzero(base, sizeof(base));
+	_param.len_base = 2;
+	base[0].x = beg.x;
+	base[0].y = beg.y * (1 - prct);
+	base[1].x = beg.x;
+	base[1].y = beg.y + beg.y * prct;
+	base[2] = base[0];
+	base[3] = base[1];
+	for (int i = 0; i < MAX_NODE; i++)
+	{
+		_param.pt_base[i][0] = base[i].x;
+		_param.pt_base[i][1] = base[i].y;
+	}
+}
+
+void								KernelProgram::_SetBasefeuille()
+{
+	float	r;
+	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
+	vec_2	ux = {0, 1};
+	vec_2	uy = {1, 0};
+	vec_2	base[MAX_NODE];
+	r = 250 + 20 * sin(_time) * cos(_time);
+	bzero(base, sizeof(base));
+
+	_param.len_base = 4;
+	base[0] = add_rot(beg, ux, uy, r, _time, -0.01 * cos(_time) - 0.05, 0);
+	base[0] = add_rot(base[0], ux, uy, 100, _time, 0.02, 0);
+
+	base[1] = add_rot(beg, ux, uy, r, _time, 0.01 * cos(_time) + 0.1, 0.2);
+	base[1] = add_rot(base[1], ux, uy, 130, _time, -0.02, 0);
+
+	base[2] = add_rot(beg, ux, uy, r, _time, -0.015 * cos(_time) - 0.05, 0.4);
+	base[2] = add_rot(base[2], ux, uy, 70, _time, -0.02, 0);
+
+
+	base[3] = add_rot(beg, ux, uy, r, _time, -0.02 * cos(_time) - 0.05, 0.6);
+	base[3] = add_rot(base[3], ux, uy, 70, _time, -0.02, 0);
+
+	for (int i = 0; i < MAX_NODE; i++)
+	{
+		_param.pt_base[i][0] = base[i].x;
+		_param.pt_base[i][1] = base[i].y;
+	}
+}
+
 
