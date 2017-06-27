@@ -1,3 +1,5 @@
+uniform float b_side = 1;
+
 #define BAND(u) (ceil(u*4.)*.25)
 
 #define sin(t) (.5*sin(t) )
@@ -156,6 +158,8 @@ void mainImage( in vec2 f )
     t = iGlobalTime;
 	vec2 u = vec2(.95, 1.)*f.xy / iResolution.xy;
 
+	if (b_side < 0)
+		f.x = iResolution.x - f.x;
     
 //    o = ceil(u.x*4.)*vec4(.25);
 

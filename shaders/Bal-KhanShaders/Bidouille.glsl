@@ -1,6 +1,8 @@
 #define I_MAX	150
 #define E		0.001
 
+uniform float ColorIzer = -0.4;
+
 /*
 * License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
 * Created by bal-khan
@@ -35,6 +37,11 @@ vec3 blackbody(float Temp)
     return col;
 }
 
+vec3 h2rgb(float c) {
+	vec3 p = abs(fract(c + vec3(3,2,1)/3.) * 6. - 3.);
+	return clamp(p - 1., 0., 1.);
+}
+
 // -------------blackbody----------------- //
 
 
@@ -49,7 +56,7 @@ void mainImage( in vec2 f )
 
     vec2  inter = (march(pos, dir));
 
-    col.xyz = blackbody((1.1-length(uv)*1.1)*inter.x*300./inter.y);
+    col.xyz = blackbody((1.1-length(uv)*1.1)*inter.x*300./inter.y) + h2rgb(ColorIzer) / 3.;
     fragColor = col;
 }
 

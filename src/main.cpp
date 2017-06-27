@@ -75,21 +75,28 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 	{
 		AudioManager		am;
 
+		auto focusTimeoutCallback = 
+			[app](const int programIndex, const int transitionIndex)
+			{
+				std::cout << "focusing shader: " << programIndex << std::endl;
+				return app->FocusShader(programIndex, transitionIndex);
+			};
+
+		auto updateLocalParamCallback = 
+			[app](const int programIndex, const std::string uniformName, const UniformParameter & param)
+			{
+				return app->UpdateLocalParam(programIndex, uniformName, param);
+			};
+
 		nm->SetShaderFocusCallback(
-			[app](const Timeval *timing, const int programIndex, const int transitionIndex)
+			[app, & focusTimeoutCallback](const Timeval *timing, const int programIndex, const int transitionIndex)
 			{
 				if (app == NULL)
 				{
 					std::cout << "Can't focus a shader, shaderApplication not initialized" << std::endl;
 					return false;
 				}
-				Timer::Timeout(timing,
-					[programIndex, app, transitionIndex](void)
-					{
-						std::cout << "focusing shader: " << programIndex << std::endl;
-						return app->FocusShader(programIndex, transitionIndex);
-					}
-				);
+				Timer::Timeout(timing, std::bind(focusTimeoutCallback, programIndex, transitionIndex));
 				return true;
 			}
 		);
@@ -105,14 +112,9 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 		);
 
 		nm->SetShaderLocalParamCallback(
-			[app](const Timeval *timing, const int programIndex, const std::string uniformName, const UniformParameter & param)
+			[app, updateLocalParamCallback](const Timeval *timing, const int programIndex, const std::string uniformName, const UniformParameter & param)
 			{
-				Timer::Timeout(timing,
-					[programIndex, uniformName, param, app](void)
-					{
-						return app->UpdateLocalParam(programIndex, uniformName, param);
-					}
-				);
+				Timer::Timeout(timing, std::bind(updateLocalParamCallback, programIndex, uniformName, param));
 			}
 		);
 
@@ -126,7 +128,11 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 		nm->SetAudioUpdateCallback(
 			[app, &am](const Timeval *timing, const AudioUpdateType type, const size_t audioIndex, const float audioVolume)
 			{
-				switch (type)
+				(void)timing;
+				(void)type;
+				(void)audioIndex;
+				(void)audioVolume;
+				/*switch (type)
 				{
 					case AudioUpdateType::Play:
 						Timer::Timeout(timing,
@@ -154,7 +160,7 @@ static void NetworkThread(NetworkManager *nm, ShaderApplication *app)
 						break ;
 					default:
 						break ;
-				}
+				}*/
 				return false;
 			}
 		);

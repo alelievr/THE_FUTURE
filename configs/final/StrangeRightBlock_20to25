@@ -35,6 +35,11 @@ LocalParam e1r8p16 0 InvertColor 1
 LocalParam e1r8p18 0 InvertColor 1
 LocalParam e1r8p20 0 InvertColor 1
 
+LocalParam e1r9p14 0 ColorIzer 0.2
+LocalParam e1r9p16 0 ColorIzer 0.4
+LocalParam e1r9p18 0 ColorIzer 0.6
+LocalParam e1r9p20 0 ColorIzer -0.5
+
 RenderLoop	21
 {
 	Focus 0 1 Sync None
@@ -44,7 +49,10 @@ RenderLoop	21
 RenderLoop	22
 {
 	Focus 0 1 Sync None
-	Wait -1
+	Wait 30
+	Uniform1f InvertColor 1 Sync Linear 500
+	Wait 30
+	Uniform1f InvertColor 1 Sync Linear 500
 }
 
 RenderLoop	23

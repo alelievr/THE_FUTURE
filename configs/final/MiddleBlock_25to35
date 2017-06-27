@@ -78,6 +78,7 @@ e1r12p12	29
 
 30 shaders/Palliaci/sun.glsl
 31 shaders/Palliaci/2DNoisedSun.glsl
+32 shaders/Palliaci/wtf.glsl
 
 #BACK IMACS
 # left column
@@ -107,30 +108,42 @@ e1r3p14         31
 e1r2p15         31
 
 # left middle column
-e1r12p11
-e1r11p11
-e1r10p11
-e1r9p9
-e1r8p9
-e1r7p10
-e1r6p10
-e1r5p11
-e1r4p11
-e1r3p10
-e1r2p12
+e1r12p11	32
+e1r11p11        32
+e1r10p11        32
+e1r9p9          32
+e1r8p9          32
+e1r7p10         32
+e1r6p10         32
+e1r5p11         32
+e1r4p11         32
+e1r3p10         32
+e1r2p12         32
 
 # right middle column
-e1r12p14
-e1r11p14
-e1r10p14
-e1r9p12
-e1r8p12
-e1r7p13
-e1r6p13
-e1r5p14
-e1r4p14
-e1r3p13
-e1r2p14
+e1r12p14	32
+e1r11p14	32
+e1r10p14	32
+e1r9p12		32
+e1r8p12		32
+e1r7p13		32
+e1r6p13		32
+e1r5p14		32
+e1r4p14		32
+e1r3p13		32
+e1r2p14		32
+
+LocalParam e1r12p14 0 b_side -1
+LocalParam e1r11p14 0 b_side -1
+LocalParam e1r10p14 0 b_side -1
+LocalParam e1r9p12 0 b_side -1
+LocalParam e1r8p12 0 b_side -1
+LocalParam e1r7p13 0 b_side -1
+LocalParam e1r6p13 0 b_side -1
+LocalParam e1r5p14 0 b_side -1
+LocalParam e1r4p14 0 b_side -1
+LocalParam e1r3p13 0 b_side -1
+LocalParam e1r2p14 0 b_side -1
 
 
 RenderLoop 26

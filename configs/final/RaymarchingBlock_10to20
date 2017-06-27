@@ -102,48 +102,48 @@ e1r1p13		16
 
 RenderLoop	15
 {
-	Focus 15 1 Sync None
+	Focus 0 1 Sync None
 	Wait 30
-	Focus 16 1 Sync None
+	Focus 1 1 Sync None
 	Wait 30
-	Focus 17 1 Sync None
+	Focus 2 1 Sync None
 	Wait 30
-	Focus 18 1 Sync None
+	Focus 3 1 Sync None
 	Wait 30
 }
 
 RenderLoop	16
 {
-	Focus 16 1 Sync None
+	Focus 1 1 Sync None
 	Wait 30
-	Focus 17 1 Sync None
+	Focus 2 1 Sync None
 	Wait 30
-	Focus 18 1 Sync None
+	Focus 3 1 Sync None
 	Wait 30
-	Focus 15 1 Sync None
+	Focus 0 1 Sync None
 	Wait 30
 }
 
 RenderLoop	17
 {
-	Focus 17 1 Sync None
+	Focus 2 1 Sync None
 	Wait 30
-	Focus 18 1 Sync None
+	Focus 3 1 Sync None
 	Wait 30
-	Focus 15 1 Sync None
+	Focus 0 1 Sync None
 	Wait 30
-	Focus 16 1 Sync None
+	Focus 1 1 Sync None
 	Wait 30
 }
 
 RenderLoop	18
 {
-	Focus 18 1 Sync None
+	Focus 3 1 Sync None
 	Wait 30
-	Focus 17 1 Sync None
+	Focus 0 1 Sync None
 	Wait 30
-	Focus 16 1 Sync None
+	Focus 1 1 Sync None
 	Wait 30
-	Focus 15 1 Sync None
+	Focus 2 1 Sync None
 	Wait 30
 }
