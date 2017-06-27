@@ -550,11 +550,11 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	
 
 	_time = (glfwGetTime() - __localParams->at("localStartTime")) / 4;
-//	id_anime = (0 + (int)(_time / 2)) % 18;
+	id_anime = (0 + (int)(_time / 15)) % 18;
 
 //	id_anime = 12;
 //	float toto =  __localParams["idAnime"];
-	id_anime = __localParams->at("idAnime");
+//	id_anime = __localParams->at("idAnime");
 	if (id_anime != _prev_anime)
 	{
 //		std::cout << id_anime << std::endl;	 // <---
