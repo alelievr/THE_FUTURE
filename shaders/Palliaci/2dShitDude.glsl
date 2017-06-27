@@ -99,11 +99,11 @@ vec3 p7(vec2 u, float a)
 {
 	vec3	ret;
     u-=vec2(0.,a);
-    u = fract(skew(u*5.));
+    u = fract(skew(u*4.));
     
-    vec2 pos = vec2(0.5)-u;
+    vec2 pos = vec2(0.7)-u;
 
-    float r = length(pos)*4.0;
+    float r = length(pos)*2.0;
     float ff = sin(u.x);
    	ret = vec3(smoothstep(ff,ff+0.02,r));
     for (float i = 1.; i <= 15. ; i++)
