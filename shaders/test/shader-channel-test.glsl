@@ -1,5 +1,4 @@
 #pragma iChannel0 shaders/test/renderbuffer.glsl
-#pragma iChannel1 textures/chelou.jpg
 
 void		mainImage(vec2 fragCoord)
 {

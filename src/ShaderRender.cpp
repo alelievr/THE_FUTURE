@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <stdio.h>
 
+//#define RECORD
 #define DEBUG
 
 vec2		framebuffer_size = {0, 0};
@@ -139,9 +140,11 @@ void		ShaderRender::Render(void)
 		p->UpdateUniforms(framebuffer_size);
 		p->Draw();
 	}
+
+#ifdef RECORD
 	static int *	buffer;
 
-/*	if (frames == 0)
+	if (frames == 0)
 	{
 		const char* cmd = ("ffmpeg -r 24 -f rawvideo -pix_fmt rgba -s " + std::to_string((int)framebuffer_size.x) + "x" + std::to_string((int)framebuffer_size.y) + " -i - -threads 0 -y -pix_fmt yuv420p -crf 21 -vf vflip output.mp4").c_str();
 
@@ -155,7 +158,8 @@ void		ShaderRender::Render(void)
 	glReadPixels(0, 0, (int)framebuffer_size.x, (int)framebuffer_size.y, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
 	fwrite(buffer, sizeof(int)*framebuffer_size.x*framebuffer_size.y, 1, ffmpeg);
-*/
+#endif
+
 	frames++;
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

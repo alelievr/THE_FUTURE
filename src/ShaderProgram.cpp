@@ -57,7 +57,7 @@ const char * VERTEX_SHADER_DEFAULT =
 "out vec4               outColor;\n"
 "void main()\n"
 "{\n"
-"       gl_Position = vec4(fragPosition, 0.0, 1.0);\n"
+"	gl_Position = vec4(fragPosition, 0.0, 1.0);\n"
 "}\n";
 
 
