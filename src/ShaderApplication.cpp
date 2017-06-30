@@ -61,6 +61,7 @@ ShaderApplication::ShaderApplication(bool fullScreen)
 	glfwGetFramebufferSize(window, &fw, &fh);
 	framebuffer_size.x = fw;
 	framebuffer_size.y = fh;
+	std::cout << "framebuffser size: " << framebuffer_size.x << "/" << framebuffer_size.y << std::endl;
 }
 
 bool	ShaderApplication::LoadShader(const std::string & shaderFile)
@@ -99,11 +100,21 @@ void	ShaderApplication::OnLoadingShaderFinished()
 
 void	ShaderApplication::RenderLoop(void)
 {
+	int		fps = 0;
+	float	lastTime = 0;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		shaderRender->Render();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		fps++;
+		if (glfwGetTime() - lastTime > 1)
+		{
+			glfwSetWindowTitle(window, std::to_string(fps).c_str());
+			fps = 0;
+			lastTime = glfwGetTime();
+		}
 	}
 	glfwTerminate();
 }

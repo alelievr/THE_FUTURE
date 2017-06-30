@@ -15,6 +15,7 @@
 #include "LuaGL.hpp"
 #include <functional>
 #include <algorithm>
+#include <stdio.h>
 
 #define DEBUG
 
@@ -49,6 +50,8 @@ ShaderRender::ShaderRender(void)
 
 	//init_LuaGL(this);
 }
+
+static FILE *	ffmpeg;
 
 void		ShaderRender::Render(void)
 {
@@ -136,7 +139,23 @@ void		ShaderRender::Render(void)
 		p->UpdateUniforms(framebuffer_size);
 		p->Draw();
 	}
+	static int *	buffer;
 
+/*	if (frames == 0)
+	{
+		const char* cmd = ("ffmpeg -r 24 -f rawvideo -pix_fmt rgba -s " + std::to_string((int)framebuffer_size.x) + "x" + std::to_string((int)framebuffer_size.y) + " -i - -threads 0 -y -pix_fmt yuv420p -crf 21 -vf vflip output.mp4").c_str();
+
+		// open pipe to ffmpeg's stdin in binary write mode
+		ffmpeg = popen(cmd, "w");
+
+		buffer = new int[framebuffer_size.x*framebuffer_size.y];
+
+	}
+
+	glReadPixels(0, 0, (int)framebuffer_size.x, (int)framebuffer_size.y, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
+	fwrite(buffer, sizeof(int)*framebuffer_size.x*framebuffer_size.y, 1, ffmpeg);
+*/
 	frames++;
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -244,6 +263,7 @@ ShaderProgram	*ShaderRender::GetProgram(int id)
 
 ShaderRender::~ShaderRender()
 {
+	fclose(ffmpeg);
 	for (auto program : _programs)
 		delete program;
 	//lua_close(getL(NULL));		// Cya, Lua

@@ -5,6 +5,6 @@ void		mainImage(vec2 fragCoord)
 {
 	vec2 uv = fragCoord / iResolution;
 
-	vec4 tx = texture(iChannel1, uv);
+	vec4 tx = texture(iChannel0, uv);
 	fragColor = vec4(tx.xyz * (1-length(uv - 0.5)*2), 1);
 }

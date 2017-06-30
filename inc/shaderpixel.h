@@ -39,6 +39,12 @@
 # define WIN_H				1080
 # define SCALE				70
 
+# define MONIT5K_W			2880
+# define MONIT5K_H			1620
+
+# define MONIT2K_W			2560
+# define MONIT2K_H			1440
+
 typedef struct s_vec2
 {
 	float x;
