@@ -364,10 +364,12 @@ int		KernelProgram::IsExtensionSupported(
 KernelProgram::KernelProgram(void)
 {
 
-	cl_int					err[3];
+	cl_int					err[1];
+	cl_platform_id			platform;
 
 #ifdef __APPLE__
 
+	platform = NULL;
 	CGLContextObj kCGLContext = CGLGetCurrentContext();
 	CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
 	cl_context_properties ctx_props[] = {
@@ -377,8 +379,11 @@ KernelProgram::KernelProgram(void)
 
 #else
 
-	cl_platform_id platform;
-	clGetPlatformIDs(1, &platform, NULL);
+	if ((err[0] = clGetPlatformIDs(1, &platform, NULL)) != 0)
+		platform = NULL;
+
+	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
+
 	// Create CL context properties, add GLX context & handle to DC
 	cl_context_properties ctx_props[] = {
 		CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(), // GLX Context
@@ -393,14 +398,7 @@ KernelProgram::KernelProgram(void)
 	if (!contextLoaded)
 	{
 		//load OpenCL contex
-    	err[0] = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_CPU, 1, &_device_id, NULL);
-
-		//check if opengl / opencl sharing context is supported:
-		size_t ext_size = 1024;
-		char* ext_string = (char*)malloc(ext_size);
-		err[1] = clGetDeviceInfo(_device_id, CL_DEVICE_EXTENSIONS, ext_size, ext_string, &ext_size);
-		if (!IsExtensionSupported(CL_GL_SHARING_EXT, ext_string, ext_size))
-			std::cout << "openGL sharing context not supported !\n";
+    	err[0] = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &_device_id, NULL);
 
 		_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 1);
 		_queue = clCreateCommandQueue(_context, _device_id, 0, err + 2);
@@ -524,6 +522,7 @@ bool			KernelProgram::CompileAndLink(void)
 		size_t	size = 0;
 		clGetProgramBuildInfo(_program, _device_id, CL_PROGRAM_BUILD_LOG , 0, NULL, &size);
 		char *buildlog = (char*)malloc(size);
+		bzero(buildlog, size);
 		clGetProgramBuildInfo(_program, _device_id, CL_PROGRAM_BUILD_LOG , size, buildlog,NULL);
 		std::cout << buildlog << std::endl;
 		free(buildlog);

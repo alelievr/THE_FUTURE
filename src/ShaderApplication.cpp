@@ -43,7 +43,7 @@ ShaderApplication::ShaderApplication(bool fullScreen)
 		glfwSetWindowMonitor(window, monit, 0, 0, mode->width, mode->height, mode->refreshRate);
 
 	glfwMakeContextCurrent (window);
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	shaderRender = new ShaderRender();
 	renderShader = shaderRender;
