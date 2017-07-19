@@ -1,5 +1,6 @@
 #include "AudioManager.hpp"
 #include <thread>
+#include <mutex>
 
 static std::mutex		_audioMutex;
 

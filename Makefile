@@ -63,7 +63,7 @@ NAME		=	visualishader
 #	Compiler
 WERROR		=	#-Werror
 CFLAGS		=	-Wall -Wextra
-LINKFLAGS	=	-headerpad_max_install_names
+LINKFLAGS	=	
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb
@@ -110,7 +110,7 @@ SFML_LIB_PATH =		SFML/lib
 ifeq "$(OS)" "Windows_NT"
 endif
 ifeq "$(OS)" "Linux"
-	LDLIBS		+= -lm -lGL -lX11 -lXrandr -lXrender -lXi -lXxf86vm -lpthread -ldl -lXinerama -lXcursor -lrt -lbsd
+	LDLIBS		+= -lm -lGL -lX11 -lXrandr -lXrender -lXi -lXxf86vm -lpthread -ldl -lXinerama -lXcursor -lrt -lbsd -lOpenCL
 	CFLAGS		+= -fPIC
 #	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
 	LUAMAKEOS	= linux
@@ -131,6 +131,7 @@ ifeq "$(OS)" "Darwin"
 								install_name_tool -change @rpath/libsfml-system.2.4.dylib $(SFML_LIB_PATH)/libsfml-system.dylib $(NAME); \
 								install_name_tool -change @rpath/libsfml-window.2.4.dylib $(SFML_LIB_PATH)/libsfml-window.dylib $(NAME); \
 								install_name_tool -change @rpath/../Frameworks/vorbisenc.framework/Versions/A/vorbisenc $(SFML_FRAMEWORK_PATH)/vorbisenc.framework/Versions/A/vorbisenc $(SFML_AUTO_DYLIB);
+	LINKFLAGS	+= -headerpad_max_install_names
 
 endif
 

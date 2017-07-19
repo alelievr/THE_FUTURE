@@ -1,4 +1,7 @@
 #include "KernelProgram.hpp"
+#include "shaderpixel.h"
+
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 static bool		contextLoaded = false;
 
@@ -364,26 +367,23 @@ KernelProgram::KernelProgram(void)
 	cl_int					err[3];
 
 #ifdef __APPLE__
+
 	CGLContextObj kCGLContext = CGLGetCurrentContext();
 	CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
 	cl_context_properties ctx_props[] = {
 		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE,
 		(cl_context_properties)kCGLShareGroup, 0
 	};
-/*	CGLContextObj			cgl_ctx = CGLGetCurrentContext();              
-    CGLShareGroupObj		cgl_sg = CGLGetShareGroup(cgl_ctx);
-    cl_context_properties	ctx_props[] = { 
-    							CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE,
-								(cl_context_properties) cgl_sg, 0
-    						};*/
 
 #else
 
+	cl_platform_id platform;
+	clGetPlatformIDs(1, &platform, NULL);
 	// Create CL context properties, add GLX context & handle to DC
 	cl_context_properties ctx_props[] = {
 		CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(), // GLX Context
 		CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(), // GLX Display
- 		CL_CONTEXT_PLATFORM, (cl_context_properties)platform, // OpenCL platform
+ 		CL_CONTEXT_PLATFORM, /*(cl_context_properties)platform,*/ // OpenCL platform
  		0
 	};
 

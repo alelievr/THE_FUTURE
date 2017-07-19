@@ -5,15 +5,16 @@
 # include <map>
 # include <exception>
 # include <fstream>
+# include "shaderpixel.h"
 # ifdef __APPLE__
 #  include <OpenCL/OpenCL.h>
 #  include <OpenGL/OpenGL.h>
 # else
 #  include <CL/cl.h>
-#  include <GL/gl.h>
+#  include <CL/cl_gl.h>
+#  include <GL/glx.h>
 # endif
 # include <cmath>
-# include "shaderpixel.h"
 # include "ICGProgram.hpp"
 
 
