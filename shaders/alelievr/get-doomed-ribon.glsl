@@ -6,21 +6,21 @@
 #define TIMESCALE	0.5
 
 float	contrast = 8;
-float	light = .5;
+float	light = 1;
 
 void mainImage( in vec2 fragCoord )
 {
-	float gTime = iGlobalTime * TIMESCALE;
+	float gTime = iGlobalTime * TIMESCALE + 100;
 	float f = 0., g = 0., h = 0.;
 	vec2 res = iResolution.xy;
 	vec2 mou;
-	float demoniColor = sin(gTime * 0.0323456);
+	float demoniColor = sin(gTime * 0.0823456) / 2 + .5;
 	float dist = cos(gTime * 0.01) / 4 + .65;
-	mou.x = mix(-1, 0.1, sin(gTime * 0.08) / 2 + .5) * dist;
+	mou.x = mix(-1.1, 0.2, sin(gTime * 0.142) / 2 + .5) * dist;
 #ifdef MORE_SYMMETRY
 	mou.y = (cos(gTime * 0.08) / 2 + .5) * 2 * dist;
 #else
-	mou.y = cos(gTime * 0.08) * 2 * dist;
+	mou.y = clamp(cos(gTime / 200) / 1.5 + .25, 0, 1) * dist * (1 / clamp(mou.x, 0.4, 1));
 #endif
 	mou = (mou+1.0) * res;
 	vec2 z = ((-res+2.0 * fragCoord.xy) / res.y);

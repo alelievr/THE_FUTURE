@@ -272,7 +272,7 @@ static	const char * FRAGMENT_SHADER_HEADER =
 "       return texture(s, coord);\n"
 "}\n"
 "\n"
-"const float blurSize = 1.0/512.0;\n"
+"const float blurSize = 0.5/512.0;\n"
 "const float intensity = 1.55;\n"
 "void main()\n"
 "{\n"
@@ -351,7 +351,7 @@ KernelProgram::KernelProgram(void)
 	if (!contextLoaded)
 	{
 		//load OpenCL contex
-    	err[0] = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &_device_id, NULL);
+    	err[0] = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_CPU, 1, &_device_id, NULL);
 		_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 1);
 		_queue = clCreateCommandQueue(_context, _device_id, 0, err + 2);
 		contextLoaded = true;
@@ -360,7 +360,7 @@ KernelProgram::KernelProgram(void)
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 	bzero(&(_param), sizeof(t_ifs_param));
 	_size_buff = MAX_GPU_BUFF;
-//	_param.nb_iter = HARD_ITER;
+//	_param.nb_iter = 80;
 //	_param.len_trans = 4;
 //	_param.len_trans = 6;//sizeof(anime_trans) / (sizeof(float) * 8);
 //	_param.len_base = 2;
@@ -561,7 +561,7 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 		_prev_anime = id_anime;
 		_need_update = true;
 	}
-	SetParamAnime(id_anime);
+	SetParamAnime(2);
 	setParam(&_param);
 //	_Set_base();
 
@@ -757,8 +757,6 @@ void	set_trans_ovaloid2(t_ifs_param *param, float time, float trans[][8], int si
 		param->pt_trans[i][1] = ret.y;
 	}
 }
-
-
 
 
 void	KernelProgram::setParam(t_ifs_param *param)
