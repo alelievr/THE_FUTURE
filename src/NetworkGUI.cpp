@@ -247,12 +247,15 @@ void		NetworkGUI::UpdateGroupList(void)
 					resetTimeButton->GetSignal(sfg::Widget::OnLeftClick).Connect(
 						[this, programIndex](void)
 						{
+							UniformParameter	paramReset;
+							paramReset.reset = true;
+							paramReset.type = UniformType::Float1;
 							_netManager->UpdateLocalParamOnGroup(
 								Timer::TimeoutInSeconds(1),
 								_selectedGroup,
 								programIndex,
 								"localStartTime",
-								UniformParameter{.type = UniformType::Float1, .reset = true},
+								paramReset,
 								SyncOffset::CreateNoneSyncOffset()
 							);
 						}
@@ -263,7 +266,8 @@ void		NetworkGUI::UpdateGroupList(void)
 
 					table->Attach(resetTimeButton, sf::Rect<sf::Uint32>(0, 0, 3, 1), sfg::Table::FILL | sfg::Table::EXPAND, 0, sf::Vector2f( 20.f, 5.f ) );
 
-					if (CheckFileExtension(shader.c_str(), (const char *[]){"cl", NULL}))
+					const char *		openclExts[] = {"cl", NULL};
+					if (CheckFileExtension(shader.c_str(), openclExts))
 					{
 						//TODO
 					}
@@ -434,17 +438,21 @@ void		NetworkGUI::AddToDelayChanges(const int programIndex, const std::string & 
 
 void		NetworkGUI::SendDelayChanges(void)
 {
+	UniformParameter	param;
+	param.type = UniformType::Float1;
+	param.reset = false;
 	for (size_t i = 0; i < _toDelayChanges.size(); i++)
 	{
 		auto & dc = _toDelayChanges[i];
 		if (*Timer::Now() - dc.timeout > TIMEOUT_BEFORE_SENDING_CHANGES)
 		{
+			param.f1 = dc.value;
 			_netManager->UpdateLocalParamOnGroup(
 				Timer::TimeoutInMilliSeconds(dc.syncDelay),
 				dc.groupId,
 				dc.programIndex,
 				dc.localParamName,
-				UniformParameter{.type = UniformType::Float1, .f1 = dc.value, .reset = false},
+				param,
 				SyncOffset::CreateNoneSyncOffset()
 			);
 			//TODO: network uniform update call

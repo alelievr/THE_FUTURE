@@ -2,9 +2,9 @@
 #include "ShaderChannel.hpp"
 #include "ShaderProgram.hpp"
 
-#define	IMAGE_EXT	(const char *[]){"jpg", "png", "tiff", "jpeg", "bmp", NULL}
-#define	SHADER_EXT	(const char *[]){"glsl", "fs", NULL}
-#define	SOUND_EXT	(const char *[]){"wav", "wave", NULL}
+#define	IMAGE_EXT	{"jpg", "png", "tiff", "jpeg", "bmp", NULL}
+#define	SHADER_EXT	{"glsl", "fs", NULL}
+#define	SOUND_EXT	{"wav", "wave", NULL}
 
 ShaderChannel::ShaderChannel(void)
 {
@@ -114,15 +114,18 @@ bool		ShaderChannel::loadSound(const std::string & file)
 
 bool		ShaderChannel::updateChannel(const std::string & file, int mode)
 {
+	const char *		imageExts[] = IMAGE_EXT;
+	const char *		shaderExts[] = SHADER_EXT;
+	const char *		soundExts[] = SOUND_EXT;
 	_channelFile = const_cast< std::string & >(file);
 	_mode = mode;
 
 	const char *file_path = file.c_str();
-	if (CheckFileExtension(file_path, IMAGE_EXT))
+	if (CheckFileExtension(file_path, imageExts))
 		return (loadImage(file, mode));
-	if (CheckFileExtension(file_path, SHADER_EXT))
+	if (CheckFileExtension(file_path, shaderExts))
 		return (loadShader(file, mode));
-	if (CheckFileExtension(file_path, SOUND_EXT))
+	if (CheckFileExtension(file_path, soundExts))
 		return (loadSound(file));
 	return false;
 }

@@ -1,5 +1,4 @@
 #include "ShaderApplication.hpp"
-#include "LuaGL.hpp"
 
 static ShaderRender		*renderShader;
 

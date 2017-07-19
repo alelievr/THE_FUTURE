@@ -2,6 +2,7 @@
 #include "Timer.hpp"
 #include <unistd.h>
 #include <algorithm>
+#include <atomic>
 
 #define IMAC	"e[1-3]r(1[0-3]|[1-9])p(2[0-3]|1[0-9]|[1-9])"
 #define SPACE	"\\s\\s*"
@@ -200,6 +201,8 @@ void		ClusterConfig::LoadRenderLoop(std::ifstream & configFile, const int groupI
 
 void		ClusterConfig::LoadConfigFile(const std::string & fName)
 {
+	const char *	sourceFileExts[] = {"glsl", "frag", "sf", "cl", "ocl", "kern", NULL};
+	const char *	assetExts[] = {"ogg", "oga", "wav", "flac", NULL};
 	std::string fileName = fName;
 	if (fName.empty())
 		fileName = DEFAULT_CONFIG_FILE;
@@ -238,9 +241,9 @@ void		ClusterConfig::LoadConfigFile(const std::string & fName)
 		{
 			int groupId = std::stoi(matches[1]);
 			std::string file = matches[2];
-			if (CheckFileExtension(file.c_str(), (const char *[]){"glsl", "frag", "sf", "cl", "ocl", "kern", NULL}))
+			if (CheckFileExtension(file.c_str(), sourceFileExts))
 				_groupConfigs[groupId].shaders.push_back(file);
-			else if (CheckFileExtension(file.c_str(), (const char *[]){"ogg", "oga", "wav", "flac", NULL}))
+			else if (CheckFileExtension(file.c_str(), assetExts))
 				_groupConfigs[groupId].audioFiles.push_back(file);
 		}
 		else if (std::regex_match(line, matches, renderLoopLine))

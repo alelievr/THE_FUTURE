@@ -12,7 +12,6 @@
 
 #include "ShaderRender.hpp"
 #include "Timer.hpp"
-#include "LuaGL.hpp"
 #include <functional>
 #include <algorithm>
 #include <stdio.h>
@@ -21,7 +20,7 @@
 #define DEBUG
 
 vec2		framebuffer_size = {0, 0};
-std::list< const std::string > transitionShaders = {
+std::list< std::string > transitionShaders = {
 	"shaders/transitions/blockyTrasition.glsl",
 //	"shaders/transitions/burnTransition.glsl",
 	"shaders/transitions/fadeTransition.glsl",
@@ -121,8 +120,6 @@ void		ShaderRender::Render(void)
 
 	static int frames = 0;
 
-//	load_run_script(getL(NULL), "lua/draw.lua");
-
 	for (const std::size_t pIndex : _currentRenderedPrograms)
 		if (pIndex < _programs.size())
 		{
@@ -166,9 +163,10 @@ void		ShaderRender::Render(void)
 
 bool		ShaderRender::attachShader(const std::string file)
 {
-	ICGProgram	*newProgram;
+	ICGProgram *	newProgram;
+	const char *	clKernelExts[] = {"cl", NULL};
 
-	if (CheckFileExtension(file.c_str(), (const char *[]){"cl", NULL}))
+	if (CheckFileExtension(file.c_str(), clKernelExts))
 		newProgram = new KernelProgram();
 	else
 		newProgram = new ShaderProgram();
@@ -270,5 +268,4 @@ ShaderRender::~ShaderRender()
 	fclose(ffmpeg);
 	for (auto program : _programs)
 		delete program;
-	//lua_close(getL(NULL));		// Cya, Lua
 }

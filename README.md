@@ -1,6 +1,6 @@
-# shaderRender
+# THE_FUTURE
 
-ShaderRender is a program for shaderpixel rendering with hot-reload fragment shader, easy keyboard controls and usefull uniforms, inspeared from [https://www.shadertoy.com/](shadertoy.com)
+Network program to render concurently shaders on multiple clients.
 
 ## Installation
 ### Linux
@@ -15,29 +15,21 @@ ShaderRender is a program for shaderpixel rendering with hot-reload fragment sha
 + GL HF
 
 ## Usage
-./visualishader \<shader file\> [optional texture channels]
+For the client:  
+`./visualishader`  
+For the server:  
+`./visualishader --server configfile [configfile2 ...]`  
 
 ## Uniforms
 name | description
 --- | ---
 iResolution | dynamic resolution of the window
 iGlobalTime | time in sec and form the program startup
-iFrame | number of frame from the program startup
-iMouse | x and y are the coordinates of the mouse, z and w are 1 if the mouse button is pressed
-iScrollAmount | scroll amount of the mouse (usefull for a zoom)
-iMoveAmount | x, y and z represent the 3d camera position and w the zoom (controlled with - and +)
-iForward | a forward vector from the camera
-iFractalWindow | window coordinates for fractal calcul
 iChannel[0-7] | texture channels
 
-## Controls
-Positive | Negative | description
---- | --- | ---
-`esc` | X | escape program
-`right arrow` / `D` | `left arrow` / `A` | move horizontally
-`up arrow` / `W` | `down arrow` / `S` | move vertically
-`Q` | `E` | move on the z axis
-`numpad +` / `=` | `numpad -` / `-` | move w coordinate
-`space` | X | pause / unpause current time
-`C` | X | lock / unlock mouse cursor
-`R` | X | reset the camera, mouse and forward vector
+## Images
+
+![](https://image.noelshack.com/fichiers/2017/29/1/1500292196-rsz-p6270490.jpg)
+![](https://image.noelshack.com/fichiers/2017/29/1/1500292346-capture-d-ecran-2017-07-17-a-13-48-26.png)
+![](https://image.noelshack.com/fichiers/2017/29/1/1500292777-rsz-2p6270491.jpg)
+![](https://image.noelshack.com/fichiers/2017/29/1/1500292664-rsz-p6270493.jpg)

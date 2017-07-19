@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <condition_variable>
+#include <atomic>
 
 static std::atomic< int >		loopCount;
 static std::atomic< bool >		threadInitialized;
@@ -130,6 +131,6 @@ char		*Timer::ReadableTime(const Timeval & tv)
 	nowtime = tv.tv_sec;
 	nowtm = localtime(&nowtime);
 	strftime(tmbuf, sizeof tmbuf, "%Y-%m-%d %H:%M:%S", nowtm);
-	snprintf(buf, sizeof buf, "%s.%06d", tmbuf, tv.tv_usec);
+	snprintf(buf, sizeof buf, "%s.%06ld", tmbuf, tv.tv_usec);
 	return buf;
 }
