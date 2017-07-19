@@ -7,8 +7,10 @@
 # include <fstream>
 # ifdef __APPLE__
 #  include <OpenCL/OpenCL.h>
+#  include <OpenGL/OpenGL.h>
 # else
 #  include <CL/cl.h>
+#  include <GL/gl.h>
 # endif
 # include <cmath>
 # include "shaderpixel.h"
@@ -112,6 +114,7 @@ class		KernelProgram : public ICGProgram
 		void								CreateVAO(void);
 		bool								CheckCompilation(GLuint shader);
 		bool								CheckLink(GLuint program);
+		int									IsExtensionSupported(const char *support_str, const char *ext_string, size_t ext_buff_size);
 
 
 	public:

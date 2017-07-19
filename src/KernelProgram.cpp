@@ -67,6 +67,12 @@ static	std::string	cl_err[65] =	{"CL_SUCCESS",
 							"CL_INVALID_MIP_LEVEL",
 							"CL_INVALID_GLOBAL_WORK_SIZE"};
 
+#if defined (__APPLE__) || defined(MACOSX)
+static const char* CL_GL_SHARING_EXT = "cl_APPLE_gl_sharing";
+#else
+static const char* CL_GL_SHARING_EXT = "cl_khr_gl_sharing";
+#endif
+
 static	float	anime_trans[20][8] = {
 		{0.000000, 0.000000, 0.059173, -0.065980, -0.065980, -0.059173, 0.000000, 0.000000},
 		{0.495863, -0.229901, 0.059173, -0.065980, -0.072465, -0.063004, 1.993007, 0.000000},
@@ -334,7 +340,23 @@ static	float _renderVertices[] = {
 };
 static	GLuint _renderCount = 6;
 
-
+int		KernelProgram::IsExtensionSupported(
+ 		const char* support_str, const char* ext_string, size_t ext_buffer_size)
+{
+	size_t offset = 0;
+	const char* space_substr = strnstr(ext_string + offset, " ", ext_buffer_size - offset);
+	size_t space_pos = space_substr ? space_substr - ext_string : 0;
+	while (space_pos < ext_buffer_size)
+	{
+ 		if( strncmp(support_str, ext_string + offset, space_pos) == 0 )
+  			return 1;
+ 		// Keep searching -- skip to next token string
+ 		offset = space_pos + 1;
+ 		space_substr = strnstr(ext_string + offset, " ", ext_buffer_size - offset);
+ 		space_pos = space_substr ? space_substr - ext_string : 0;
+	}
+	return 0;
+}
 
 KernelProgram::KernelProgram(void)
 {
@@ -342,14 +364,28 @@ KernelProgram::KernelProgram(void)
 	cl_int					err[3];
 
 #ifdef __APPLE__
-	CGLContextObj			cgl_ctx = CGLGetCurrentContext();              
+	CGLContextObj kCGLContext = CGLGetCurrentContext();
+	CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
+	cl_context_properties ctx_props[] = {
+		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE,
+		(cl_context_properties)kCGLShareGroup, 0
+	};
+/*	CGLContextObj			cgl_ctx = CGLGetCurrentContext();              
     CGLShareGroupObj		cgl_sg = CGLGetShareGroup(cgl_ctx);
     cl_context_properties	ctx_props[] = { 
     							CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE,
 								(cl_context_properties) cgl_sg, 0
-    						};
+    						};*/
 
 #else
+
+	// Create CL context properties, add GLX context & handle to DC
+	cl_context_properties ctx_props[] = {
+		CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(), // GLX Context
+		CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(), // GLX Display
+ 		CL_CONTEXT_PLATFORM, (cl_context_properties)platform, // OpenCL platform
+ 		0
+	};
 
 #endif
 
@@ -358,6 +394,14 @@ KernelProgram::KernelProgram(void)
 	{
 		//load OpenCL contex
     	err[0] = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_CPU, 1, &_device_id, NULL);
+
+		//check if opengl / opencl sharing context is supported:
+		size_t ext_size = 1024;
+		char* ext_string = (char*)malloc(ext_size);
+		err[1] = clGetDeviceInfo(_device_id, CL_DEVICE_EXTENSIONS, ext_size, ext_string, &ext_size);
+		if (!IsExtensionSupported(CL_GL_SHARING_EXT, ext_string, ext_size))
+			std::cout << "openGL sharing context not supported !\n";
+
 		_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 1);
 		_queue = clCreateCommandQueue(_context, _device_id, 0, err + 2);
 		contextLoaded = true;
