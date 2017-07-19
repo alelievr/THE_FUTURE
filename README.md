@@ -4,7 +4,7 @@ Network program to render concurently shaders on multiple clients.
 
 ## Installation
 ### Linux
-+ You will thoses packages `libtool` `autoconf` `cmake` `xorg-dev` `libglu1-mesa-dev` `libbsd-dev`
++ You will thoses packages `libtool` `autoconf` `cmake` `xorg-dev` `libglu1-mesa-dev` `libbsd-dev` `libudev-dev` `libjpeg-dev` `libopenal-dev` `libogg-dev` `libvorbis-dev` `libflac-dev`
 + and just `make` the project
 
 ### Mac OSX
