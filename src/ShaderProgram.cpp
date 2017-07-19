@@ -149,8 +149,10 @@ const std::string		ShaderProgram::_LoadSourceFile(const std::string & filePath)
 
 bool		ShaderProgram::LoadSourceFile(const std::string & file)
 {
+	const char *		shaderVertexExts[] = {"vert", "vs", "vsh", NULL};
+	
 	try {
-		if (CheckFileExtension(file.c_str(), (const char * []){"vert", "vs", "vsh", NULL}))
+		if (CheckFileExtension(file.c_str(), shaderVertexExts))
 			_vertexFileSources.push_back(ShaderFile(file, _LoadSourceFile(file)));
 		else
 			_fragmentFileSources.push_back(ShaderFile(file, _LoadSourceFile(file)));

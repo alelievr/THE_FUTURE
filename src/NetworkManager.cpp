@@ -8,6 +8,7 @@
 #include <sstream>
 #include <vector>
 #include <locale>
+#include <mutex>
 #include <sys/time.h>
 
 #define DEBUG		0
@@ -140,7 +141,7 @@ void	NetworkManager::_FillLocalInfos(void)
 	struct ifaddrs  	*addrs;
 	struct ifaddrs  	*tmp;
 	std::stringstream	ss;
-	char				*ip;
+	char				*ip = NULL;
 	int					n, seat, row, cluster;
 
 	getifaddrs(&addrs);
@@ -151,6 +152,9 @@ void	NetworkManager::_FillLocalInfos(void)
 			ip = inet_ntoa(((struct sockaddr_in *)tmp->ifa_addr)->sin_addr);
 		tmp = tmp->ifa_next;
 	}
+
+	if (ip == NULL)
+		std::cout << "can't get local IP !" << std::endl, exit(-1);
 
 	ss.str(ip);
 	ss.imbue(std::locale(std::locale(), new ipReader()));
@@ -185,9 +189,11 @@ bool				NetworkManager::_ImacExists(const int row, const int seat) const
 Client &		NetworkManager::_FindClient(const int groupId, const size_t ip, bool deepSearch)
 {
 	static Client	defaultClient;
+#if DEBUG > 0
 	struct in_addr ia;
 	ia.s_addr = ip;
 	const char *sip = inet_ntoa(ia);
+#endif
 
 	LOCK;
 	if (groupId < 0 || _clients.find(groupId) == _clients.end())
@@ -872,8 +878,10 @@ void						NetworkManager::_ServerSocketEvent(void)
 
 					break ;
 				case PacketType::HelloServer:
+#if DEBUG > 0
 					struct in_addr i;
 					i.s_addr = packet.ip;
+#endif
 					DEBUG("Sending packet poke to %s\n", inet_ntoa(i));
 					_SendPacketToClient(packet.ip, _CreatePokeStatusPacket());
 					break ;
@@ -982,6 +990,7 @@ NetworkStatus		NetworkManager::Update(void)
 {
 	struct timeval		timeout;
 	fd_set				eventSet;
+	static char			voidbuff[0xF000];
 
 	bzero(&timeout, sizeof(timeout));
 
@@ -997,7 +1006,7 @@ NetworkStatus		NetworkManager::Update(void)
 			{
 				std::cout << "received event on socket " << i << std::endl;
 				//void the socket
-				read(i, (char[0xF000]){0}, 0xF000);
+				read(i, voidbuff, 0xF000);
 			}
 		}
 
@@ -1017,7 +1026,6 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 	std::map< int, std::map< int, Client > >::iterator	group;
 	int												nRemoved = 0;
 	Client											moved;
-	int												oldGroup = 0;
 
 	LOCK;
 	for (auto & clientKP : _clients)
@@ -1029,7 +1037,6 @@ NetworkStatus		NetworkManager::MoveIMacToGroup(const int groupId, const int row,
 			{
 				moved = c;
 				nRemoved++;
-				oldGroup = c.groupId;
 				clientKP.second.erase(it);
 				goto found;
 			}

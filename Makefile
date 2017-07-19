@@ -20,8 +20,6 @@ SRC			=	ShaderRender.cpp		\
 				ShaderProgram.cpp		\
 				ShaderChannel.cpp		\
 				ShaderApplication.cpp	\
-				lua_utils.cpp			\
-				LuaGL.cpp				\
 				wav.cpp					\
 				utils.cpp				\
 				main.cpp				\
@@ -49,14 +47,13 @@ CPPVERSION	=	c++14
 #Example $> make DEBUG=2 will set debuglevel to 2
 
 #	Includes
-INCDIRS		=	inc SOIL2/incs glfw/include lua/5.1/src/ SFML/include SFGUI/include
+INCDIRS		=	inc SOIL2/incs glfw/include SFML/include SFGUI/include
 
 #	Libraries
-LIBDIRS		=	lua/5.1/src glfw/src/ SFML/lib SFGUI/build/lib
-LDLIBS		=	-lglfw3 -llua -lsfml-audio -lsfml-graphics -lsfml-system -lsfml-window -lsfgui
+LIBDIRS		=	glfw/src/ SFML/lib SFGUI/build/lib
+LDLIBS		=	-lglfw3 -lsfml-audio -lsfml-graphics -lsfml-system -lsfml-window -lsfgui
 GLFWLIB		=	glfw/src/libglfw3.a
 SOILLIB		=	SOIL2/libSOIL2.so
-LUALIB		=	lua/5.1/src/liblua.a
 SFMLLIB		=	SFML/lib/libsfml-system.dylib
 SFGUILIB	=	SFGUI/build/lib/libsfgui.a
 
@@ -65,7 +62,7 @@ NAME		=	visualishader
 
 #	Compiler
 WERROR		=	#-Werror
-CFLAGS		=	-Wall -Wextra -ferror-limit=999
+CFLAGS		=	-Wall -Wextra
 LINKFLAGS	=	-headerpad_max_install_names
 CPROTECTION	=	-z execstack -fno-stack-protector
 
@@ -191,7 +188,7 @@ ifneq ($(filter 2,$(strip $(OPTLEVEL)) ${OPTI}),)
 endif
 
 ifndef $(CXX)
-	CXX = clang++
+	CXX = c++
 endif
 
 ifneq ($(filter %.cpp,$(SRC)),)
@@ -215,12 +212,7 @@ endif
 #################
 
 #	First target
-all: $(GLFWLIB) $(SOILLIB) $(LUALIB) $(SFMLLIB) $(SFGUILIB) $(NAME)
-
-$(LUALIB):
-	@git submodule init
-	@git submodule update
-	cd lua/5.1/src && make $(LUAMAKEOS)
+all: $(GLFWLIB) $(SOILLIB) $(SFMLLIB) $(SFGUILIB) $(NAME)
 
 $(SOILLIB):
 	@git submodule init
@@ -259,7 +251,7 @@ $(OBJDIR)/%.o: %.cpp $(INCFILES)
 $(OBJDIR)/%.o: %.c $(INCFILES)
 	@mkdir -p $(OBJDIR)
 	@$(call color_exec,$(COBJ_T),$(COBJ),"Object: $@",\
-		clang $(WERROR) $(CFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(CPPFLAGS) -o $@ -c $<)
+		$(CC) $(WERROR) $(CFLAGS) $(OPTFLAGS) $(DEBUGFLAGS) $(CPPFLAGS) -o $@ -c $<)
 
 $(OBJDIR)/%.o: %.s
 	@mkdir -p $(OBJDIR)

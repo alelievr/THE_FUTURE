@@ -3,6 +3,7 @@
 # include "Timeval.hpp"
 # include <iostream>
 # include <string>
+# include <functional>
 
 typedef std::function< Timeval & (const int seat, const int row, const int index) >		CustomSyncOffsetCallback;
 

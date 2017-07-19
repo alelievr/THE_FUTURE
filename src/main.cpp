@@ -23,7 +23,7 @@ static bool		serverGUINotInitialized = true;
 static bool		stressTest = false;
 static char *	shaderToLoad = NULL;
 static bool		serverSentAllShadersToLoad;
-static std::list< const std::string >	shadersToLoad;
+static std::list< std::string >	shadersToLoad;
 
 static struct option longopts[] = {
 	{ "server",     no_argument,            NULL,           1},
@@ -41,9 +41,8 @@ static void	usage(char *prog)
 
 static void options(int *ac, char ***av)
 {
-	int bflag, ch;
+	int ch;
 
-    bflag = 0;
     while ((ch = getopt_long(*ac, *av, "fscn:", longopts, NULL)) != -1)
         switch (ch) {
             case 1:

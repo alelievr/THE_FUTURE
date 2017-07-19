@@ -340,12 +340,18 @@ KernelProgram::KernelProgram(void)
 {
 
 	cl_int					err[3];
+
+#ifdef __APPLE__
 	CGLContextObj			cgl_ctx = CGLGetCurrentContext();              
     CGLShareGroupObj		cgl_sg = CGLGetShareGroup(cgl_ctx);
     cl_context_properties	ctx_props[] = { 
     							CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE,
 								(cl_context_properties) cgl_sg, 0
     						};
+
+#else
+
+#endif
 
 	bzero(err, sizeof(err));
 	if (!contextLoaded)
