@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/06/02 17:39:53 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/27 02:31:55 by alelievr         ###   ########.fr       */
+/*   Updated: 2017/07/19 19:38:52 by root             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,9 @@
 # include <stdio.h>
 # include <arpa/inet.h>
 # include <functional>
+
+# undef Success
+# undef Status
 
 # define CLIENT_PORT			5446
 # define SERVER_PORT			5447

@@ -114,6 +114,7 @@ ifeq "$(OS)" "Linux"
 	CFLAGS		+= -fPIC
 #	DEBUGFLAGS	+= -fsanitize=memory -fsanitize-memory-use-after-dtor -fsanitize=thread
 	LUAMAKEOS	= linux
+	SFMLLIB		= SFML/lib/libsfml-system.so
 endif
 ifeq "$(OS)" "Darwin"
 	FRAMEWORK	= OpenGL AppKit IOKit CoreVideo Cocoa Carbon AudioUnit CoreAudio vorbis freetype vorbisfile OpenAL FLAC ogg OpenCL

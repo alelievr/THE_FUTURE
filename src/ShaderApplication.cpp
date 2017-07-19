@@ -54,6 +54,16 @@ ShaderApplication::ShaderApplication(bool fullScreen)
 		}
 	);
 
+	glfwSetKeyCallback(window,
+		[](GLFWwindow *win, int key, int scancode, int action, int mods) {
+			(void)scancode;
+			(void)action;
+			(void)mods;
+			if (key == GLFW_KEY_ESCAPE)
+				glfwSetWindowShouldClose(win, true);
+		}
+	);
+
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
 	int		fw, fh;

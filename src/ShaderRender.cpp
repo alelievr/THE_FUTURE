@@ -51,7 +51,7 @@ ShaderRender::ShaderRender(void)
 	//init_LuaGL(this);
 }
 
-static FILE *	ffmpeg;
+static FILE *	ffmpeg = NULL;
 
 void		ShaderRender::Render(void)
 {
@@ -265,7 +265,8 @@ ShaderProgram	*ShaderRender::GetProgram(int id)
 
 ShaderRender::~ShaderRender()
 {
-	fclose(ffmpeg);
+	if (ffmpeg != NULL)
+		fclose(ffmpeg);
 	for (auto program : _programs)
 		delete program;
 }

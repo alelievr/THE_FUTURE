@@ -7,6 +7,7 @@
 
 typedef std::function< Timeval & (const int seat, const int row, const int index) >		CustomSyncOffsetCallback;
 
+#undef None
 enum class		SyncOffsetType
 {
 	None,
