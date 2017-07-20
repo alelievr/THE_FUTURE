@@ -72,7 +72,10 @@ __kernel	void	particles(write_only image2d_t img
 		
 		part[id_part].pos += part[id_part].speed;
 		part[id_part].speed += acc;
-		write_imagef(img, (int2)(part[id_part].pos), col);
+		int2 wpos;
+		wpos.x = (int)part[id_part].pos.x;
+		wpos.y = (int)part[id_part].pos.y;
+		write_imagef(img, wpos, col);
 	}
 	else
 	{

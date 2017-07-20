@@ -364,9 +364,10 @@ int		KernelProgram::IsExtensionSupported(
 KernelProgram::KernelProgram(void)
 {
 
-	cl_int					err[1];
+	cl_int					err[4];
 	cl_platform_id			platform;
 
+	bzero(err, sizeof(err));
 #ifdef __APPLE__
 
 	platform = NULL;
@@ -379,33 +380,36 @@ KernelProgram::KernelProgram(void)
 
 #else
 
-	if ((err[0] = clGetPlatformIDs(1, &platform, NULL)) != 0)
+	if ((err[0] = clGetPlatformIDs(1, &platform, NULL)) != CL_SUCCESS)
+	{
+		printf("set Platform id to NULL !\n");
 		platform = NULL;
-
-	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
+	}
 
 	// Create CL context properties, add GLX context & handle to DC
 	cl_context_properties ctx_props[] = {
 		CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(), // GLX Context
 		CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(), // GLX Display
- 		CL_CONTEXT_PLATFORM, /*(cl_context_properties)platform,*/ // OpenCL platform
+ 		CL_CONTEXT_PLATFORM, (cl_context_properties)platform, // OpenCL platform
  		0
 	};
 
 #endif
 
-	bzero(err, sizeof(err));
 	if (!contextLoaded)
 	{
 		//load OpenCL contex
-    	err[0] = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &_device_id, NULL);
+		err[1] = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &_device_id, NULL);
 
-		_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 1);
-		_queue = clCreateCommandQueue(_context, _device_id, 0, err + 2);
+		//_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 2);
+		_context = clCreateContext(NULL, 1, &_device_id, NULL, NULL, err + 2);
+		_queue = clCreateCommandQueue(_context, _device_id, 0, err + 3);
+		_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 		contextLoaded = true;
 	}
+
 	_firstUse = true;
-	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
+
 	bzero(&(_param), sizeof(t_ifs_param));
 	_size_buff = MAX_GPU_BUFF;
 //	_param.nb_iter = 80;
@@ -516,7 +520,9 @@ bool			KernelProgram::CompileAndLink(void)
 
 	bzero(err, sizeof(err));
 	_program = clCreateProgramWithSource(_context, 1, &src, &src_size, err + 0);
-    err[18] = clBuildProgram(_program, 1, &_device_id, NULL, NULL, NULL);
+	err[18] = clBuildProgram(_program, 1, &_device_id, NULL, NULL, NULL);
+	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
+		printf("OK\n");
 	if (err[18])
 	{
 		size_t	size = 0;
@@ -527,11 +533,13 @@ bool			KernelProgram::CompileAndLink(void)
 		std::cout << buildlog << std::endl;
 		free(buildlog);
 	}
+	std::cout << "Kernels creations " << std::endl;
 	_kernels["calcul_ifs_point"] = clCreateKernel(_program, "calcul_ifs_point", err + 1);
 	_kernels["define_color"] = clCreateKernel(_program, "define_color", err + 2);
 	_kernels["draw_line"] = clCreateKernel(_program, "draw_line", err + 3);	
 	_kernels["clear"] = clCreateKernel(_program, "clear", 0);
 
+	std::cout << "openGL texture creation" << std::endl;
    /** Create a texture to be displayed as the final image. */
 	glActiveTexture(GL_TEXTURE1);
 //	_screen_tex = SOIL_load_OGL_texture("textures/Kifs1.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS |	SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
@@ -542,11 +550,15 @@ bool			KernelProgram::CompileAndLink(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    _buff["screen"] = clCreateFromGLTexture(_context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, _screen_tex, 0);
+	std::cout << "Creating buffers" << std::endl;
+	_buff["screen"] = clCreateFromGLTexture(_context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, _screen_tex, 0);
 
+	std::cout << "OpenCL buffers" << std::endl;
 	_buff["pt_ifs"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF, NULL, err + 4);
 	_buff["col_pt"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF / 2, NULL, err + 5);
 	_buff["ifs_param"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, sizeof(t_ifs_param), NULL, err + 6);
+
+	std::cout << "setting kernel args" <<  std::endl;
 	err[11] = clSetKernelArg(_kernels["define_color"], 0, sizeof(cl_mem), &_buff["col_pt"]);
 	err[12] = clSetKernelArg(_kernels["define_color"], 1, sizeof(cl_mem), &_buff["ifs_param"]);
 
@@ -563,6 +575,7 @@ bool			KernelProgram::CompileAndLink(void)
 	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	clFinish(_queue);
 	_loaded = true;
+	std::cout << "compilation OK !" << std::endl;
 	return (_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__));
 }
 
