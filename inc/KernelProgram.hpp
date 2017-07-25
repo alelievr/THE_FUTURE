@@ -17,11 +17,6 @@
 # include <cmath>
 # include "ICGProgram.hpp"
 
-
-# define KO 1024
-# define MO KO * 1024
-# define GO MO * 1024
-# define MAX_GPU_BUFF (112 * MO) 
 # define MAX_ITER 80
 # define MAX_NODE 16
 # define NB_ANIME 5

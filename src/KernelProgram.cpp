@@ -3,6 +3,11 @@
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
+# define KO 1024lu
+# define MO KO * 1024lu
+# define GO MO * 1024lu
+# define MAX_GPU_BUFF (200 * MO) 
+
 static bool		contextLoaded = false;
 
 static	std::string	cl_err[65] =	{"CL_SUCCESS",
@@ -522,7 +527,6 @@ bool			KernelProgram::CompileAndLink(void)
 	_program = clCreateProgramWithSource(_context, 1, &src, &src_size, err + 0);
 	err[18] = clBuildProgram(_program, 1, &_device_id, NULL, NULL, NULL);
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
-		printf("OK\n");
 	if (err[18])
 	{
 		size_t	size = 0;
@@ -569,7 +573,7 @@ bool			KernelProgram::CompileAndLink(void)
 	err[16] = clSetKernelArg(_kernels["draw_line"], 2, sizeof(cl_mem), &_buff["col_pt"]);
 	err[17] = clSetKernelArg(_kernels["draw_line"], 3, sizeof(cl_mem), &_buff["ifs_param"]);
 
-	clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
+	err[7] = clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	err[8]	= clSetKernelArg(_kernels["draw_line"], 0, sizeof(cl_mem), &_buff["screen"]);
 	err[19] = clSetKernelArg(_kernels["clear"], 0, sizeof(cl_mem), &_buff["screen"]);
 	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
@@ -1063,6 +1067,7 @@ void								KernelProgram::_Ajust_iter()
 			again = false;
 		}
 	}
+	std::cout << "iterations: " << _param.nb_iter << std::endl;
 }
 
 
