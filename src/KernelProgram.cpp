@@ -8,7 +8,7 @@
 #define KO 1024lu
 #define MO KO * 1024lu
 #define GO MO * 1024lu
-#define MAX_GPU_BUFF (4 * GO) 
+#define MAX_GPU_BUFF (40 * MO) 
 
 static bool		contextLoaded = false;
 
@@ -631,7 +631,8 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 		_prev_anime = id_anime;
 		_need_update = true;
 	}
-	SetParamAnime(2);
+	SetParamAnime(13);
+	//SetParamAnime(2);
 	setParam(&_param);
 //	_Set_base();
 

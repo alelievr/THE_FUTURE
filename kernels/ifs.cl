@@ -97,6 +97,7 @@ __kernel void test_image(__global int *time, __global int *data)
 uchar4	hsv_to_rgb(__const float hue, __const float sat, __const float val);
 int		get_iter(int id, __const char max_iter, __const char len_trans, __const char len_base);
 float	get_line_length(float2 p1, float2 p2);
+float	rand(int gid, int lid);
 void	print_spec(t_ifs_spec *spec);
 
 uchar4	hsv_to_rgb(__const float hue, __const float sat, __const float val)
@@ -169,49 +170,70 @@ float	get_line_length(float2 p1, float2 p2)
 	return (max_p[id_max]);
 }
 
+float		rand(int gid, int lid)
+{
+	uint	seed = lid + lid * gid % 4242;
+	return (float)((seed * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1)) / (float)50;
+}
+
+#define POINT
+
 __kernel	void	draw_line(write_only image2d_t img
 									   , __global float2 *pt
 									   , __global char4 *col
 									   , __global t_ifs_spec *spec)
 {
-	char4	dc;
-	float2	unit_pos;
-	float4	unit_col;
 	float2	p;
-	float4	c;
-	int		indice;
-	int		col_value;
-	float	dist;
-	int		nb_point;
-	int		i;
 	int		id, id_col;
+	float4	c;
 	bool	is_inside;
 	int		w = spec->ecr_x;
 	int		h = spec->ecr_y;
 
 	id_col = get_global_id(0);
 	id = id_col + spec->beg_id[spec->nb_iter - 1];
+	p = pt[id];
+	c = (float4)(col[id_col].x, col[id_col].y, col[id_col].z, 0);
+	c /= (float)64;
+
+#ifdef POINT
+	is_inside = (p.x >= 0 && p.x < w) && (p.y >= 0 && p.y < h);	
+	if (is_inside)
+		write_imagef(img, (int2){p.x, p.y}, c);
+#else
+	write_imagef(img, )
+	char4	dc;
+	float2	unit_pos;
+	float4	unit_col;
+	int		indice;
+	int		col_value;
+	float	dist;
+	int		nb_point;
+	int		i;
+	int		gid = get_global_id(0);
+	int		lid = get_local_id(0);
+
 	dc = col[id + 1] - col[id];
 	dist = get_line_length(pt[id], pt[id + 1]);
 	nb_point = dist;
 	unit_pos = (pt[id + 1] - pt[id]) / dist;
 	unit_col = (float4)(dc.x, dc.y, dc.z, 0) / dist;
 	i = 0;
-	p = pt[id];
-	c = (float4)(col[id_col].x, col[id_col].y, col[id_col].z, 0);
-	c /= (float)128;
 	unit_col /= (float)128;
 
-	while(i <= nb_point)
+	while (i <= nb_point)
 	{
 		is_inside = (p.x >= 0 && p.x < w) && (p.y >= 0 && p.y < h);	
 		if (is_inside)
 			write_imagef(img, (int2){p.x, p.y}, c);
 
 		p += unit_pos;
-		c += unit_col;
+		c += unit_col + float4(rand(gid, lid), rand(gid + 11, lid - 11), rand(gid + 101, lid - 101));
+		gid++;
+		lid--;
 		i++;
 	}
+#endif
 }
 
 __kernel	void	calcul_ifs_point(__global float2 *pt_ifs
@@ -230,7 +252,7 @@ __kernel	void	calcul_ifs_point(__global float2 *pt_ifs
 	id_parent = (glob_id / (spec->len_trans - 1)) + spec->beg_id[num_iter - 1];
 	id_now = glob_id + spec->beg_id[num_iter];
 
-	ux = pt_ifs[id_parent + 1] - pt_ifs[id_parent];
+	ux = (pt_ifs[id_parent + 1] - pt_ifs[id_parent]) * 1.3f;
 	uy = (float2)(-ux.y, ux.x);
 
 	pt_ifs[id_now] = pt_ifs[id_parent] + spec->pt_trans[id_trans].x * ux + spec->pt_trans[id_trans].y * uy;
