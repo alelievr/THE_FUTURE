@@ -3,10 +3,12 @@
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-# define KO 1024lu
-# define MO KO * 1024lu
-# define GO MO * 1024lu
-# define MAX_GPU_BUFF (200 * MO) 
+//#define BLOOM
+
+#define KO 1024lu
+#define MO KO * 1024lu
+#define GO MO * 1024lu
+#define MAX_GPU_BUFF (4 * GO) 
 
 static bool		contextLoaded = false;
 
@@ -300,6 +302,7 @@ static	const char * FRAGMENT_SHADER_HEADER =
 "   //blur tutorial\n"
 "   // blur in y (vertical)\n"
 "   // take nine samples, with the distance blurSize between them\n"
+#ifdef BLOOM
 "   sum += texture(iChannel0, vec2(texcoord.x - 4.0*blurSize, texcoord.y)) * 0.05;\n"
 "   sum += texture(iChannel0, vec2(texcoord.x - 3.0*blurSize, texcoord.y)) * 0.09;\n"
 "   sum += texture(iChannel0, vec2(texcoord.x - 2.0*blurSize, texcoord.y)) * 0.12;\n"
@@ -321,6 +324,7 @@ static	const char * FRAGMENT_SHADER_HEADER =
 "   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + 2.0*blurSize)) * 0.12;\n"
 "   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + 3.0*blurSize)) * 0.09;\n"
 "   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + 4.0*blurSize)) * 0.05;\n"
+#endif
 "\n"
 "   //increase blur with intensity!\n"
 "   fragColor = sum * intensity + texture(iChannel0, texcoord); \n"
@@ -406,8 +410,8 @@ KernelProgram::KernelProgram(void)
 		//load OpenCL contex
 		err[1] = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &_device_id, NULL);
 
-		//_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 2);
-		_context = clCreateContext(NULL, 1, &_device_id, NULL, NULL, err + 2);
+		_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 2);
+		//_context = clCreateContext(NULL, 1, &_device_id, NULL, NULL, err + 2);
 		_queue = clCreateCommandQueue(_context, _device_id, 0, err + 3);
 		_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 		contextLoaded = true;
@@ -682,6 +686,12 @@ void		KernelProgram::UpdateFramebufferSize(const vec2 fbSize)
 
 void		KernelProgram::Draw(void)
 {
+	static float		lastDraw = 0;
+	float				t;
+
+	if (lastDraw != 0)
+		std::cout << "ms per frame: " << glfwGetTime() - lastDraw << std::endl;
+	lastDraw = glfwGetTime();
 	// -------- on lance le calcul des point
 	cl_int		err[3];
 	size_t		screen[2];
@@ -692,9 +702,11 @@ void		KernelProgram::Draw(void)
 	_SetIdPtBuff();
 	bzero(err, sizeof(err));
 	i = 1;	
+	t = glfwGetTime();
 	while (i < _param.nb_iter)
 	{
 		global_work_size[0] = _idPtBuff[i + 1] - _idPtBuff[i];
+		std::cout << "\tenqued point calcul for iter [" << i << "]: " << global_work_size[0] << " groups with " << local_work_size[0] << " threads, total: " << (global_work_size[0] * local_work_size[0]) << std::endl;
 		err[0] = clSetKernelArg(_kernels["calcul_ifs_point"], 2, sizeof(int), &i);
 		err[1] = clEnqueueNDRangeKernel(_queue, _kernels["calcul_ifs_point"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 		i++;
@@ -709,12 +721,15 @@ void		KernelProgram::Draw(void)
 
 	clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	{
+		t = glfwGetTime();
+		std::cout << "\tenqued line draw: " << global_work_size[0] << " groups with " << local_work_size[0] << " threads, total: " << (global_work_size[0] * local_work_size[0]) << std::endl;
 		clEnqueueNDRangeKernel(_queue, _kernels["clear"], 2, NULL, screen, NULL, 0, NULL, NULL);
 		global_work_size[0] = _idPtBuff[_param.nb_iter - 1] - _idPtBuff[_param.nb_iter - 2] - 1;
 		err[2] = clEnqueueNDRangeKernel(_queue, _kernels["draw_line"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	}
 	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	clFinish(_queue);
+	std::cout << "\t\tfinished in " << glfwGetTime() - t << "ms" << std::endl;
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 //	#------		On affiche le buffer avec OpenGL	------#
 
@@ -759,8 +774,8 @@ void		KernelProgram::_SetRangeVal(t_range *value, float beg, float end)
 void		KernelProgram::_SetIdPtBuff()
 {
 //	(void)nb_iter;
-	int		sum;
-	int		i;
+	size_t		sum;
+	size_t		i;
 
 	i = 1;
 	_idPtBuff[0] = 0;
