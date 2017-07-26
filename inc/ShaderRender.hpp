@@ -6,7 +6,7 @@
 /*   By: alelievr <alelievr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/07 21:28:59 by alelievr          #+#    #+#             */
-/*   Updated: 2017/06/24 06:00:06 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/07/26 08:06:24 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,10 +41,11 @@ class ShaderRender
 		std::vector< ICGProgram * >		_transitionPrograms;
 
 		bool			_programLoaded;
+		bool			_headless;
 		int				_currentTransitionIndex;
 
 	public:
-		ShaderRender(void);
+		ShaderRender(bool headless);
 		ShaderRender(const ShaderRender & rhs) = delete;
 		ShaderRender &		operator=(ShaderRender & ths) = delete;
 

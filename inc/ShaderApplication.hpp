@@ -6,7 +6,7 @@
 /*   By: jpirsch <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/26 03:37:10 by jpirsch           #+#    #+#             */
-/*   Updated: 2017/06/23 21:06:11 by jpirsch          ###   ########.fr       */
+/*   Updated: 2017/07/26 08:29:13 by alelievr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,9 @@ class ShaderApplication
 {
 	public:
 		bool			loadingShaders;
+		bool			_headless;
 
-		ShaderApplication(bool fullscreen = false);
+		ShaderApplication(bool fullscreen = false, bool headless = false);
 		virtual ~ShaderApplication(void);
 
 		bool	LoadShader(const std::string & shaderFile);

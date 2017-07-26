@@ -8,7 +8,7 @@
 #define KO 1024lu
 #define MO KO * 1024lu
 #define GO MO * 1024lu
-#define MAX_GPU_BUFF (40 * MO) 
+#define MAX_GPU_BUFF (4000 * MO) 
 
 static bool		contextLoaded = false;
 
@@ -259,99 +259,6 @@ static	const	float	tr18[][8]{
  {1.000000, 0.000000, -0.075070, 0.106746, -0.100053, -0.059760, 1.888112, 0.000000}
 };
 
-static	const char * FRAGMENT_SHADER_HEADER =
-"#version 330\n"
-"in vec4 outColor;\n"
-"out vec4 fragColor;\n"
-"\n"
-"\n"
-"uniform vec2           iResolution;\n"
-"uniform float          iGlobalTime;\n"
-"uniform sampler2D      iChannel0;\n"
-"uniform sampler2D      iChannel1;\n"
-"uniform sampler2D      iChannel2;\n"
-"uniform sampler2D      iChannel3;\n"
-"uniform sampler2D      iChannel4;\n"
-"uniform sampler2D      iChannel5;\n"
-"uniform sampler2D      iChannel6;\n"
-"uniform sampler2D      iChannel7;\n"
-"\n"
-"void mainImage(vec2 f);\n"
-"\n"
-"vec4 texture2D(sampler2D s, vec2 coord, float f)\n"
-"{\n"
-"       return texture(s, coord, f);\n"
-"}\n"
-"\n"
-"vec4 texture2D(sampler2D s, vec2 coord)\n"
-"{\n"
-"       return texture(s, coord);\n"
-"}\n"
-"\n"
-"const float blurSize = 0.5/512.0;\n"
-"const float intensity = 1.55;\n"
-"void main()\n"
-"{\n"
-"	vec2 fragCoord = gl_FragCoord.xy;\n"
-"   vec4 sum = vec4(0);\n"
-"   vec2 texcoord = fragCoord.xy/iResolution.xy;\n"
-"   int j;\n"
-"   int i;\n"
-"\n"
-"   //thank you! http://www.gamerendering.com/2008/10/11/gaussian-blur-filter-shader/ for the \n"
-"   //blur tutorial\n"
-"   // blur in y (vertical)\n"
-"   // take nine samples, with the distance blurSize between them\n"
-#ifdef BLOOM
-"   sum += texture(iChannel0, vec2(texcoord.x - 4.0*blurSize, texcoord.y)) * 0.05;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x - 3.0*blurSize, texcoord.y)) * 0.09;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x - 2.0*blurSize, texcoord.y)) * 0.12;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x - blurSize, texcoord.y)) * 0.15;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y)) * 0.16;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x + blurSize, texcoord.y)) * 0.15;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x + 2.0*blurSize, texcoord.y)) * 0.12;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x + 3.0*blurSize, texcoord.y)) * 0.09;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x + 4.0*blurSize, texcoord.y)) * 0.05;\n"
-"	\n"
-"	// blur in y (vertical)\n"
-"   // take nine samples, with the distance blurSize between them\n"
-"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y - 4.0*blurSize)) * 0.05;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y - 3.0*blurSize)) * 0.09;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y - 2.0*blurSize)) * 0.12;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y - blurSize)) * 0.15;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y)) * 0.16;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + blurSize)) * 0.15;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + 2.0*blurSize)) * 0.12;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + 3.0*blurSize)) * 0.09;\n"
-"   sum += texture(iChannel0, vec2(texcoord.x, texcoord.y + 4.0*blurSize)) * 0.05;\n"
-#endif
-"\n"
-"   //increase blur with intensity!\n"
-"   fragColor = sum * intensity + texture(iChannel0, texcoord); \n"
-"	fragColor.a = 1;\n"
-"}\n"
-"#line 1\n";
-
-static	const char * VERTEX_SHADER_DEFAULT =
-"#version 330\n"
-"in vec2                fragPosition;\n"
-"out vec4               outColor;\n"
-"void main()\n"
-"{\n"
-"       gl_Position = vec4(fragPosition, 0.0, 1.0);\n"
-"}\n";
-
-
-static	float _renderVertices[] = {
-	-1.0f, -1.0f,
-	-1.0f,  1.0f,
-	1.0f,  1.0f,
-	1.0f,  1.0f,
-	1.0f, -1.0f,
-	-1.0f, -1.0f,
-};
-static	GLuint _renderCount = 6;
-
 int		KernelProgram::IsExtensionSupported(
  		const char* support_str, const char* ext_string, size_t ext_buffer_size)
 {
@@ -410,7 +317,7 @@ KernelProgram::KernelProgram(void)
 		//load OpenCL contex
 		err[1] = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &_device_id, NULL);
 
-		_context = clCreateContext(ctx_props, 1, &_device_id, NULL, NULL, err + 2);
+		_context = clCreateContext(NULL, 1, &_device_id, NULL, NULL, err + 2);
 		//_context = clCreateContext(NULL, 1, &_device_id, NULL, NULL, err + 2);
 		_queue = clCreateCommandQueue(_context, _device_id, 0, err + 3);
 		_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
@@ -484,7 +391,7 @@ bool			KernelProgram::LoadSourceFile(const std::string & fileName)
 bool			KernelProgram::CompileAndLink(void)
 {
 	///////////////		OpenGL part	///////////////////
-	GLuint		fragmentShaderId;
+/*	GLuint		fragmentShaderId;
 	const char	*fragmentSources[] = {FRAGMENT_SHADER_HEADER};// fichirer en dure 
 	const char	*vertexSources[] = {VERTEX_SHADER_DEFAULT};
    
@@ -519,7 +426,7 @@ bool			KernelProgram::CompileAndLink(void)
 
 	glEnableVertexAttribArray(fragPos);
 
-	glVertexAttribPointer(fragPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*) 0);
+	glVertexAttribPointer(fragPos, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*) 0);*/
 
 
 	//////////////	OpenCL part ///////////////////
@@ -549,17 +456,23 @@ bool			KernelProgram::CompileAndLink(void)
 
 	std::cout << "openGL texture creation" << std::endl;
    /** Create a texture to be displayed as the final image. */
-	glActiveTexture(GL_TEXTURE1);
-//	_screen_tex = SOIL_load_OGL_texture("textures/Kifs1.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS |	SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
-	glGenTextures(1, &_screen_tex);
-    glBindTexture(GL_TEXTURE_2D, _screen_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_size.x, framebuffer_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+//	glActiveTexture(GL_TEXTURE1);
+	//_screen_tex = SOIL_load_OGL_texture("textures/Kifs1.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS |	SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
+//	glGenTextures(1, &_screen_tex);
+//    glBindTexture(GL_TEXTURE_2D, _screen_tex);
+  //  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIN_W, WIN_H, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	std::cout << "Creating buffers" << std::endl;
-	_buff["screen"] = clCreateFromGLTexture(_context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, _screen_tex, 0);
+	//_buff["screen"] = clCreateFromGLTexture(_context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, _screen_tex, 0);
+
+	cl_image_format fmt;
+	fmt.image_channel_order = CL_RGBA;
+	fmt.image_channel_data_type = CL_UNORM_INT8;
+
+	_buff["screen"] = clCreateImage2D(_context, CL_MEM_WRITE_ONLY, &fmt, WIN_W, WIN_H, 0, NULL, err + 10);
 
 	std::cout << "OpenCL buffers" << std::endl;
 	_buff["pt_ifs"] = clCreateBuffer(_context, CL_MEM_READ_WRITE, MAX_GPU_BUFF, NULL, err + 4);
@@ -577,10 +490,10 @@ bool			KernelProgram::CompileAndLink(void)
 	err[16] = clSetKernelArg(_kernels["draw_line"], 2, sizeof(cl_mem), &_buff["col_pt"]);
 	err[17] = clSetKernelArg(_kernels["draw_line"], 3, sizeof(cl_mem), &_buff["ifs_param"]);
 
-	err[7] = clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
+	//err[7] = clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	err[8]	= clSetKernelArg(_kernels["draw_line"], 0, sizeof(cl_mem), &_buff["screen"]);
 	err[19] = clSetKernelArg(_kernels["clear"], 0, sizeof(cl_mem), &_buff["screen"]);
-	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
+	//clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	clFinish(_queue);
 	_loaded = true;
 	std::cout << "compilation OK !" << std::endl;
@@ -597,13 +510,6 @@ void		KernelProgram::Use(void)
 
 void			KernelProgram::CreateVAO(void)
 {
-	glGenBuffers(1, &_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _renderCount * 2, _renderVertices, GL_STATIC_DRAW);
-	glGenVertexArrays(1, &_vao);
-	glBindVertexArray(_vao);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 }
 
 // <---
@@ -651,18 +557,19 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 	{
 //		exit(0);
 	}
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, _screen_tex);
-	int id = glGetUniformLocation(_id, "iChannel0");
-	glUniform1i(id, _screen_tex);
-	id = glGetUniformLocation(_id, "iResolution");
-	glUniform1f(glGetUniformLocation(_id, "iGlobalTime"), glfwGetTime() - __localParams->at("localStartTime"));
-	glUniform2f(id, winSize.x, winSize.y);
+//	glActiveTexture(GL_TEXTURE1);
+//	glBindTexture(GL_TEXTURE_2D, _screen_tex);
+//	int id = glGetUniformLocation(_id, "iChannel0");
+//	glUniform1i(id, _screen_tex);
+//	id = glGetUniformLocation(_id, "iResolution");
+//	glUniform1f(glGetUniformLocation(_id, "iGlobalTime"), glfwGetTime() - __localParams->at("localStartTime"));
+//	glUniform2f(id, winSize.x, winSize.y);
 }
 
 void		KernelProgram::UpdateFramebufferSize(const vec2 fbSize)
 {
-	cl_int	err[5];
+	(void)fbSize;
+	/*cl_int	err[5];
 
 	bzero(err, sizeof(err));
 
@@ -682,7 +589,7 @@ void		KernelProgram::UpdateFramebufferSize(const vec2 fbSize)
 	err[0]	= clSetKernelArg(_kernels["draw_line"], 0, sizeof(cl_mem), &_buff["screen"]);
 	err[1] = clSetKernelArg(_kernels["clear"], 0, sizeof(cl_mem), &_buff["screen"]);
 
-	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
+	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);*/
 }
 
 void		KernelProgram::Draw(void)
@@ -713,14 +620,14 @@ void		KernelProgram::Draw(void)
 		i++;
 	}
 
-	screen[0] = framebuffer_size.x;
-	screen[1] = framebuffer_size.y;
+	screen[0] = WIN_W;
+	screen[1] = WIN_H;
 
 	//////////
 
 //	#------		On draw les ligne dans le buffer partager	------#
 
-	clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
+	//clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	{
 		t = glfwGetTime();
 		std::cout << "\tenqued line draw: " << global_work_size[0] << " groups with " << local_work_size[0] << " threads, total: " << (global_work_size[0] * local_work_size[0]) << std::endl;
@@ -728,7 +635,7 @@ void		KernelProgram::Draw(void)
 		global_work_size[0] = _idPtBuff[_param.nb_iter - 1] - _idPtBuff[_param.nb_iter - 2] - 1;
 		err[2] = clEnqueueNDRangeKernel(_queue, _kernels["draw_line"], 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	}
-	clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
+	//clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	clFinish(_queue);
 	std::cout << "\t\tfinished in " << glfwGetTime() - t << "ms" << std::endl;
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
@@ -737,8 +644,8 @@ void		KernelProgram::Draw(void)
 #ifdef DEBUG
 	std::cout << "drawing program: " << _id << " to " << _vao << "\n";
 #endif
-	glBindVertexArray(_vao);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, _renderCount);
+//	glBindVertexArray(_vao);
+//	glDrawArrays(GL_TRIANGLE_STRIP, 0, _renderCount);
 }
 
 void		KernelProgram::_print_err(cl_int err, std::string msg, int line, std::string func, std::string file)
@@ -851,8 +758,8 @@ void	KernelProgram::setParam(t_ifs_param *param)
 //	set_trans_ovaloid2(&_param, time, anime_trans, 6)
 
 	_param.max_pt = _idPtBuff[_param.nb_iter] - _idPtBuff[_param.nb_iter - 1]; 
-	_param.ecr_x = framebuffer_size.x;
-	_param.ecr_y = framebuffer_size.y;
+	_param.ecr_x = WIN_W;
+	_param.ecr_y = WIN_H;
 	
 
 	memmove(&(param->beg_id), _idPtBuff, sizeof(int) * MAX_ITER);
@@ -1090,7 +997,7 @@ void								KernelProgram::_Ajust_iter()
 void	KernelProgram::_Set_base()
 {
 	float	r;
-	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
+	vec_2	beg = {WIN_W / 2, WIN_H / 2};
 	vec_2	ux = {0, 1};
 	vec_2	uy = {1, 0};
 	vec_2	base[MAX_NODE];
@@ -1121,7 +1028,7 @@ void	KernelProgram::_Set_base()
 
 void	KernelProgram::_SetBaseFix(float prct)
 {
-	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
+	vec_2	beg = {WIN_W / 2, WIN_H / 2};
 	vec_2	base[MAX_NODE];
 
 	bzero(base, sizeof(base));
@@ -1142,7 +1049,7 @@ void	KernelProgram::_SetBaseFix(float prct)
 void								KernelProgram::_SetBasefeuille()
 {
 	float	r;
-	vec_2	beg = {framebuffer_size.x / 2, framebuffer_size.y / 2};
+	vec_2	beg = {WIN_W / 2, WIN_H / 2};
 	vec_2	ux = {0, 1};
 	vec_2	uy = {1, 0};
 	vec_2	base[MAX_NODE];

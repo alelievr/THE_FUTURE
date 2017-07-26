@@ -28,27 +28,11 @@ std::list< std::string > transitionShaders = {
 //	"shaders/transitions/perlinTransition.glsl",
 };
 
-ShaderRender::ShaderRender(void)
+ShaderRender::ShaderRender(bool headless)
 {
 	_programLoaded = false;
 	_currentTransitionIndex = -1;
-
-	//Load transition shaders:
-	for (const std::string & shader : transitionShaders)
-	{
-		ICGProgram	*prog = new ShaderProgram();
-		prog->LoadSourceFile(shader);
-
-		if (!prog->CompileAndLink())
-		{
-			delete prog;
-			std::cout << "transition shader " << shader << " failed to compile !\n";
-		}
-
-		_transitionPrograms.push_back(prog);
-	}
-
-	//init_LuaGL(this);
+	_headless = headless;
 }
 
 static FILE *	ffmpeg = NULL;
@@ -106,17 +90,20 @@ void		ShaderRender::Render(void)
 		}
 	);*/
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (!_headless)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
+		glViewport(0, 0, framebuffer_size.x, framebuffer_size.y);
 
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0, 0, 0, 1);
+		glClear(GL_COLOR_BUFFER_BIT);
 
-	glEnable(GL_MULTISAMPLE);
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_MULTISAMPLE);
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 
 	static int frames = 0;
 
@@ -158,7 +145,8 @@ void		ShaderRender::Render(void)
 #endif
 
 	frames++;
-	glBindTexture(GL_TEXTURE_2D, 0);
+	if (!_headless)
+		glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 bool		ShaderRender::attachShader(const std::string file)

@@ -21,6 +21,7 @@ static bool		threadHasExited = false;
 static bool		fullScreen = false;
 static bool		serverGUINotInitialized = true;
 static bool		stressTest = false;
+static bool		headless = false;
 static char *	shaderToLoad = NULL;
 static bool		serverSentAllShadersToLoad;
 static std::list< std::string >	shadersToLoad;
@@ -29,6 +30,7 @@ static struct option longopts[] = {
 	{ "server",     no_argument,            NULL,           1},
 	{ "connection", no_argument,			NULL, 			'c'},
 	{ "nonetwork",  required_argument,      NULL,           'n'},
+	{ "headless",   no_argument,            NULL,           2},
 	{ NULL,         0,                      NULL,           0}
 };
 
@@ -48,6 +50,9 @@ static void options(int *ac, char ***av)
             case 1:
                 server = true;
                 break;
+			case 2:
+				headless = true;
+				break ;
 			case 'f':
 				fullScreen = true;
 				break ;
@@ -225,7 +230,7 @@ int		main(int ac, char **av)
 	{
 		if (noNetwork)
 		{
-			ShaderApplication		app(fullScreen);
+			ShaderApplication		app(fullScreen, headless);
 
 			app.LoadShader(shaderToLoad);
 			app.loadingShaders = false;
