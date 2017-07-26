@@ -25,6 +25,7 @@ ShaderApplication::ShaderApplication(bool fullScreen, bool headless)
 		//GLFW and shaderRender initializations
 		if (!glfwInit())
 			printf("glfwInit error !\n"), exit(-1);
+
 		glfwWindowHint (GLFW_SAMPLES, 4);
 		glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);

@@ -8,7 +8,7 @@
 #define KO 1024lu
 #define MO KO * 1024lu
 #define GO MO * 1024lu
-#define MAX_GPU_BUFF (4000 * MO) 
+#define MAX_GPU_BUFF (1000 * MO) 
 
 static bool		contextLoaded = false;
 
@@ -259,6 +259,18 @@ static	const	float	tr18[][8]{
  {1.000000, 0.000000, -0.075070, 0.106746, -0.100053, -0.059760, 1.888112, 0.000000}
 };
 
+#include <chrono>
+static float	GetTime()
+{
+	typedef std::chrono::high_resolution_clock clock;
+	typedef std::chrono::duration<float, std::milli> duration;
+
+	static clock::time_point start = clock::now();
+	duration elapsed = clock::now() - start;
+	return elapsed.count();
+}
+
+
 int		KernelProgram::IsExtensionSupported(
  		const char* support_str, const char* ext_string, size_t ext_buffer_size)
 {
@@ -503,7 +515,7 @@ bool			KernelProgram::CompileAndLink(void)
 void		KernelProgram::Use(void)
 {
 	if (_firstUse)
-		__localParams->at("localStartTime") = glfwGetTime(), _firstUse = false;
+		__localParams->at("localStartTime") = GetTime(), _firstUse = false;
 	glUseProgram(_id);
 }
 
@@ -525,7 +537,7 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 
 	
 
-	_time = (glfwGetTime() - __localParams->at("localStartTime")) / 4;
+	_time = (GetTime() - __localParams->at("localStartTime")) / 4;
 	id_anime = (0 + (int)(_time / 15)) % 18;
 
 //	id_anime = 12;
@@ -562,7 +574,7 @@ void		KernelProgram::UpdateUniforms(const vec2 winSize, bool pass)
 //	int id = glGetUniformLocation(_id, "iChannel0");
 //	glUniform1i(id, _screen_tex);
 //	id = glGetUniformLocation(_id, "iResolution");
-//	glUniform1f(glGetUniformLocation(_id, "iGlobalTime"), glfwGetTime() - __localParams->at("localStartTime"));
+//	glUniform1f(glGetUniformLocation(_id, "iGlobalTime"), GetTime() - __localParams->at("localStartTime"));
 //	glUniform2f(id, winSize.x, winSize.y);
 }
 
@@ -598,8 +610,8 @@ void		KernelProgram::Draw(void)
 	float				t;
 
 	if (lastDraw != 0)
-		std::cout << "ms per frame: " << glfwGetTime() - lastDraw << std::endl;
-	lastDraw = glfwGetTime();
+		std::cout << "ms per frame: " << GetTime() - lastDraw << std::endl;
+	lastDraw = GetTime();
 	// -------- on lance le calcul des point
 	cl_int		err[3];
 	size_t		screen[2];
@@ -610,7 +622,7 @@ void		KernelProgram::Draw(void)
 	_SetIdPtBuff();
 	bzero(err, sizeof(err));
 	i = 1;	
-	t = glfwGetTime();
+	t = GetTime();
 	while (i < _param.nb_iter)
 	{
 		global_work_size[0] = _idPtBuff[i + 1] - _idPtBuff[i];
@@ -629,7 +641,6 @@ void		KernelProgram::Draw(void)
 
 	//clEnqueueAcquireGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	{
-		t = glfwGetTime();
 		std::cout << "\tenqued line draw: " << global_work_size[0] << " groups with " << local_work_size[0] << " threads, total: " << (global_work_size[0] * local_work_size[0]) << std::endl;
 		clEnqueueNDRangeKernel(_queue, _kernels["clear"], 2, NULL, screen, NULL, 0, NULL, NULL);
 		global_work_size[0] = _idPtBuff[_param.nb_iter - 1] - _idPtBuff[_param.nb_iter - 2] - 1;
@@ -637,7 +648,7 @@ void		KernelProgram::Draw(void)
 	}
 	//clEnqueueReleaseGLObjects(_queue, 1, &_buff["screen"], 0, NULL, NULL);
 	clFinish(_queue);
-	std::cout << "\t\tfinished in " << glfwGetTime() - t << "ms" << std::endl;
+	printf("\t\tfinished in %.4fms\n", (GetTime() - t) / 1000.f);
 	_check_err_tab(err, sizeof(err) / sizeof(cl_int), __func__, __FILE__);
 //	#------		On affiche le buffer avec OpenGL	------#
 
@@ -751,7 +762,7 @@ void	set_trans_ovaloid2(t_ifs_param *param, float time, float trans[][8], int si
 void	KernelProgram::setParam(t_ifs_param *param)
 {
 	(void)param;
-	float time = glfwGetTime() - __localParams->at("localStartTime");
+	float time = GetTime() - __localParams->at("localStartTime");
 
 //	set_trans_raw(param);
 	set_trans_ovaloid(param, time);
