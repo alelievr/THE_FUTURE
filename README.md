@@ -1,6 +1,6 @@
 # THE_FUTURE
 
-Network program to render concurently shaders on multiple clients.
+Network program to render synchronously shaders on multiple clients with a sever as controller. It was used dring the Artistik Rezo party in 42 as animation in the e1 cluster.
 
 ## Installation
 ### Linux
@@ -29,7 +29,28 @@ iChannel[0-7] | texture channels
 
 ## Images
 
-![](https://image.noelshack.com/fichiers/2017/29/1/1500292196-rsz-p6270490.jpg)
+### Before the party (testing)
+
+![](https://image.noelshack.com/fichiers/2017/48/4/1512058471-dsc-0823-jpg.jpg)\
+Server with the map of the cluster:\
+![](https://image.noelshack.com/fichiers/2017/48/4/1512058471-dsc-0828-jpg.jpg)
+![](https://image.noelshack.com/fichiers/2017/48/4/1512058471-dsc-0849-jpg.jpg)\
+Kaleido block:\
+![](https://image.noelshack.com/fichiers/2017/48/4/1512058471-dsc-0833-jpg.jpg)\
+Weird block:\
+![](https://image.noelshack.com/fichiers/2017/48/4/1512058471-dsc-0851-jpg.jpg)
+
+
+### During the party
+
+Raymarched block:\
+![](https://image.noelshack.com/fichiers/2017/29/1/1500292196-rsz-p6270490.jpg)\
+![](https://image.noelshack.com/fichiers/2017/48/4/1512054299-1500292777-rsz-2p6270491.png)
+Tunnel block:\
 ![](https://image.noelshack.com/fichiers/2017/29/1/1500292346-capture-d-ecran-2017-07-17-a-13-48-26.png)
-![](https://image.noelshack.com/fichiers/2017/29/1/1500292777-rsz-2p6270491.jpg)
-![](https://image.noelshack.com/fichiers/2017/29/1/1500292664-rsz-p6270493.jpg)
+![](https://image.noelshack.com/fichiers/2017/29/1/1500292664-rsz-p6270493.jpg)\
+![](https://image.noelshack.com/fichiers/2017/48/4/1512058473-dsc-0873-jpg.jpg)\
+Tunnels block:\
+![](https://image.noelshack.com/fichiers/2017/48/4/1512058472-dsc-0871-jpg.jpg)\
+2D Fractal block:\
+![](https://image.noelshack.com/fichiers/2017/48/4/1512058473-dsc-0878-jpg.jpg)
