@@ -27,6 +27,40 @@ iResolution | dynamic resolution of the window
 iGlobalTime | time in sec and form the program startup
 iChannel[0-7] | texture channels
 
+## Developed notions
++ Server:
++ + Graphic:
++ + + Cluster control interface with status display for each Imacs.
++ + + Change render group parameters from this interface (sync, render move, displayed shaders ...).
++ + configuration:
++ + + Config directory to specify the render group of each Imacs.
++ + + Simple scripting language for the render loop of each groups.
+
++ + Networking:
++ + + Cluster scan to find all connected clients.
++ + + render group synchronization with local computed timestamp.
++ + + Debug tool to check the IP and position of each Imacs.
+
++ client:
++ + Graphic : 
++ + + Renderbuffers OpenGl
++ + + Volumetric lighting
++ + + Raymarching based coloring (AO, blackbody, lighting ...)
++ + + Post processing (bloom, ...)
++ + + 2D fractals (newton, ribbon, ...)
++ + + Fractale 3D (Mandelbox)
++ + + Real time on GTX 660M (mac)
++ + + sharing context OpenGl/OpenCl
++ + + IFS OpenCl
++ + Networking: 
++ + + Simple communication protocol for server-client communication (UDP based)
++ + + Asynchronous server commands (never block the main thead) 
++ + + Cluster scan to find a server else, wait for a server
++ + + Hot reload for shaders and parameters (uniforms)
++ + other:
++ + + Deployment script to target each Imacs of the cluster with one command.
+
+
 ## Images
 
 ### Before the party (testing)
