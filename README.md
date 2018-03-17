@@ -63,6 +63,8 @@ iChannel[0-7] | texture channels
 
 ## Images
 
+If some images are cutted due to github image cahcing system, you can [check them out here](https://infotechfrance-my.sharepoint.com/:f:/g/personal/a_lelievre_infotech_fr/EisItCWaV-pKi1nLveC5i3IB64-Cx7dFNOXwaS4mBh4kIQ?e=UnAmjO).
+
 ### Before the party (testing)
 
 ![](https://image.noelshack.com/fichiers/2017/48/4/1512058471-dsc-0823-jpg.jpg)\
