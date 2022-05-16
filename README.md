@@ -75,6 +75,8 @@ Server with the map of the cluster:
 Kaleido block:
 ![224233df-99fa-4cb9-801a-56bd57cbed63](https://user-images.githubusercontent.com/6877923/168648443-d64eaadf-f885-452e-b1f4-2e42e4a2dee6.jpg)
 
+Fractals:
+![876340a2-b69a-4032-8ebd-df51d0a90d40](https://user-images.githubusercontent.com/6877923/168648176-23dce223-467e-4208-b2cd-e0e9ad8aae11.jpg)
 
 ### During the party
 
@@ -86,7 +88,6 @@ Tunnels block:
 
 2D Fractal block:
 ![eee010de-d445-4aab-94ab-2c592b5a913e](https://user-images.githubusercontent.com/6877923/168648050-3fe8caee-be47-4861-ac65-6b3b30289d3a.jpg)
-![876340a2-b69a-4032-8ebd-df51d0a90d40](https://user-images.githubusercontent.com/6877923/168648176-23dce223-467e-4208-b2cd-e0e9ad8aae11.jpg)
 
 Others:
 ![46daf591-14c4-4222-93ca-5f1d64ebdcdd](https://user-images.githubusercontent.com/6877923/168648346-ab96350a-7251-4bb7-b6ec-7f2c03b0a30e.jpg)
